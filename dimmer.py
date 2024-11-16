@@ -1,3 +1,6 @@
+# Need to use pigpio for HW dimmer control.  Software libraries such as lgpio results in major flicking.
+
+
 import pigpio
 
 class Dimmer:
@@ -13,7 +16,7 @@ class Dimmer:
 
     def set_level(self, level) -> None:
         """
-        Sets the dimming level.  THe level must range from 0 to 255 inclusive.
+        Sets the dimming level.  The level must range from 0 to 255 inclusive.
 
         :param level: Value from 0 (off) through 255 (full brightness).
         :raises: ValueError

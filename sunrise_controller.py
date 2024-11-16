@@ -1,5 +1,7 @@
 from threading import Timer
 import time
+import signal
+import sys
 
 brightness_level:int = 0
 
@@ -16,24 +18,30 @@ def button3_press(channel):
 def button4_press(channel):
     pass
 
-def turn_off_gate():
-    #  GPIO.output(triac_gate_gpio, GPIO.HIGH)
-    pass
-
-
-def zero_cross(channel):
-    global brightness_level
-    # Turn off triac gate since we are at zero crossing
-    if brightness_level > 0:
-        # Calculate delay and start timer
-        ms_delay = 2_000 + (8_000 - (80 * brightness_level))
-        interval_sec = int(ms_delay / 1000)
-        #  GPIO.output(triac_gate_gpio, GPIO.HIGH)
-        t = Timer(interval_sec, turn_off_gate)
-        t.start()
 
 
 class SunriseController:
-    def __init__(self, view, settings):
+    def __init__(self, view, data, dimmer):
         self.view = view
-        self.settings = settings
+        self.data = data
+        self.dimmer = dimmer
+        signal.signal(signal.SIGINT, self.signal_handler)
+
+
+    def start_schedule(self):
+        pass
+
+    def set_schedule(self):
+        pass
+
+    def cancel_schedule(self):
+        pass
+
+    def set_clock(self):
+        pass
+
+    def signal_handler(self, sig, frame):
+        # shutdown()
+        sys.exit(0)
+
+
