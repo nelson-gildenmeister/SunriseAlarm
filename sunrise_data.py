@@ -3,26 +3,37 @@ import json
 from dataclasses import dataclass
 
 class SunriseSettings:
-    def __init__(self):
-        self.auto_enabled: bool = False
-        self.monday_start: str = ""
-        self.tuesday_start: str = ""
-        self.wednesday_start: str = ""
-        self.thursday_start: str = ""
-        self.friday_start: str = ""
-        self.saturday_start: str = ""
-        self.sunday_start: str = ""
-        self.weekday_start: str = ""
-        self.weekend_start: str = ""
-        self.monday_duration: int = 60
-        self.tuesday_duration: int = 60
-        self.wednesday_duration: int = 60
-        self.thursday_duration: int = 60
-        self.friday_duration: int = 60
-        self.saturday_duration: int = 60
-        self.sunday_duration: int = 60
-        self.weekday_duration: int = 60
-        self.weekend_duration: int = 60
+    def __init__(self, auto_enabled, monday_start, tuesday_start, wednesday_start, thursday_start, friday_start,
+                 saturday_start, sunday_start, weekday_start, weekend_start, monday_duration, tuesday_duration,
+                 wednesday_duration, thursday_duration, friday_duration, saturday_duration, sunday_duration,
+                 weekday_duration, weekend_duration):
+        self.auto_enabled: bool = auto_enabled
+        self.monday_start: str = monday_start
+        self.tuesday_start: str = tuesday_start
+        self.wednesday_start: str = wednesday_start
+        self.thursday_start: str = thursday_start
+        self.friday_start: str = friday_start
+        self.saturday_start: str = saturday_start
+        self.sunday_start: str = sunday_start
+        self.weekday_start: str = weekday_start
+        self.weekend_start: str = weekend_start
+        self.monday_duration: int = monday_duration
+        self.tuesday_duration: int = tuesday_duration
+        self.wednesday_duration: int = wednesday_duration
+        self.thursday_duration: int = thursday_duration
+        self.friday_duration: int = friday_duration
+        self.saturday_duration: int = saturday_duration
+        self.sunday_duration: int = sunday_duration
+        self.weekday_duration: int = weekday_duration
+        self.weekend_duration: int = weekend_duration
+
+
+def setting_decoder(obj):
+    if '__type__' in obj and obj['__type__'] == 'SunriseSettings':
+        return SunriseSettings(obj['auto_enabled'], obj['weekday_start'], obj['weekend_start'],
+                               obj['weekday_duration'],  obj['weekend_duration'])
+    return obj
+
 
 class SunriseData:
     def __init__(self):
@@ -30,10 +41,13 @@ class SunriseData:
         self.settings: SunriseSettings = self.load_settings()
 
     def save_settings(self):
-        with open('data.txt', 'w') as out_file:
-            json.dump(self.settings, out_file, sort_keys=True, indent=4,
+        with open('settings2.json', 'w') as out_file:
+            s = vars(self.settings)
+            s["__type__"] = 'SunriseSettings'
+            json.dump(s, out_file, sort_keys=True, indent=4,
                       ensure_ascii=False)
 
     def load_settings(self):
-        with open('data.txt', 'r') as in_file:
-            return json.load(in_file)
+        with open('settings.json', 'r') as in_file:
+            j = json.load(in_file, object_hook=setting_decoder)
+            return j
