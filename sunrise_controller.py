@@ -1,16 +1,17 @@
-import datetime as dt
 import signal
 import sys
 from threading import Timer
+import datetime as dt
 
 from dimmer import Dimmer
-from sunrise_data import SunriseData
+from sunrise_data import SunriseData, SunriseSettings
 
 
 class SunriseController:
     def __init__(self, view, data, dimmer):
         self.view = view
         self.data: SunriseData = data
+        self.settings: SunriseSettings = data.settings
         self.dimmer: Dimmer = dimmer
         signal.signal(signal.SIGINT, self.signal_handler)
         self.start: dt.datetime = dt.datetime.now()
@@ -19,11 +20,19 @@ class SunriseController:
         self.startup()
 
     def startup(self):
-        # If mode is "program", kick off the appropriate action
-        if self.data.settings.is_program_mode():
-            # Either sunrise start is in the future or are in the middle of a sunrise.
-            # First, get the day and time of the next scheduled sunrise.
-            pass
+        if not self.settings.is_program_running():
+            return
+
+        # Either sunrise start is in the future or are in the middle of a sunrise.
+        # First, get the day and time of the next scheduled sunrise.
+        now = dt.datetime.now()
+        weekday = now.weekday()
+
+        if self.settings.minutes[weekday] > 0:
+            start_time = dt.datetime.strptime(self.settings.start_time[weekday], "%H:%M:%S")
+            if (start_time > now.time()) and ()
+
+        pass
 
     def start_schedule(self):
         # Calculate the end time based upon current time and length
