@@ -1,6 +1,7 @@
 {
 	"__type__": "SunriseSettings",
 	"auto_enabled": false,
+	"mode": "manual",
 	"monday_start": "0",
 	"tuesday_start": "0",
 	"wednesday_start": "0",

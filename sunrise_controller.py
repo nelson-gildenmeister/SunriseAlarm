@@ -16,7 +16,14 @@ class SunriseController:
         self.start: dt.datetime = dt.datetime.now()
         self.cancel: bool = False
         self.sec_per_step: int = 0
+        self.startup()
 
+    def startup(self):
+        # If mode is "program", kick off the appropriate action
+        if self.data.settings.is_program_mode():
+            # Either sunrise start is in the future or are in the middle of a sunrise.
+            # First, get the day and time of the next scheduled sunrise.
+            pass
 
     def start_schedule(self):
         # Calculate the end time based upon current time and length
@@ -28,13 +35,11 @@ class SunriseController:
         # events that can end the loop early like cancel or shutdown.
         self.check_schedule()
 
-
     def check_schedule(self):
         if (self.dimmer.get_level() < self.dimmer.get_max_level()) and not self.cancel:
             self.dimmer.increment_level()
             t = Timer(self.sec_per_step, self.check_schedule)
             t.start()
-
 
     def set_schedule(self):
         pass
@@ -61,5 +66,3 @@ class SunriseController:
     def signal_handler(self, sig, frame):
         self.dimmer.shutdown()
         sys.exit(0)
-
-
