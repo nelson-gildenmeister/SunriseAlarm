@@ -30,8 +30,12 @@ class SunriseSettings:
 
 def setting_decoder(obj):
     if '__type__' in obj and obj['__type__'] == 'SunriseSettings':
-        return SunriseSettings(obj['auto_enabled'], obj['weekday_start'], obj['weekend_start'],
-                               obj['weekday_duration'],  obj['weekend_duration'])
+        return SunriseSettings(obj['auto_enabled'], obj['monday_start'], obj['tuesday_start'], obj['wednesday_start'],
+                               obj['thursday_start'], obj['friday_start'], obj['saturday_start'], obj['sunday_start'],
+                               obj['weekday_start'], obj['weekend_start'], obj['monday_duration'],
+                               obj['tuesday_duration'], obj['wednesday_duration'], obj['thursday_duration'],
+                               obj['friday_duration'], obj['saturday_duration'], obj['sunday_duration'],
+                               obj['weekday_duration'], obj['weekend_duration'])
     return obj
 
 
