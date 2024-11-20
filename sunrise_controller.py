@@ -30,7 +30,9 @@ class SunriseController:
 
         if self.settings.minutes[weekday] > 0:
             start_time = dt.datetime.strptime(self.settings.start_time[weekday], "%H:%M:%S")
-            if (start_time > now.time()) and ()
+            if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
+                pass
+
 
         pass
 

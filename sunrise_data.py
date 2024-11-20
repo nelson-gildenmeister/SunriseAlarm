@@ -5,11 +5,11 @@ from sunrise_main import start_display_time
 
 
 class SunriseSettings:
-    def __init__(self, auto_enabled, mode, start_time, minutes):
+    def __init__(self, auto_enabled, mode, start_time: list[str], minutes: list[int]):
         self.auto_enabled: bool = auto_enabled
         self.mode: str = mode
-        self.start_time: [str] = start_time
-        self.minutes: [int] = minutes
+        self.start_time: list[str] = start_time
+        self.minutes: list[int] = minutes
 
 
     def is_program_running(self) -> bool:
