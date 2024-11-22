@@ -4,11 +4,12 @@ from threading import Timer
 import datetime as dt
 
 from dimmer import Dimmer
-from sunrise_data import SunriseData, SunriseSettings
+from sunrise_data import SunriseData, SunriseSettings, DisplayMode
+from sunrise_view import OledDisplay
 
 
 class SunriseController:
-    def __init__(self, view, data, dimmer):
+    def __init__(self, view: OledDisplay, data, dimmer):
         self.view = view
         self.data: SunriseData = data
         self.settings: SunriseSettings = data.settings
@@ -17,11 +18,11 @@ class SunriseController:
         self.start: dt.datetime = dt.datetime.now()
         self.cancel: bool = False
         self.sec_per_step: int = 0
-        self.startup()
 
     def startup(self):
-        if not self.settings.is_program_running():
-            return
+        # TODO - Hook up button gpio pins to their event handlers
+
+        display_mode = DisplayMode.idle
 
         # Either sunrise start is in the future or are in the middle of a sunrise.
         # First, get the day and time of the next scheduled sunrise.
@@ -33,17 +34,14 @@ class SunriseController:
             if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
                 pass
 
+        self.data.set_display_mode(display_mode)
 
-        pass
 
     def start_schedule(self):
         # Calculate the end time based upon current time and length
         self.start = dt.datetime.now()
         self.sec_per_step: int = int(self.data.sunrise_duration_minutes.seconds / self.dimmer.get_num_steps())
         self.dimmer.set_level(self.dimmer.get_min_level())
-
-        # Loop until schedule time ends, sleeping until need to change brightness.  Check for
-        # events that can end the loop early like cancel or shutdown.
         self.check_schedule()
 
     def check_schedule(self):
@@ -59,11 +57,17 @@ class SunriseController:
         self.cancel = True
         self.dimmer.set_level(self.dimmer.get_min_level())
 
+
+    def set_display_on(self, mode):
+        self.data.set_display_mode(mode)
+        self.view
+
     def set_clock(self):
         pass
 
     def button1_press(self, channel):
-        pass
+        if not self.data.is_display_on():
+            self.data.
 
     def button2_press(self, channel):
         pass

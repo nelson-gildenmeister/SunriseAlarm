@@ -10,7 +10,6 @@
 
 import subprocess
 import time
-import typing as t
 
 import adafruit_ssd1306
 import busio
@@ -33,16 +32,22 @@ class OledDisplay:
         # to the right size for your display!
         self.disp = adafruit_ssd1306.SSD1306_I2C(128, 32, self.i2c)
 
+        # Create blank image for drawing.
         # Make sure to create image with mode '1' for 1-bit color.
         self.width = self.disp.width
         self.height = self.disp.height
-        image = Image.new("1", (self.width, self.height))
+        self.image = Image.new("1", (self.width, self.height))
 
         # Get drawing object to draw on image.
-        self.draw:ImageDraw = ImageDraw.Draw(image)
+        self.draw:ImageDraw = ImageDraw.Draw(self.image)
 
         # Load default font.
         self.font = ImageFont.load_default()
+
+        # Alternatively load a TTF font.  Make sure the .ttf font file is in the
+        # same directory as the python script!
+        # Some other nice fonts to try: http://www.dafont.com/bitmap.php
+        # font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 9)
 
         self.clear_display()
 
@@ -74,18 +79,18 @@ class OledDisplay:
             status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
         # Write four lines of text.
-        self.draw.text((x, top + 0), "SUNRISE ALARM", font=font, fill=255)
+        self.draw.text((x, top + 0), "SUNRISE ALARM", font=self.font, fill=255)
         self.draw.text((x, top + 8), date, font=font, fill=255)
-        self.draw.text((x, top + 16), "Status: " + status_str[x_pos:], font=font, fill=255)
-        self.draw.text((x, top + 25), "Select   <   >   Back", font=font, fill=255)
+        self.draw.text((x, top + 16), "Status: " + status_str[x_pos:], font=self.font, fill=255)
+        self.draw.text((x, top + 25), "Select   <   >   Back", font=self.font, fill=255)
 
         self.x_pos = self.x_pos + 1
         if self.x_pos >= len(status_str):
             x_pos = 0
 
         # Display image.
-        disp.image(image)
-        disp.show()
+        self.disp.image(self.image)
+        self.disp.show()
         # Keep status up longer if at start of status message.
         if self.x_pos == 0:
             time.sleep(1.0)
@@ -113,9 +118,13 @@ class OledDisplay:
         return False
 
 
-
     # Public method to turn display on
     def turn_display_on(self):
         self.start_display_time = time.time()
         self.display_on = True
         self.update_status_display()
+
+    def shutdown(self):
+        # Blank display on stop
+        self.disp.fill(0)
+        self.disp.show()
