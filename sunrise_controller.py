@@ -29,6 +29,7 @@ class SunriseController:
         self.start: dt.datetime = dt.datetime.now()
         self.cancel: bool = False
         self.sec_per_step: int = 0
+        self.is_running: bool = False
 
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
@@ -44,6 +45,9 @@ class SunriseController:
             start_time = dt.datetime.strptime(self.settings.start_time[weekday], "%H:%M:%S")
             if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
                 # TODO - In the middle of sunrise, set to proper level
+                minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[weekday])).minute
+                percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
+                self.start_schedule(percent_brightness)
                 pass
             elif start_time < now:
                 # Sunrise start is today but in the future, set up an event to start
@@ -52,21 +56,24 @@ class SunriseController:
             # No scheduled time for today, look for the next scheduled time and set up an event for it
             # Start tomorrow. Be sure to wrap around if end of week (Sunday)
             day_index = (weekday + 1) % DayOfWeek.Sunday.value
-            for day in range(7):
+            for day in range(DayOfWeek.Sunday.value-1):
                 if self.settings.start_time[day_index]:
                     self.schedule_sunrise_start(self.settings.start_time[weekday])
                     break
                 day_index = (day_index + 1) % DayOfWeek.Sunday.value
 
-
         self.data.set_display_mode(display_mode)
 
 
-    def start_schedule(self):
+    def start_schedule(self, starting_percentage: int = 0):
+        self.is_running = True
         # Calculate the end time based upon current time and length
         self.start = dt.datetime.now()
         self.sec_per_step: int = int(self.data.sunrise_duration_minutes.seconds / self.dimmer.get_num_steps())
-        self.dimmer.set_level(self.dimmer.get_min_level())
+        start_level = self.dimmer.get_min_level()
+        if starting_percentage > 0:
+            start_level = int(self.dimmer.get_max_level() * starting_percentage)
+        self.dimmer.set_level(start_level)
         self.check_schedule()
 
     def check_schedule(self):
@@ -74,6 +81,7 @@ class SunriseController:
             self.dimmer.increment_level()
             t = Timer(self.sec_per_step, self.check_schedule)
             t.start()
+        self.is_running = False
 
     def set_schedule(self):
         pass
@@ -105,7 +113,10 @@ class SunriseController:
 
     def button1_press(self, channel):
         if not self.data.is_display_on():
-            self.data.
+            if self.is_running:
+                self.data.set_display_mode(DisplayMode.running)
+            else:
+                self.data.set_display_mode(DisplayMode.idle)
 
     def button2_press(self, channel):
         pass
