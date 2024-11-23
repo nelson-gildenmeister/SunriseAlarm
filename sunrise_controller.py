@@ -1,14 +1,15 @@
+import datetime as dt
 import signal
 import sys
-from threading import Timer
-import datetime as dt
-import sched
 import time
+from enum import Enum
+from sched import scheduler
+from threading import Timer
 
 from dimmer import Dimmer
-from enum import Enum
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
+
 
 class DayOfWeek(Enum):
     Monday = 0
@@ -19,8 +20,10 @@ class DayOfWeek(Enum):
     Saturday = 5
     Sunday = 6
 
+
 class SunriseController:
     def __init__(self, view: OledDisplay, data, dimmer):
+        self.sunrise_event_id = None
         self.view = view
         self.data: SunriseData = data
         self.settings: SunriseSettings = data.settings
@@ -56,14 +59,13 @@ class SunriseController:
             # No scheduled time for today, look for the next scheduled time and set up an event for it
             # Start tomorrow. Be sure to wrap around if end of week (Sunday)
             day_index = (weekday + 1) % DayOfWeek.Sunday.value
-            for day in range(DayOfWeek.Sunday.value-1):
+            for day in range(DayOfWeek.Sunday.value - 1):
                 if self.settings.start_time[day_index]:
                     self.schedule_sunrise_start(self.settings.start_time[weekday])
                     break
                 day_index = (day_index + 1) % DayOfWeek.Sunday.value
 
         self.data.set_display_mode(display_mode)
-
 
     def start_schedule(self, starting_percentage: int = 0):
         self.is_running = True
@@ -87,26 +89,26 @@ class SunriseController:
         pass
 
     def cancel_schedule(self):
+        if self.sunrise_event_id:
+            scheduler.cancel(self.sunrise_event_id)
+        self.sunrise_event_id = None
         self.cancel = True
         self.dimmer.set_level(self.dimmer.get_min_level())
 
-
     def schedule_sunrise_start(self, start_time):
         # Create a new scheduler
-        scheduler = sched.scheduler(time.time, time.sleep)
+        sunrise_scheduler = scheduler(time.time, time.sleep)
 
         # Schedule the backup to run at 1:00 AM every day
-        #backup_time = time.strptime('01:00:00', '%H:%M:%S')
-        backup_time = time.strptime('01:00:00', '%H:%M:%S')
-        backup_event = scheduler.enterabs(time.mktime(backup_time), 1, self.start_schedule, ())
+        start_time = time.strptime(start_time, '%H:%M:%S')
+        self.sunrise_event_id = sunrise_scheduler.enterabs(time.mktime(start_time), 1, self.start_schedule, ())
 
         # Start the scheduler
-        scheduler.run()
-
+        sunrise_scheduler.run()
 
     def set_display_on(self, mode):
         self.data.set_display_mode(mode)
-        self.view
+        self.view.turn_display_on()
 
     def set_clock(self):
         pass
