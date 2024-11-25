@@ -2,6 +2,7 @@ import datetime as dt
 import signal
 import sys
 import time
+from dataclasses import dataclass
 from enum import Enum
 from sched import scheduler
 from threading import Timer
@@ -19,6 +20,23 @@ class DayOfWeek(Enum):
     Friday = 4
     Saturday = 5
     Sunday = 6
+
+class DisplayStateName(Enum):
+    IdleNoProg = 0
+    IdleProgSet = 1
+
+@dataclass
+class DisplayState:
+    button_states = {'idle_no_prog': ['Menu', 'On', 'Off', 'Dim'],
+                     'idle_prog_set': ['Menu', 'On', 'Off', 'Dim'],
+                     'running': ['Menu', 'On', 'Off', 'Dim'],
+                     'in_progress': ['Menu', 'On', 'Off', 'Dim']
+                     'main_menu': ['Sel', '<', '>', 'Bck' ]}
+    status_menus = {'main_menu'}
+    status = {'idle_no_prog': 'No sunrise program set',
+              'idle_prog_set': 'Next sunrise starts in: %1',
+              'in_progress': 'Sunrise started %1 minutes ago...%2 minutes remaining',
+              'main_menu': ''}
 
 
 class SunriseController:
@@ -45,7 +63,7 @@ class SunriseController:
         weekday = now.weekday()
 
         if self.settings.start_time[weekday]:
-            start_time = dt.datetime.strptime(self.settings.start_time[weekday], "%H:%M:%S")
+            start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M:%S')
             if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
                 # TODO - In the middle of sunrise, set to proper level
                 minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[weekday])).minute
@@ -113,21 +131,33 @@ class SunriseController:
     def set_clock(self):
         pass
 
-    def button1_press(self, channel):
+    def display_on(self) -> bool:
         if not self.data.is_display_on():
             if self.is_running:
                 self.data.set_display_mode(DisplayMode.running)
             else:
                 self.data.set_display_mode(DisplayMode.idle)
 
+            return False
+
+        return True
+
+    def button1_press(self, channel):
+        if not self.display_on():
+            return
+
+
     def button2_press(self, channel):
-        pass
+        if not self.display_on():
+            return
 
     def button3_press(self, channel):
-        pass
+        if not self.display_on():
+            return
 
     def button4_press(self, channel):
-        pass
+        if not self.display_on():
+            return
 
     def signal_handler(self, sig, frame):
         self.dimmer.shutdown()
