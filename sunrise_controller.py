@@ -21,22 +21,25 @@ class DayOfWeek(Enum):
     Saturday = 5
     Sunday = 6
 
-class DisplayStateName(Enum):
+class State(Enum):
     IdleNoProg = 0
     IdleProgSet = 1
+    InProgress = 2
+    MainMenu = 3
+
+
 
 @dataclass
 class DisplayState:
-    button_states = {'idle_no_prog': ['Menu', 'On', 'Off', 'Dim'],
+    button_states = {State.IdleNoProg: ['Menu', 'On', 'Off', 'Dim'],
                      'idle_prog_set': ['Menu', 'On', 'Off', 'Dim'],
-                     'running': ['Menu', 'On', 'Off', 'Dim'],
-                     'in_progress': ['Menu', 'On', 'Off', 'Dim']
+                     'in_progress': ['Menu', 'On', 'Off', 'Dim'],
                      'main_menu': ['Sel', '<', '>', 'Bck' ]}
     status_menus = {'main_menu'}
-    status = {'idle_no_prog': 'No sunrise program set',
-              'idle_prog_set': 'Next sunrise starts in: %1',
-              'in_progress': 'Sunrise started %1 minutes ago...%2 minutes remaining',
-              'main_menu': ''}
+    status = {'idle_no_prog': ['No sunrise program set'],
+              'idle_prog_set': ['Next sunrise starts in: %1'],
+              'in_progress': ['Sunrise started %1 minutes ago...%2 minutes remaining'],
+              'main_menu': ['Set Schedule', 'Set Clock']}
 
 
 class SunriseController:
