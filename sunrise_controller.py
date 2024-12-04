@@ -28,7 +28,6 @@ class State(Enum):
     MainMenu = 3
 
 
-
 @dataclass
 class DisplayState:
     button_states = {State.IdleNoProg: ['Menu', 'On', 'Off', 'Dim'],
@@ -58,7 +57,9 @@ class SunriseController:
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
 
+        # Default to idle
         display_mode = DisplayMode.idle
+
 
         # Either sunrise start is in the future or are in the middle of a sunrise.
         # First, get the day and time of the next scheduled sunrise.
@@ -68,11 +69,11 @@ class SunriseController:
         if self.settings.start_time[weekday]:
             start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M:%S')
             if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
-                # TODO - In the middle of sunrise, set to proper level
+                # In the middle of sunrise, set to proper level
+                display_mode = DisplayMode.running
                 minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[weekday])).minute
                 percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
                 self.start_schedule(percent_brightness)
-                pass
             elif start_time < now:
                 # Sunrise start is today but in the future, set up an event to start
                 self.schedule_sunrise_start(self.settings.start_time[weekday])
@@ -87,6 +88,7 @@ class SunriseController:
                 day_index = (day_index + 1) % DayOfWeek.Sunday.value
 
         self.data.set_display_mode(display_mode)
+
 
     def start_schedule(self, starting_percentage: int = 0):
         self.is_running = True
@@ -127,9 +129,6 @@ class SunriseController:
         # Start the scheduler
         sunrise_scheduler.run()
 
-    def set_display_on(self, mode):
-        self.data.set_display_mode(mode)
-        self.view.turn_display_on()
 
     def set_clock(self):
         pass
@@ -144,6 +143,13 @@ class SunriseController:
             return False
 
         return True
+
+    def display_run(self):
+        # Display event loop - run until display is off
+        self.view.turn_display_on()
+        while self.data.is_display_on():
+            self.view.update_display()
+
 
     def button1_press(self, channel):
         if not self.display_on():
@@ -165,3 +171,14 @@ class SunriseController:
     def signal_handler(self, sig, frame):
         self.dimmer.shutdown()
         sys.exit(0)
+
+    def update_status(self):
+        current = time.time()
+        elapsed_minutes = int((current - start_time) / 60)
+        remain_minutes = int(end_time - elapsed_minutes)
+        if elapsed_minutes == 0:
+            status_str = f"Sunrise just started...less than {end_time} minutes remaining"
+        elif remain_minutes <= 0:
+            status_str = "Waiting for next sunrise"
+        else:
+            status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"

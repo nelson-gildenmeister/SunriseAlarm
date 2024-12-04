@@ -2,7 +2,6 @@ import datetime as dt
 import json
 from enum import Enum
 
-from sunrise_main import start_display_time
 
 class DisplayMode(Enum):
     off = 0
@@ -62,3 +61,6 @@ class SunriseData:
 
     def set_display_mode(self, mode: DisplayMode):
         self.display_mode = mode
+
+    def set_display_status(self, status: str):
+        self

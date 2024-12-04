@@ -18,10 +18,11 @@ from board import SCL, SDA
 
 
 class OledDisplay:
-    def __init__(self, display_auto_power_off_minutes):
-        self.display_on:bool = True
-        self.display_auto_power_off_minutes:float  = display_auto_power_off_minutes
-        self.start_display_time:float = time.time()
+    def __init__(self, display_auto_power_off_minutes: int, debug: bool):
+        self.debug = debug
+        self.display_on: bool = True
+        self.display_auto_power_off_minutes: float  = display_auto_power_off_minutes
+        self.start_display_time: float = time.time()
         self.x_pos:int = 0
 
         # Create the I2C interface.
@@ -36,6 +37,7 @@ class OledDisplay:
         # Make sure to create image with mode '1' for 1-bit color.
         self.width = self.disp.width
         self.height = self.disp.height
+        self.padding = -2
         self.image = Image.new("1", (self.width, self.height))
 
         # Get drawing object to draw on image.
@@ -57,31 +59,32 @@ class OledDisplay:
         self.disp.show()
 
 
-    def update_status_display(self, start_time, end_time):
+
+    def update_display(self, status: str):
+        if self.debug:
+            print(f"{status}")
+            return
+
+        # See if auto-power off
+        if not self.is_display_on():
+            return
+
+        top = self.padding
+        bottom = self.height - self.padding
+        # Move left to right keeping track of the current x position for drawing shapes.
+        x = 0
         # Draw a black filled box to clear the image.
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
         cmd = "date \"+%a, %b %d  %I:%M\""
         date = subprocess.check_output(cmd, shell=True).decode("utf-8")
 
-        # See if auto-power off
-        if not self.is_display_on():
-            return
 
-        current = time.time()
-        elapsed_minutes = int((current - start_time) / 60)
-        remain_minutes = int(end_time - elapsed_minutes)
-        if elapsed_minutes == 0:
-            status_str = f"Sunrise just started...less than {end_time} minutes remaining"
-        elif remain_minutes <= 0:
-            status_str = "Waiting for next sunrise"
-        else:
-            status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
         # Write four lines of text.
         self.draw.text((x, top + 0), "SUNRISE ALARM", font=self.font, fill=255)
-        self.draw.text((x, top + 8), date, font=font, fill=255)
-        self.draw.text((x, top + 16), "Status: " + status_str[x_pos:], font=self.font, fill=255)
+        self.draw.text((x, top + 8), date, font=self.font, fill=255)
+        self.draw.text((x, top + 16), "Status: " + status_str[self.x_pos:], font=self.font, fill=255)
         self.draw.text((x, top + 25), "Select   <   >   Back", font=self.font, fill=255)
 
         self.x_pos = self.x_pos + 1
@@ -96,8 +99,6 @@ class OledDisplay:
             time.sleep(1.0)
         else:
             time.sleep(0.1)
-
-
 
 
     # Determine whether display has been on past the maximum on time.
@@ -122,7 +123,7 @@ class OledDisplay:
     def turn_display_on(self):
         self.start_display_time = time.time()
         self.display_on = True
-        self.update_status_display()
+        self.display_running()
 
     def shutdown(self):
         # Blank display on stop
