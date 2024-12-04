@@ -70,7 +70,7 @@ class OledDisplay:
             return
 
         top = self.padding
-        bottom = self.height - self.padding
+        #bottom = self.height - self.padding
         # Move left to right keeping track of the current x position for drawing shapes.
         x = 0
         # Draw a black filled box to clear the image.
@@ -84,12 +84,12 @@ class OledDisplay:
         # Write four lines of text.
         self.draw.text((x, top + 0), "SUNRISE ALARM", font=self.font, fill=255)
         self.draw.text((x, top + 8), date, font=self.font, fill=255)
-        self.draw.text((x, top + 16), "Status: " + status_str[self.x_pos:], font=self.font, fill=255)
+        self.draw.text((x, top + 16), "Status: " + status[self.x_pos:], font=self.font, fill=255)
         self.draw.text((x, top + 25), "Select   <   >   Back", font=self.font, fill=255)
 
         self.x_pos = self.x_pos + 1
-        if self.x_pos >= len(status_str):
-            x_pos = 0
+        if self.x_pos >= len(status):
+            self.x_pos = 0
 
         # Display image.
         self.disp.image(self.image)
@@ -123,7 +123,6 @@ class OledDisplay:
     def turn_display_on(self):
         self.start_display_time = time.time()
         self.display_on = True
-        self.display_running()
 
     def shutdown(self):
         # Blank display on stop
