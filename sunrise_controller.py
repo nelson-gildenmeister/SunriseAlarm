@@ -76,33 +76,39 @@ class SunriseController:
                 display_mode = DisplayMode.running
                 minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[weekday])).minute
                 percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
-                self.start_schedule(percent_brightness)
+                self.start_schedule(minutes_remaining, percent_brightness)
             elif start_time < now:
                 # Sunrise start is today but in the future, set up an event to start
                 # TODO - Debug - put back
-                # self.schedule_sunrise_start(self.settings.start_time[weekday])
+                # self.schedule_sunrise_start(self.settings.start_time[weekday], self.settings.minutes[weekday])
                 print(f"Starting schedule. Duration: {self.settings.minutes[weekday]}")
-                self.start_schedule()
+                self.start_schedule(self.settings.minutes[weekday], 50)
         else:
             # No scheduled time for today, look for the next scheduled time and set up an event for it
             # Start tomorrow. Be sure to wrap around if end of week (Sunday)
             day_index = (weekday + 1) % DayOfWeek.Sunday.value
             for day in range(DayOfWeek.Sunday.value - 1):
                 if self.settings.start_time[day_index]:
-                    self.schedule_sunrise_start(self.settings.start_time[weekday])
+                    self.schedule_sunrise_start(self.settings.start_time[weekday], self.settings.minutes[weekday])
                     break
                 day_index = (day_index + 1) % DayOfWeek.Sunday.value
 
         self.data.set_display_mode(display_mode)
+        while True:
+            time.sleep(10)
 
-    def start_schedule(self, starting_percentage: int = 0):
+    def start_schedule(self, duration_minutes: int, starting_percentage: int = 0):
         self.is_running = True
+        self.dimmer.enable()
         # Calculate the end time based upon current time and length
         self.start = dt.datetime.now()
-        self.sec_per_step: int = int(self.data.sunrise_duration_minutes.seconds / self.dimmer.get_num_steps())
+        self.sec_per_step: int = int((duration_minutes * 60) / self.dimmer.get_num_steps())
+        # Minimum is 1 second per step no matter what the duration
+        if self.sec_per_step == 0:
+            self.sec_per_step = 1
         start_level = self.dimmer.get_min_level()
         if starting_percentage > 0:
-            start_level = int(self.dimmer.get_max_level() * starting_percentage)
+            start_level = int(self.dimmer.get_max_level() * (starting_percentage * 0.01))
         self.dimmer.set_level(start_level)
         self.check_schedule()
 
@@ -134,13 +140,14 @@ class SunriseController:
             self.cancel = True
             self.dimmer.set_level(self.dimmer.get_min_level())
 
-    def schedule_sunrise_start(self, start_time):
+    def schedule_sunrise_start(self, start_time: str, duration_minutes: int):
         # Create a new scheduler
         self.sunrise_scheduler = scheduler(time.time, time.sleep)
 
         # Schedule the start
         start_time = time.strptime(start_time, '%H:%M')
-        self.sunrise_event = self.sunrise_scheduler.enterabs(time.mktime(start_time), 1, self.start_schedule, ())
+        self.sunrise_event = self.sunrise_scheduler.enterabs(time.mktime(start_time), 1,
+                                                             self.start_schedule, (duration_minutes,))
 
         # Start the scheduler
         self.sunrise_scheduler.run()

@@ -32,7 +32,7 @@ def setting_decoder(obj):
 
 class SunriseData:
     def __init__(self):
-        self.sunrise_duration_minutes: dt.timedelta = dt.timedelta(minutes=0)
+        #self.sunrise_duration_minutes: dt.timedelta = dt.timedelta(minutes=0)
         self.sunrise_settings_filename = "settings.json"
         self.settings: SunriseSettings = self.load_settings()
         self.display_mode: DisplayMode = DisplayMode.idle
