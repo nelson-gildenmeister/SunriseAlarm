@@ -6,7 +6,7 @@ from sunrise_view import OledDisplay
 
 
 if __name__ == '__main__':
-    oled = OledDisplay(3)
+    oled = OledDisplay(3, True)
     data = SunriseData()
     dimmer = Dimmer()
     ctrl = SunriseController(view=oled, data=data, dimmer=dimmer)
