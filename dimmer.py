@@ -72,3 +72,5 @@ class Dimmer:
     def increment_level(self):
         if self.dutycycle < self.__max_dutycycle__:
             self.dutycycle = self.dutycycle + 1
+            print(f'Setting duty cycle to {self.dutycycle}')
+            self.pi.set_PWM_dutycycle(self.pwm_gpio, self.dutycycle)

@@ -95,7 +95,7 @@ class SunriseController:
         if self.settings.start_time[weekday]:
             # TODO - put this line back in after done testing
             # start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
-            st = '10:05'
+            st = '10:19'
             start_time = dt.datetime.strptime(st, '%H:%M')
             if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
                 # In the middle of sunrise, set to proper level
@@ -153,6 +153,7 @@ class SunriseController:
             t.start()
         else:
             # Either we are done or cancelled
+            print("Sunrise complete")
             self.is_running = False
             self.cancel = False
             self.dimmer.turn_off()
