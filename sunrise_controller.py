@@ -95,7 +95,8 @@ class SunriseController:
         if self.settings.start_time[weekday]:
             # TODO - put this line back in after done testing
             # start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
-            start_time = dt.datetime.strptime('09:55', '%H:%M')
+            st = '10:00'
+            start_time = dt.datetime.strptime(st, '%H:%M')
             if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
                 # In the middle of sunrise, set to proper level
                 display_mode = DisplayMode.running
@@ -105,8 +106,10 @@ class SunriseController:
                 self.start_schedule(minutes_remaining, 50)
             elif start_time < now:
                 # Sunrise start is today but in the future, set up an event to start
-                print(f'Scheduling start at: {self.settings.start_time[weekday]}')
-                dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
+                # print(f'Scheduling start at: {self.settings.start_time[weekday]}')
+                # dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
+                print(f'Scheduling start at: {start_time.time()}')
+                dt_start = calc_start_datetime(st, 0)
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
                 #print(f"Starting schedule. Duration: {self.settings.minutes[weekday]}")
                 #self.start_schedule(self.settings.minutes[weekday], 0)
