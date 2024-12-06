@@ -1,6 +1,7 @@
 import datetime as dt
 import signal
 import sys
+import threading
 import time
 from dataclasses import dataclass
 from enum import Enum
@@ -69,11 +70,11 @@ class SunriseController:
         self.data: SunriseData = data
         self.settings: SunriseSettings = data.settings
         self.dimmer: Dimmer = dimmer
-        signal.signal(signal.SIGINT, self.signal_handler)
         self.start: dt.datetime = dt.datetime.now()
         self.cancel: bool = False
         self.sec_per_step: int = 0
         self.is_running: bool = False
+        self.ctrl_event: threading.Event = threading.Event()
 
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
@@ -81,8 +82,10 @@ class SunriseController:
         self.handle_schedule_change()
 
         while True:
-            # TODO - Block waiting for an event that is set whenever as sunrise completes or schedule is changed
-            pass
+            # Block waiting for an event that is set whenever as sunrise completes or schedule is changed
+            self.ctrl_event.wait()
+            self.handle_schedule_change()
+
 
     def handle_schedule_change(self):
         # Default to idle
@@ -209,6 +212,8 @@ class SunriseController:
         self.view.turn_display_on()
         while self.data.is_display_on():
             self.view.update_display("TODO")
+            # TODO - check for flag set to interrupt current display updates due to changing mode
+            time.sleep(1)
 
     def button1_press(self, channel):
         if not self.display_on():
@@ -226,9 +231,8 @@ class SunriseController:
         if not self.display_on():
             return
 
-    def signal_handler(self, sig, frame):
+    def shutdown(self, sig, frame):
         self.dimmer.shutdown()
-        sys.exit(0)
 
     # def update_status(self):
     #     current = time.time()
