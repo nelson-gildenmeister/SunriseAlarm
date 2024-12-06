@@ -93,20 +93,21 @@ class SunriseController:
         now = dt.datetime.now()
         weekday = now.weekday()
         if self.settings.start_time[weekday]:
-            start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
+            #start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
+            dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
             #st = '10:22'
             #start_time = dt.datetime.strptime(st, '%H:%M')
-            if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
+            if (dt_start > now) and (dt_start < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
                 # In the middle of sunrise, set to proper level
+                print('In the middle of sunrise...')
                 display_mode = DisplayMode.running
                 minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[weekday])).minute
                 #percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
                 #self.start_schedule(minutes_remaining, percent_brightness)
                 self.start_schedule(minutes_remaining, 50)
-            elif start_time < now:
+            elif dt_start < now:
                 # Sunrise start is today but in the future, set up an event to start
-                print(f'Scheduling start at: {self.settings.start_time[weekday]}')
-                dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
+                print(f'Scheduling start today at: {self.settings.start_time[weekday]}')
                 #print(f'Scheduling start at: {start_time.time()}')
                 #dt_start = calc_start_datetime(st, 0)
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
@@ -118,8 +119,8 @@ class SunriseController:
             day_increment = 1
             for day in range(DayOfWeek.Sunday.value):
                 if self.settings.start_time[day_index]:
-                    print(f"Setting schedule. Start: {self.settings.start_time[weekday]}")
                     dt_start = calc_start_datetime(self.settings.start_time[weekday], day_increment)
+                    print(f'Scheduling future start: {dt_start}')
                     self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
                     break
                 day_index = (day_index + 1) % DayOfWeek.Sunday.value
