@@ -95,7 +95,7 @@ class SunriseController:
         if self.settings.start_time[weekday]:
             # TODO - put this line back in after done testing
             # start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
-            st = '10:19'
+            st = '10:22'
             start_time = dt.datetime.strptime(st, '%H:%M')
             if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
                 # In the middle of sunrise, set to proper level
@@ -183,7 +183,7 @@ class SunriseController:
         #epoch_start_time = time.mktime(time.strptime(start_time, '%H:%M'))
         epoch_start_time = start_time.timestamp()
         self.sunrise_event = self.sunrise_scheduler.enterabs(epoch_start_time, 1,
-                                                             self.start_schedule, (duration_minutes, 50))
+                                                             self.start_schedule, (duration_minutes, ))
 
         # Start the scheduler
         self.sunrise_scheduler.run()
