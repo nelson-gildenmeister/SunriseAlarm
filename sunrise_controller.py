@@ -176,7 +176,7 @@ class SunriseController:
 
         # Schedule the start
         #epoch_start_time = time.mktime(time.strptime(start_time, '%H:%M'))
-        epoch_start_time = dt.datetime.timestamp()
+        epoch_start_time = start_time.timestamp()
         self.sunrise_event = self.sunrise_scheduler.enterabs(epoch_start_time, 1,
                                                              self.start_schedule, (duration_minutes,))
 
