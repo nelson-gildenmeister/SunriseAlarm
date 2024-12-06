@@ -81,7 +81,7 @@ class SunriseController:
         self.handle_schedule_change()
 
         while True:
-            # TODO - Block waiting for an event that is set whenever schedule is changed
+            # TODO - Block waiting for an event that is set whenever as sunrise completes or schedule is changed
             pass
 
     def handle_schedule_change(self):
@@ -157,6 +157,8 @@ class SunriseController:
             self.is_running = False
             self.cancel = False
             self.dimmer.turn_off()
+
+            # TODO - Send Event to startup() loop so that it can schedule the next sunrise
 
     def set_schedule(self):
         pass
