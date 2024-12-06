@@ -86,13 +86,12 @@ class SunriseController:
 
     def handle_schedule_change(self):
         # Default to idle
-        display_mode = DisplayMode.idle
-
-        # Either sunrise start is in the future or are in the middle of a sunrise.
-        # First, get the day and time of the next scheduled sunrise.
+        self.data.set_display_mode(DisplayMode.idle)
         now = dt.datetime.now()
         weekday = now.weekday()
+
         if self.settings.start_time[weekday]:
+            # There is a sunrise scheduled for today. Handle cases where we are in the middle or happens later.
             #start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
             dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
             #st = '10:22'
@@ -105,28 +104,31 @@ class SunriseController:
                 #percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
                 #self.start_schedule(minutes_remaining, percent_brightness)
                 self.start_schedule(minutes_remaining, 50)
-            elif dt_start < now:
+                return
+            elif dt_start > now:
                 # Sunrise start is today but in the future, set up an event to start
                 print(f'Scheduling start today at: {self.settings.start_time[weekday]}')
                 #print(f'Scheduling start at: {start_time.time()}')
                 #dt_start = calc_start_datetime(st, 0)
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
-        else:
-            # No scheduled time for today, look for the next scheduled time and set up an event for it
-            # Start tomorrow. Be sure to wrap around if end of week (Sunday) and include today's day in
-            # case it is the only scheduled time (i.e., next week on same day)
-            day_index = (weekday + 1) % DayOfWeek.Sunday.value
-            day_increment = 1
-            for day in range(DayOfWeek.Sunday.value):
-                if self.settings.start_time[day_index]:
-                    dt_start = calc_start_datetime(self.settings.start_time[weekday], day_increment)
-                    print(f'Scheduling future start: {dt_start}')
-                    self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
-                    break
-                day_index = (day_index + 1) % DayOfWeek.Sunday.value
-                day_increment = day_increment + 1
 
-        self.data.set_display_mode(display_mode)
+                return
+
+        # Look for the next scheduled time and set up an event for it.
+        # Start tomorrow. Be sure to wrap around if end of week (Sunday) and include today's day in
+        # case it is the only scheduled time (i.e., next week on same day)
+        day_index = (weekday + 1) % DayOfWeek.Sunday.value
+        day_increment = 1
+        for day in range(DayOfWeek.Sunday.value):
+            if self.settings.start_time[day_index]:
+                dt_start = calc_start_datetime(self.settings.start_time[weekday], day_increment)
+                print(f'Scheduling future start: {dt_start}')
+                self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
+                break
+            day_index = (day_index + 1) % DayOfWeek.Sunday.value
+            day_increment = day_increment + 1
+
+
 
     def start_schedule(self, duration_minutes: int, starting_percentage: int = 0):
         print('Sunrise starting....')
