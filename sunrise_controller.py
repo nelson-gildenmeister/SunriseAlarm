@@ -93,10 +93,9 @@ class SunriseController:
         now = dt.datetime.now()
         weekday = now.weekday()
         if self.settings.start_time[weekday]:
-            # TODO - put this line back in after done testing
-            # start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
-            st = '10:22'
-            start_time = dt.datetime.strptime(st, '%H:%M')
+            start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
+            #st = '10:22'
+            #start_time = dt.datetime.strptime(st, '%H:%M')
             if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
                 # In the middle of sunrise, set to proper level
                 display_mode = DisplayMode.running
