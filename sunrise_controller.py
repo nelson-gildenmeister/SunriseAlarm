@@ -48,7 +48,7 @@ def calc_start_datetime(start_time: str, increment_from_today: int) -> dt.dateti
     day = dt.datetime.now().day
     year = dt.datetime.now().year
 
-    start = f'{year} {month} {day} {start_time}'
+    start = f'{month} {day} {year} {start_time}'
     wtm = time.strptime(start, '%m %d %Y %H:%M')
     print(f'wtm: {wtm}')
 
@@ -95,7 +95,7 @@ class SunriseController:
         if self.settings.start_time[weekday]:
             # TODO - put this line back in after done testing
             # start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
-            start_time = dt.datetime.strptime('09:45', '%H:%M')
+            start_time = dt.datetime.strptime('09:55', '%H:%M')
             if (start_time > now) and (start_time < (now + dt.timedelta(minutes=self.settings.minutes[weekday]))):
                 # In the middle of sunrise, set to proper level
                 display_mode = DisplayMode.running
