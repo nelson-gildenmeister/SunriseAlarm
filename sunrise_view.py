@@ -96,8 +96,10 @@ class OledDisplay:
         self.disp.show()
         # Keep status up longer if at start of status message.
         if self.x_pos == 0:
-            time.sleep(1.0)
+            # Back to beginning of status - return to check for status updates
+            return
         else:
+            # TODO - check data flag to see if need to interrupt status scroll
             time.sleep(0.1)
 
 
