@@ -105,13 +105,11 @@ class SunriseController:
                 self.start_schedule(minutes_remaining, 50)
             elif start_time < now:
                 # Sunrise start is today but in the future, set up an event to start
-                # print(f'Scheduling start at: {self.settings.start_time[weekday]}')
-                # dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
-                print(f'Scheduling start at: {start_time.time()}')
-                dt_start = calc_start_datetime(st, 0)
+                print(f'Scheduling start at: {self.settings.start_time[weekday]}')
+                dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
+                #print(f'Scheduling start at: {start_time.time()}')
+                #dt_start = calc_start_datetime(st, 0)
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
-                #print(f"Starting schedule. Duration: {self.settings.minutes[weekday]}")
-                #self.start_schedule(self.settings.minutes[weekday], 0)
         else:
             # No scheduled time for today, look for the next scheduled time and set up an event for it
             # Start tomorrow. Be sure to wrap around if end of week (Sunday) and include today's day in
