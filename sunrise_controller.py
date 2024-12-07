@@ -79,12 +79,15 @@ class SunriseController:
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
 
+        self.display_run()
+
         self.handle_schedule_change()
 
         while True:
-            # Block waiting for an event that is set whenever as sunrise completes or schedule is changed
+            # Block waiting for an event that is set whenever a sunrise completes or schedule is changed.
             self.ctrl_event.wait()
             self.handle_schedule_change()
+            print("GOT EVENT!!!!!!!!!!!!")
 
 
     def handle_schedule_change(self):
@@ -94,11 +97,11 @@ class SunriseController:
         weekday = now.weekday()
 
         if self.settings.start_time[weekday]:
-            # There is a sunrise scheduled for today. Handle cases where we are in the middle or happens later.
-            #start_time = dt.datetime.strptime(self.settings.start_time[weekday], '%H:%M')
+            # There is a sunrise scheduled for today.
+            # Handle 2 cases: 1) In the middle of a sunrise , 2) scheduled for later today.
+            # No need to do anything if already missed today's schedule sunrise.
             dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
-            #st = '10:22'
-            #start_time = dt.datetime.strptime(st, '%H:%M')
+
             if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.minutes[weekday])):
                 # In the middle of sunrise, set to proper level
                 print('In the middle of sunrise...')
@@ -114,10 +117,9 @@ class SunriseController:
                 #print(f'Scheduling start at: {start_time.time()}')
                 #dt_start = calc_start_datetime(st, 0)
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
-
                 return
 
-        # Look for the next scheduled time and set up an event for it.
+        # Look for the next scheduled sunrise and set up an event for it.
         # Start tomorrow. Be sure to wrap around if end of week (Sunday) and include today's day in
         # case it is the only scheduled time (i.e., next week on same day)
         day_index = (weekday + 1) % DayOfWeek.Sunday.value
@@ -131,13 +133,11 @@ class SunriseController:
             day_index = (day_index + 1) % DayOfWeek.Sunday.value
             day_increment = day_increment + 1
 
-
-
     def start_schedule(self, duration_minutes: int, starting_percentage: int = 0):
         print('Sunrise starting....')
         self.is_running = True
         self.dimmer.enable()
-        # Calculate the end time based upon current time and length
+        # Calculate the end time based upon current time and duration setting.
         self.start = dt.datetime.now()
         self.sec_per_step: int = int((duration_minutes * 60) / self.dimmer.get_num_steps())
         # Minimum is 1 second per step no matter what the duration
@@ -160,8 +160,7 @@ class SunriseController:
             self.is_running = False
             self.cancel = False
             self.dimmer.turn_off()
-
-            # TODO - Send Event to startup() loop so that it can schedule the next sunrise
+            self.ctrl_event.set()
 
     def set_schedule(self):
         pass
@@ -211,7 +210,7 @@ class SunriseController:
         # Display event loop - run until display is off
         self.view.turn_display_on()
         while self.data.is_display_on():
-            self.view.update_display("TODO")
+            self.view.update_display()
             # TODO - check for flag set to interrupt current display updates due to changing mode
             time.sleep(1)
 

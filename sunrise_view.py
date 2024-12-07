@@ -21,9 +21,9 @@ class OledDisplay:
     def __init__(self, display_auto_power_off_minutes: int, debug: bool):
         self.debug = debug
         self.display_on: bool = True
-        self.display_auto_power_off_minutes: float  = display_auto_power_off_minutes
+        self.display_auto_power_off_minutes: float = display_auto_power_off_minutes
         self.start_display_time: float = time.time()
-        self.x_pos:int = 0
+        self.x_pos: int = 0
 
         # Create the I2C interface.
         self.i2c = busio.I2C(SCL, SDA)
@@ -41,7 +41,7 @@ class OledDisplay:
         self.image = Image.new("1", (self.width, self.height))
 
         # Get drawing object to draw on image.
-        self.draw:ImageDraw = ImageDraw.Draw(self.image)
+        self.draw: ImageDraw = ImageDraw.Draw(self.image)
 
         # Load default font.
         self.font = ImageFont.load_default()
@@ -53,24 +53,18 @@ class OledDisplay:
 
         self.clear_display()
 
-
     def clear_display(self):
         self.disp.fill(0)
         self.disp.show()
 
-
-
-    def update_display(self, status: str):
-        if self.debug:
-            print(f"{status}")
-            return
-
+    def update_display(self, first_line: str = "", second_line: str = "", third_line: str = "", fourth_line: str = "",
+                       third_line_scroll: bool = True):
         # See if auto-power off
         if not self.is_display_on():
             return
 
         top = self.padding
-        #bottom = self.height - self.padding
+        # bottom = self.height - self.padding
         # Move left to right keeping track of the current x position for drawing shapes.
         x = 0
         # Draw a black filled box to clear the image.
@@ -79,21 +73,33 @@ class OledDisplay:
         cmd = "date \"+%a, %b %d  %I:%M\""
         date = subprocess.check_output(cmd, shell=True).decode("utf-8")
 
-
+        # Set display lines
+        self.x_pos = 0
+        if not first_line:
+            first_line = 'SleepyEyes Sunrise Alarm'
+        if not second_line:
+            second_line = date
+        if not third_line:
+            third_line = 'Idle - no sunrise scheduled'
+        if not fourth_line:
+            fourth_line = 'Menu   On   Off    Dim'
 
         # Write four lines of text.
-        self.draw.text((x, top + 0), "EarlyRiser Sunrise Alarm", font=self.font, fill=255)
-        self.draw.text((x, top + 8), date, font=self.font, fill=255)
-        self.draw.text((x, top + 16), "Status: " + status[self.x_pos:], font=self.font, fill=255)
-        self.draw.text((x, top + 25), "Select   <   >   Back", font=self.font, fill=255)
-
-        self.x_pos = self.x_pos + 1
-        if self.x_pos >= len(status):
-            self.x_pos = 0
+        self.draw.text((x, top + 0), first_line, font=self.font, fill=255)
+        self.draw.text((x, top + 8), second_line, font=self.font, fill=255)
+        self.draw.text((x, top + 16), third_line[self.x_pos:], font=self.font, fill=255)
+        self.draw.text((x, top + 25), fourth_line, font=self.font, fill=255)
 
         # Display image.
         self.disp.image(self.image)
         self.disp.show()
+
+        if third_line_scroll:
+            self.x_pos = self.x_pos + 1
+            if self.x_pos >= len(third_line):
+                self.x_pos = 0
+            if
+
         # Keep status up longer if at start of status message.
         if self.x_pos == 0:
             # Back to beginning of status - return to check for status updates
@@ -101,7 +107,6 @@ class OledDisplay:
         else:
             # TODO - check data flag to see if need to interrupt status scroll
             time.sleep(0.1)
-
 
     # Determine whether display has been on past the maximum on time.
     def is_display_on(self):
@@ -119,7 +124,6 @@ class OledDisplay:
         self.clear_display()
 
         return False
-
 
     # Public method to turn display on
     def turn_display_on(self):
