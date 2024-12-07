@@ -80,6 +80,7 @@ class SunriseController:
         # TODO - Hook up button gpio pins to their event handlers
 
         self.handle_schedule_change()
+        print("finished handle_schedule_change()")
         self.display_run()
         print("Entering Event loop...")
 
@@ -209,6 +210,7 @@ class SunriseController:
         return True
 
     def display_run(self):
+        print("ENTER display_run())")
         # Display event loop - run until display is off
         self.view.turn_display_on()
         while self.data.is_display_on():
