@@ -76,11 +76,12 @@ class OledDisplay:
         # Set display lines
         self.x_pos = 0
         if not first_line:
-            first_line = 'SleepyEyes Sunrise Alarm'
+            first_line = 'Sunrise Alarm'
         if not second_line:
             second_line = date
         if not third_line:
-            third_line = 'Idle - no sunrise scheduled'
+            third_line_scroll = True
+            third_line = 'Idle - No sunrise scheduled'
         if not fourth_line:
             fourth_line = 'Menu   On   Off    Dim'
 
@@ -99,6 +100,7 @@ class OledDisplay:
             if self.x_pos >= len(third_line):
                 self.x_pos = 0
             for self.x_pos in range(1, len(third_line)):
+                # TODO - check flag to see if need to exit for display update
                 time.sleep(0.1)
                 self.draw.text((x, top + 0), first_line, font=self.font, fill=255)
                 self.draw.text((x, top + 8), second_line, font=self.font, fill=255)

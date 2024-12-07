@@ -79,9 +79,8 @@ class SunriseController:
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
 
-        self.display_run()
-
         self.handle_schedule_change()
+        self.display_run()
 
         while True:
             # Block waiting for an event that is set whenever a sunrise completes or schedule is changed.
@@ -211,7 +210,8 @@ class SunriseController:
         self.view.turn_display_on()
         while self.data.is_display_on():
             self.view.update_display()
-            # TODO - check for flag set to interrupt current display updates due to changing mode
+            if self.ctrl_event.is_set():
+                return
             time.sleep(1)
 
     def button1_press(self, channel):
