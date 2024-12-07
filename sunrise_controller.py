@@ -81,6 +81,7 @@ class SunriseController:
 
         self.handle_schedule_change()
         self.display_run()
+        print("Entering Event loop...")
 
         while True:
             # Block waiting for an event that is set whenever a sunrise completes or schedule is changed.
@@ -101,7 +102,9 @@ class SunriseController:
             # No need to do anything if already missed today's schedule sunrise.
             dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
 
-            if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.minutes[weekday])):
+            # Resolution is 1 minute so don't include last minute in check or after finishing sunrise it will think
+            # we are in the middle of one (the last minute).
+            if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.minutes[weekday] - 1)):
                 # In the middle of sunrise, set to proper level
                 print('In the middle of sunrise...')
                 display_mode = DisplayMode.running

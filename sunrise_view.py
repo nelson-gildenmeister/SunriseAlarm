@@ -59,6 +59,7 @@ class OledDisplay:
 
     def update_display(self, first_line: str = "", second_line: str = "", third_line: str = "", fourth_line: str = "",
                        third_line_scroll: bool = True):
+        print('In update_display()')
         # See if auto-power off
         if not self.is_display_on():
             return
@@ -83,7 +84,7 @@ class OledDisplay:
             third_line_scroll = True
             third_line = 'Idle - No sunrise scheduled'
         if not fourth_line:
-            fourth_line = 'Menu   On   Off    Dim'
+            fourth_line = 'Menu   On   Off   Dim'
 
         # Write four lines of text.
         self.draw.text((x, top + 0), first_line, font=self.font, fill=255)
