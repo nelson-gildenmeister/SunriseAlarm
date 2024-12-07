@@ -98,15 +98,13 @@ class OledDisplay:
             self.x_pos = self.x_pos + 1
             if self.x_pos >= len(third_line):
                 self.x_pos = 0
-            if
+            for self.x_pos in range(1, len(third_line)):
+                time.sleep(0.1)
+                self.draw.text((x, top + 0), first_line, font=self.font, fill=255)
+                self.draw.text((x, top + 8), second_line, font=self.font, fill=255)
+                self.draw.text((x, top + 16), third_line[self.x_pos:], font=self.font, fill=255)
+                self.draw.text((x, top + 25), fourth_line, font=self.font, fill=255)
 
-        # Keep status up longer if at start of status message.
-        if self.x_pos == 0:
-            # Back to beginning of status - return to check for status updates
-            return
-        else:
-            # TODO - check data flag to see if need to interrupt status scroll
-            time.sleep(0.1)
 
     # Determine whether display has been on past the maximum on time.
     def is_display_on(self):
