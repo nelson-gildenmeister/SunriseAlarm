@@ -59,7 +59,6 @@ class OledDisplay:
 
     def update_display(self, first_line: str = "", second_line: str = "", third_line: str = "", fourth_line: str = "",
                        third_line_scroll: bool = True):
-        print('In update_display()')
         # See if auto-power off
         if not self.is_display_on():
             return
@@ -97,7 +96,7 @@ class OledDisplay:
         self.disp.show()
 
         if third_line_scroll:
-            self.x_pos = self.x_pos + 1
+            #self.x_pos = self.x_pos + 1
             if self.x_pos >= len(third_line):
                 self.x_pos = 0
             for self.x_pos in range(1, len(third_line)):
@@ -107,6 +106,9 @@ class OledDisplay:
                 self.draw.text((x, top + 8), second_line, font=self.font, fill=255)
                 self.draw.text((x, top + 16), third_line[self.x_pos:], font=self.font, fill=255)
                 self.draw.text((x, top + 25), fourth_line, font=self.font, fill=255)
+                # Display image.
+                self.disp.image(self.image)
+                self.disp.show()
 
 
     # Determine whether display has been on past the maximum on time.
