@@ -82,7 +82,7 @@ class OledDisplay:
 
 
         # Write four lines of text.
-        self.draw.text((x, top + 0), "SUNRISE ALARM", font=self.font, fill=255)
+        self.draw.text((x, top + 0), "EarlyRiser Sunrise Alarm", font=self.font, fill=255)
         self.draw.text((x, top + 8), date, font=self.font, fill=255)
         self.draw.text((x, top + 16), "Status: " + status[self.x_pos:], font=self.font, fill=255)
         self.draw.text((x, top + 25), "Select   <   >   Back", font=self.font, fill=255)

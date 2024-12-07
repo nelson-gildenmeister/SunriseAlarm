@@ -1,4 +1,3 @@
-import datetime as dt
 import json
 from enum import Enum
 
@@ -9,13 +8,24 @@ class DisplayMode(Enum):
     running = 2
     menu = 3
 
+
 class SunriseSettings:
-    def __init__(self, auto_enabled, mode, start_time: list[str], minutes: list[int]):
-        self.auto_enabled: bool = auto_enabled
+
+    def __init__(self, sched_enabled, mode, start_time: list[str], minutes: list[int]):
+        self.sched_enabled: bool = sched_enabled
         self.mode: str = mode
         self.start_time: list[str] = start_time
         self.minutes: list[int] = minutes
-
+        sd = {"Start": 0, "Duration": 0}
+        self.menu = {'Schedule':
+                         {'WkDay': sd,
+                          'WkEnd': sd,
+                          'Day':
+                              {'Monday': sd, 'Tuesday': sd, 'Wednesday': sd, 'Thursday': sd, 'Friday': sd,
+                                          'Saturday': sd, 'Sunday': sd}},
+                     'Clock Set':
+                          {'Date': 0, 'Time': 0},
+                     'WiFi': {'SSID': 0, 'Password': 0}}
 
     def is_program_running(self) -> bool:
         if self.mode == "program":
@@ -23,20 +33,22 @@ class SunriseSettings:
 
         return False
 
+
 def setting_decoder(obj):
     if '__type__' in obj and obj['__type__'] == 'SunriseSettings':
-        return SunriseSettings(obj['auto_enabled'], obj['mode'], obj['start_time'], obj['minutes'])
+        return SunriseSettings(obj['sched_enabled'], obj['mode'], obj['start_time'], obj['minutes'])
 
     return obj
 
 
 class SunriseData:
     def __init__(self):
-        #self.sunrise_duration_minutes: dt.timedelta = dt.timedelta(minutes=0)
+        # self.sunrise_duration_minutes: dt.timedelta = dt.timedelta(minutes=0)
         self.sunrise_settings_filename = "settings.json"
         self.settings: SunriseSettings = self.load_settings()
         self.display_mode: DisplayMode = DisplayMode.idle
         self.display_status_line: str = "Idle"
+        self.display_change: bool = False
 
     def save_settings(self):
         try:
