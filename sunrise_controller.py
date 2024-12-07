@@ -193,7 +193,7 @@ class SunriseController:
                                                              self.start_schedule, (duration_minutes, ))
 
         # Start the scheduler
-        self.sunrise_scheduler.run()
+        self.sunrise_scheduler.run(False)
 
     def set_clock(self):
         pass
