@@ -79,6 +79,7 @@ class SunriseController:
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
 
+        # TODO - must run this in its own thread since it blocks
         self.handle_schedule_change()
         print("finished handle_schedule_change()")
         self.display_run()
@@ -183,6 +184,8 @@ class SunriseController:
             self.dimmer.set_level(self.dimmer.get_min_level())
 
     def schedule_sunrise_start(self, start_time: dt.datetime, duration_minutes: int):
+        # This method blocks so must be run in its own thread
+
         # Create a new scheduler
         self.sunrise_scheduler = scheduler(time.time, time.sleep)
 
@@ -192,8 +195,8 @@ class SunriseController:
         self.sunrise_event = self.sunrise_scheduler.enterabs(epoch_start_time, 1,
                                                              self.start_schedule, (duration_minutes, ))
 
-        # Start the scheduler
-        self.sunrise_scheduler.run(False)
+        # Start the scheduler and block
+        self.sunrise_scheduler.run()
 
     def set_clock(self):
         pass
