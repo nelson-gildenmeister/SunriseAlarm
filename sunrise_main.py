@@ -16,7 +16,8 @@ if __name__ == '__main__':
         data = SunriseData()
         dimmer = Dimmer()
         ctrl = SunriseController(view=oled, data=data, dimmer=dimmer)
-        ctrl.startup()
+        ctrl.start()
+        ctrl.join()
     except KeyboardInterrupt:
         print('Interrupted')
         try:

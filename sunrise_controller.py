@@ -1,13 +1,10 @@
 import datetime as dt
-import signal
-import sys
 import threading
 import time
 from dataclasses import dataclass
 from enum import Enum
 from sched import scheduler, Event
 from threading import Timer
-from multiprocessing.dummy import Pool as ThreadPool
 
 from dimmer import Dimmer
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
@@ -54,15 +51,44 @@ def calc_start_datetime(start_time: str, increment_from_today: int) -> dt.dateti
     epoch_start = time.mktime(wtm)
     dt_start = dt.datetime.fromtimestamp(epoch_start)
 
-    dt_start= dt_start + dt.timedelta(days=increment_from_today)
-    print(f'Calculated Start: {dt_start}')
+    dt_start = dt_start + dt.timedelta(days=increment_from_today)
+    # print(f'Calculated Start: {dt_start}')
     return dt_start
 
 
-class SunriseController:
+class SchedulingThread(threading.Thread):
+    def __init__(self, scheduler):
+        threading.Thread.__init__(self)
+        self.scheduler = scheduler
+
+    def run(self):
+        # This call will block until finished or cancelled
+        self.scheduler.run()
+
+
+class DisplayThread(threading.Thread):
+    def __init__(self, view, data):
+        threading.Thread.__init__(self)
+        self.view = view
+        self.data = data
+
+
+def run(self):
+    print("ENTER display_run())")
+    # Display event loop - run until display is off
+    self.view.turn_display_on()
+    while self.data.is_display_on():
+        self.view.update_display()
+        if self.ctrl_event.is_set():
+            return
+        time.sleep(1)
+
+
+class SunriseController(threading.Thread):
     sunrise_event: Event
 
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
+        threading.Thread.__init__(self)
         self.sunrise_scheduler = None
         self.time_increment_sched: Timer
         self.view = view
@@ -75,26 +101,21 @@ class SunriseController:
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
 
-    def startup(self):
+    def run(self):
         # TODO - Hook up button gpio pins to their event handlers
 
-        # See if we have a schedule to setup or run
-        self.handle_schedule_change()
-
-        print("finished handle_schedule_change(), Starting display")
-        pool = ThreadPool(1)
-        pool.map(self.display_run, [1, ])
-        pool.close()
+        # Start display thread
+        disp_thread = DisplayThread(self.view, self.data)
+        disp_thread.start()
 
         print("Entering Event loop...")
 
         while True:
+            self.handle_schedule_change()
+            print("Event Loop: Waiting for event....")
             # Block waiting for an event that is set whenever a sunrise completes or schedule is changed.
             self.ctrl_event.wait()
             print("GOT EVENT!!!!!!!!!!!!")
-            self.handle_schedule_change()
-
-
 
     def handle_schedule_change(self):
         # Default to idle
@@ -115,15 +136,15 @@ class SunriseController:
                 print('In the middle of sunrise...')
                 display_mode = DisplayMode.running
                 minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[weekday])).minute
-                #percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
-                #self.start_schedule(minutes_remaining, percent_brightness)
+                # percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
+                # self.start_schedule(minutes_remaining, percent_brightness)
                 self.start_schedule(minutes_remaining, 50)
                 return
             elif dt_start > now:
                 # Sunrise start is today but in the future, set up an event to start
                 print(f'Scheduling start today at: {self.settings.start_time[weekday]}')
-                #print(f'Scheduling start at: {start_time.time()}')
-                #dt_start = calc_start_datetime(st, 0)
+                # print(f'Scheduling start at: {start_time.time()}')
+                # dt_start = calc_start_datetime(st, 0)
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
                 return
 
@@ -198,21 +219,14 @@ class SunriseController:
         self.sunrise_scheduler = scheduler(time.time, time.sleep)
 
         # Schedule the start
-        #epoch_start_time = time.mktime(time.strptime(start_time, '%H:%M'))
+        # epoch_start_time = time.mktime(time.strptime(start_time, '%H:%M'))
         epoch_start_time = start_time.timestamp()
         self.sunrise_event = self.sunrise_scheduler.enterabs(epoch_start_time, 1,
-                                                             self.start_schedule, (duration_minutes, ))
+                                                             self.start_schedule, (duration_minutes,))
 
         # Start the scheduler in its own thread so we don't block here
-        pool = ThreadPool(1)
-        pool.map(self.run_scheduler, [1,])
-        print("Made it past scheduler run")
-        #close the pool and wait for the work to finish
-        pool.close()
-        #pool.join()
-
-    def run_scheduler(self, dummy):
-        self.sunrise_scheduler.run()
+        st = SchedulingThread(self.sunrise_scheduler)
+        st.start()
 
     def set_clock(self):
         pass
