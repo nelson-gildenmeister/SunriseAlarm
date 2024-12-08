@@ -45,20 +45,17 @@ class DisplayState:
 
 
 def calc_start_datetime(start_time: str, increment_from_today: int) -> dt.datetime:
-    #start_time = "09:05"
     month = dt.datetime.now().month
     day = dt.datetime.now().day
     year = dt.datetime.now().year
 
     start = f'{month} {day} {year} {start_time}'
     wtm = time.strptime(start, '%m %d %Y %H:%M')
-    print(f'wtm: {wtm}')
-
     epoch_start = time.mktime(wtm)
     dt_start = dt.datetime.fromtimestamp(epoch_start)
 
     dt_start= dt_start + dt.timedelta(days=increment_from_today)
-    print(f'Next Day: {dt_start}')
+    print(f'Calculated Start: {dt_start}')
     return dt_start
 
 
@@ -67,6 +64,7 @@ class SunriseController:
 
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
         self.sunrise_scheduler = None
+        self.time_increment_sched: Timer
         self.view = view
         self.data: SunriseData = data
         self.settings: SunriseSettings = data.settings
@@ -80,17 +78,22 @@ class SunriseController:
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
 
-        # TODO - must run this in its own thread since it blocks
+        # See if we have a schedule to setup or run
         self.handle_schedule_change()
-        print("finished handle_schedule_change()")
-        self.display_run()
+
+        print("finished handle_schedule_change(), Starting display")
+        pool = ThreadPool(1)
+        pool.map(self.display_run, [1, ])
+        pool.close()
+
         print("Entering Event loop...")
 
         while True:
             # Block waiting for an event that is set whenever a sunrise completes or schedule is changed.
             self.ctrl_event.wait()
-            self.handle_schedule_change()
             print("GOT EVENT!!!!!!!!!!!!")
+            self.handle_schedule_change()
+
 
 
     def handle_schedule_change(self):
@@ -157,8 +160,8 @@ class SunriseController:
     def check_schedule(self):
         if (self.dimmer.get_level() < self.dimmer.get_max_level()) and not self.cancel:
             self.dimmer.increment_level()
-            t = Timer(self.sec_per_step, self.check_schedule)
-            t.start()
+            self.time_increment_sched = Timer(self.sec_per_step, self.check_schedule)
+            self.time_increment_sched.start()
         else:
             # Either we are done or cancelled
             print("Sunrise complete")
@@ -180,6 +183,10 @@ class SunriseController:
                 pass
 
         # If scheduled event is running, stop it
+        try:
+            self.time_increment_sched.cancel()
+        except:
+            pass
         if self.is_running:
             self.cancel = True
             self.dimmer.set_level(self.dimmer.get_min_level())
@@ -196,7 +203,7 @@ class SunriseController:
         self.sunrise_event = self.sunrise_scheduler.enterabs(epoch_start_time, 1,
                                                              self.start_schedule, (duration_minutes, ))
 
-        # Start the scheduler and block
+        # Start the scheduler in its own thread so we don't block here
         pool = ThreadPool(1)
         pool.map(self.run_scheduler, [1,])
         print("Made it past scheduler run")
@@ -221,7 +228,7 @@ class SunriseController:
 
         return True
 
-    def display_run(self):
+    def display_run(self, dummy):
         print("ENTER display_run())")
         # Display event loop - run until display is off
         self.view.turn_display_on()
