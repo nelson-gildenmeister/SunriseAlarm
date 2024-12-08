@@ -205,7 +205,7 @@ class SunriseController:
         #pool.join()
 
     def run_scheduler(self, dummy):
-        self.sunrise_scheduler.run
+        self.sunrise_scheduler.run()
 
     def set_clock(self):
         pass
