@@ -74,7 +74,7 @@ class DisplayThread(threading.Thread):
         self.event = event
 
     def run(self):
-        print("ENTER DisplayThread run())")
+        print("ENTER DisplayThread run()")
         # Display event loop - run until display is off
         self.view.turn_display_on()
         while self.data.is_display_on():
@@ -116,6 +116,7 @@ class SunriseController():
             # Block waiting for an event that is set whenever a sunrise completes or schedule is changed.
             self.ctrl_event.wait()
             print("GOT EVENT!!!!!!!!!!!!")
+            self.ctrl_event.clear()
 
     def handle_schedule_change(self):
         # Default to idle
@@ -219,7 +220,6 @@ class SunriseController():
         self.sunrise_scheduler = scheduler(time.time, time.sleep)
 
         # Schedule the start
-        # epoch_start_time = time.mktime(time.strptime(start_time, '%H:%M'))
         epoch_start_time = start_time.timestamp()
         self.sunrise_event = self.sunrise_scheduler.enterabs(epoch_start_time, 1,
                                                              self.start_schedule, (duration_minutes,))
@@ -241,16 +241,6 @@ class SunriseController():
             return False
 
         return True
-
-    def display_run(self, dummy):
-        print("ENTER display_run())")
-        # Display event loop - run until display is off
-        self.view.turn_display_on()
-        while self.data.is_display_on():
-            self.view.update_display()
-            if self.ctrl_event.is_set():
-                return
-            time.sleep(1)
 
     def button1_press(self, channel):
         if not self.display_on():
