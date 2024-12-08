@@ -67,21 +67,21 @@ class SchedulingThread(threading.Thread):
 
 
 class DisplayThread(threading.Thread):
-    def __init__(self, view, data):
+    def __init__(self, view, data, event):
         threading.Thread.__init__(self)
         self.view = view
         self.data = data
+        self.event = event
 
-
-def run(self):
-    print("ENTER display_run())")
-    # Display event loop - run until display is off
-    self.view.turn_display_on()
-    while self.data.is_display_on():
-        self.view.update_display()
-        if self.ctrl_event.is_set():
-            return
-        time.sleep(1)
+    def run(self):
+        print("ENTER DisplayThread run())")
+        # Display event loop - run until display is off
+        self.view.turn_display_on()
+        while self.data.is_display_on():
+            self.view.update_display()
+            if self.event.is_set():
+                return
+            time.sleep(1)
 
 
 class SunriseController():
@@ -105,7 +105,7 @@ class SunriseController():
         # TODO - Hook up button gpio pins to their event handlers
 
         # Start display thread
-        disp_thread = DisplayThread(self.view, self.data)
+        disp_thread = DisplayThread(self.view, self.data, self.ctrl_event)
         disp_thread.start()
 
         print("Entering Event loop...")
