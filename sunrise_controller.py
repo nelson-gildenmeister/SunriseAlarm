@@ -152,15 +152,15 @@ class SunriseController():
         # Look for the next scheduled sunrise and set up an event for it.
         # Start tomorrow. Be sure to wrap around if end of week (Sunday) and include today's day in
         # case it is the only scheduled time (i.e., next week on same day)
-        day_index = (weekday + 1) % DayOfWeek.Sunday.value
+        day_index = (weekday + 1) % (DayOfWeek.Sunday.value + 1)
         day_increment = 1
         for day in range(DayOfWeek.Sunday.value):
             if self.settings.start_time[day_index]:
-                dt_start = calc_start_datetime(self.settings.start_time[weekday], day_increment)
-                print(f'Scheduling future start: {dt_start}')
-                self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
+                dt_start = calc_start_datetime(self.settings.start_time[day_index], day_increment)
+                print(f'Scheduling future start: {dt_start}, duration: {self.settings.minutes[day_index]} minutes')
+                self.schedule_sunrise_start(dt_start, self.settings.minutes[day_index])
                 break
-            day_index = (day_index + 1) % DayOfWeek.Sunday.value
+            day_index = (day_index + 1) % (DayOfWeek.Sunday.value + 1)
             day_increment = day_increment + 1
 
     def start_schedule(self, duration_minutes: int, starting_percentage: int = 0):
@@ -180,8 +180,7 @@ class SunriseController():
         self.check_schedule()
 
     def check_schedule(self):
-        if (self.dimmer.get_level() < self.dimmer.get_max_level()) and not self.cancel:
-            self.dimmer.increment_level()
+        if self.dimmer.increment_level() and not self.cancel:
             self.time_increment_sched = Timer(self.sec_per_step, self.check_schedule)
             self.time_increment_sched.start()
         else:

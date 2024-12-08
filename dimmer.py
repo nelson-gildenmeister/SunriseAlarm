@@ -5,9 +5,7 @@ import pigpio
 
 class Dimmer:
     __frequency__: int = 1000
-    # TODO - Debug
-    #__max_dutycycle__: int = 255
-    __max_dutycycle__: int = 25
+    __max_dutycycle__: int = 255
     __min_dutycycle__: int = 0
     __num_steps__: int = __max_dutycycle__ - __min_dutycycle__
 
@@ -71,8 +69,11 @@ class Dimmer:
     def get_num_steps(self) -> int:
         return self.__num_steps__
 
-    def increment_level(self):
+    def increment_level(self) -> bool:
         if self.dutycycle < self.__max_dutycycle__:
             self.dutycycle = self.dutycycle + 1
             print(f'Setting duty cycle to {self.dutycycle}')
             self.pi.set_PWM_dutycycle(self.pwm_gpio, self.dutycycle)
+            return True
+
+        return False
