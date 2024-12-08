@@ -198,12 +198,14 @@ class SunriseController:
 
         # Start the scheduler and block
         pool = ThreadPool(1)
-        pool.map(self.sunrise_scheduler.run, [None])
+        pool.map(self.run_scheduler, [1,])
         print("Made it past scheduler run")
         #close the pool and wait for the work to finish
         pool.close()
         #pool.join()
 
+    def run_scheduler(self, dummy):
+        self.sunrise_scheduler.run
 
     def set_clock(self):
         pass
