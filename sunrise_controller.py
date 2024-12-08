@@ -84,7 +84,7 @@ def run(self):
         time.sleep(1)
 
 
-class SunriseController(threading.Thread):
+class SunriseController():
     sunrise_event: Event
 
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
@@ -101,7 +101,7 @@ class SunriseController(threading.Thread):
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
 
-    def run(self):
+    def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
 
         # Start display thread
