@@ -28,7 +28,7 @@ class Dimmer:
         :return: None
         """
         if self.is_enabled:
-            if 0 <= level <= __max_dutycycle__:
+            if 0 <= level <= self.__max_dutycycle__:
                 self.dutycycle = level
                 self.pi.set_PWM_dutycycle(self.pwm_gpio, level)
             else:
