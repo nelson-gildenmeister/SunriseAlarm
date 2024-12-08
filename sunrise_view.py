@@ -107,6 +107,7 @@ class OledDisplay:
                 self.draw.text((x, top + 16), third_line[self.x_pos:], font=self.font, fill=255)
                 self.draw.text((x, top + 25), fourth_line, font=self.font, fill=255)
                 # Display image.
+                self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
                 self.disp.image(self.image)
                 self.disp.show()
 
