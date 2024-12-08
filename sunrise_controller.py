@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from sched import scheduler, Event
 from threading import Timer
+from multiprocessing.dummy import Pool as ThreadPool
 
 from dimmer import Dimmer
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
@@ -196,7 +197,13 @@ class SunriseController:
                                                              self.start_schedule, (duration_minutes, ))
 
         # Start the scheduler and block
-        self.sunrise_scheduler.run()
+        pool = ThreadPool(1)
+        pool.map(self.sunrise_scheduler.run, )
+        print("Made it past scheduler run")
+        #close the pool and wait for the work to finish
+        pool.close()
+        #pool.join()
+
 
     def set_clock(self):
         pass
