@@ -18,6 +18,7 @@ from board import SCL, SDA
 
 
 class OledDisplay:
+    __max_line_len__ = 23
     def __init__(self, display_auto_power_off_minutes: int, debug: bool):
         self.debug = debug
         self.display_on: bool = True
@@ -95,17 +96,16 @@ class OledDisplay:
         self.disp.image(self.image)
         self.disp.show()
 
-        if third_line_scroll:
-            #self.x_pos = self.x_pos + 1
-            if self.x_pos >= len(third_line):
-                self.x_pos = 0
-            for self.x_pos in range(1, len(third_line)):
+        if third_line_scroll and len(third_line) > self.__max_line_len__:
+            for self.x_pos in range(1, len(third_line) + 1):
                 # TODO - check flag to see if need to exit for display update
                 time.sleep(0.1)
+                # Wrap back around to to zero index
+                idx = self.x_pos % len(third_line)
                 self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
                 self.draw.text((x, top + 0), first_line, font=self.font, fill=255)
                 self.draw.text((x, top + 8), second_line, font=self.font, fill=255)
-                self.draw.text((x, top + 16), third_line[self.x_pos:], font=self.font, fill=255)
+                self.draw.text((x, top + 16), third_line[idx:], font=self.font, fill=255)
                 self.draw.text((x, top + 25), fourth_line, font=self.font, fill=255)
 
                 # Display image.

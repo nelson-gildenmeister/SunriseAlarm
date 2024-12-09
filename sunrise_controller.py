@@ -9,6 +9,7 @@ from threading import Timer
 from dimmer import Dimmer
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
+import RPi.GPIO as GPIO
 
 
 class DayOfWeek(Enum):
@@ -87,8 +88,13 @@ class DisplayThread(threading.Thread):
 class SunriseController():
     sunrise_event: Event
 
+
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
         threading.Thread.__init__(self)
+        btn1_gpio = 19
+        btn2_gpio = 16
+        btn3_gpio = 26
+        btn4_gpio = 20
         self.sunrise_scheduler = None
         self.time_increment_sched: Timer
         self.view = view
@@ -100,6 +106,15 @@ class SunriseController():
         self.sec_per_step: int = 0
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(btn1_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(btn1_gpio, GPIO.FALLING, callback=self.button1_press(), bouncetime=300)
+        GPIO.setup(btn2_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(btn1_gpio, GPIO.FALLING, callback=self.button2_press(), bouncetime=300)
+        GPIO.setup(btn3_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(btn1_gpio, GPIO.FALLING, callback=self.button3_press(), bouncetime=300)
+        GPIO.setup(btn4_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(btn1_gpio, GPIO.FALLING, callback=self.button4_press(), bouncetime=300)
 
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
