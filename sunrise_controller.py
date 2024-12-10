@@ -106,7 +106,7 @@ class SunriseController():
         self.sec_per_step: int = 0
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
-        self.hookup_buttons(self.pi, [12, 15, 20, 21])
+        self.hookup_buttons(self.pi, [12, 16, 20, 21])
 
     def hookup_buttons(self, pi, gpio_list:[]):
         #callback_list = [self.button1_press, self.button2_press, self.button2_press, self.button2_press]
