@@ -80,11 +80,12 @@ class DisplayThread(threading.Thread):
         print("ENTER DisplayThread run()")
         # Display event loop - run until display is off
         self.view.turn_display_on()
-        while self.data.is_display_on():
-            self.view.update_display()
-            if self.event.is_set():
-                return
-            time.sleep(1)
+        while True:
+            while self.data.is_display_on():
+                self.view.update_display()
+                if self.event.is_set():
+                    return
+                time.sleep(1)
 
 
 class SunriseController():
@@ -109,8 +110,6 @@ class SunriseController():
         self.hookup_buttons(self.pi, [12, 16, 20, 21])
 
     def hookup_buttons(self, pi, gpio_list:[]):
-        #callback_list = [self.button1_press, self.button2_press, self.button2_press, self.button2_press]
-        #for gpio, callback in zip(gpio_list, callback_list):
         for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
             pi.callback(gpio, pigpio.FALLING_EDGE, self.button_press)
@@ -268,22 +267,6 @@ class SunriseController():
         if not self.display_on():
             return
 
-
-    def button1_press(self, channel):
-        if not self.display_on():
-            return
-
-    def button2_press(self, channel):
-        if not self.display_on():
-            return
-
-    def button3_press(self, channel):
-        if not self.display_on():
-            return
-
-    def button4_press(self, channel):
-        if not self.display_on():
-            return
 
     def shutdown(self, sig, frame):
         self.dimmer.shutdown()
