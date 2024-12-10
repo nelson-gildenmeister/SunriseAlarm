@@ -11,6 +11,9 @@ from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
 import pigpio
 
+
+button_map = {12: "1", 15: "2", 20: "3", 21: "4"}
+
 class DayOfWeek(Enum):
     Monday = 0
     Tuesday = 1
@@ -256,6 +259,13 @@ class SunriseController():
             return False
 
         return True
+
+    def button_press(self, gpio, level, tick):
+        global button_map
+        btn = button_map[gpio]
+        print(f'Button {btn} pressed...')
+        if not self.display_on():
+            return
 
 
     def button1_press(self, channel):
