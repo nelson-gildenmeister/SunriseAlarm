@@ -9,8 +9,7 @@ from threading import Timer
 from dimmer import Dimmer
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
-import RPi.GPIO as GPIO
-
+import pigpio
 
 class DayOfWeek(Enum):
     Monday = 0
@@ -92,6 +91,7 @@ class SunriseController():
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
         threading.Thread.__init__(self)
         self.dimmer_step_size: int = 1
+        self.pi = pigpio.pi()
         self.sunrise_scheduler = None
         self.time_increment_sched: Timer
         self.view = view
@@ -103,14 +103,13 @@ class SunriseController():
         self.sec_per_step: int = 0
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
-        self.hookup_buttons([12, 15, 20, 21])
+        self.hookup_buttons(self.pi, [12, 15, 20, 21])
 
-    def hookup_buttons(self, gpio_list:[]):
-        GPIO.setmode(GPIO.BCM)
-        callback_list = [self.button1_press, self.button2_press, self.button2_press, self.button2_press,]
+    def hookup_buttons(self, pi, gpio_list:[]):
+        callback_list = [self.button1_press, self.button2_press, self.button2_press, self.button2_press]
         for gpio, callback in zip(gpio_list, callback_list):
-            GPIO.setup(gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.add_event_detect(gpio, GPIO.FALLING, callback=callback, bouncetime=300)
+            pi.set_pull_up_down(gpio, pigpio.PUD_UP)
+            pi.callback(gpio, pigpio.FALLING_EDGE, callback)
 
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
@@ -245,6 +244,8 @@ class SunriseController():
     def set_clock(self):
         pass
 
+
+
     def display_on(self) -> bool:
         if not self.data.is_display_on():
             if self.is_running:
@@ -255,6 +256,7 @@ class SunriseController():
             return False
 
         return True
+
 
     def button1_press(self, channel):
         if not self.display_on():
