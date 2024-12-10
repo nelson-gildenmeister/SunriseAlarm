@@ -117,8 +117,8 @@ class SunriseController():
     def hookup_buttons(self, pi, gpio_list:[]):
         for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
-            pi.set_glitch_filter(gpio, 100)
-            pi.callback(gpio, pigpio.FALLING_EDGE, self.button_press)
+            pi.set_glitch_filter(gpio, 300)
+            pi.callback(gpio, pigpio.LOW, self.button_press)
 
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
