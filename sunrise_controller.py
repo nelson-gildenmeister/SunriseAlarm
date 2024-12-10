@@ -109,10 +109,11 @@ class SunriseController():
         self.hookup_buttons(self.pi, [12, 15, 20, 21])
 
     def hookup_buttons(self, pi, gpio_list:[]):
-        callback_list = [self.button1_press, self.button2_press, self.button2_press, self.button2_press]
-        for gpio, callback in zip(gpio_list, callback_list):
+        #callback_list = [self.button1_press, self.button2_press, self.button2_press, self.button2_press]
+        #for gpio, callback in zip(gpio_list, callback_list):
+        for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
-            pi.callback(gpio, pigpio.FALLING_EDGE, callback)
+            pi.callback(gpio, pigpio.FALLING_EDGE, self.button_press)
 
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
