@@ -12,7 +12,11 @@ from sunrise_view import OledDisplay
 import pigpio
 
 
-button_map = {12: "1", 15: "2", 20: "3", 21: "4"}
+btn1_gpio = 12
+btn2_gpio = 16
+btn3_gpio = 20
+btn4_gpio = 21
+button_map = {btn1_gpio: "1", btn2_gpio: "2", btn3_gpio: "3", btn4_gpio: "4"}
 
 class DayOfWeek(Enum):
     Monday = 0
@@ -93,6 +97,7 @@ class SunriseController():
 
 
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
+        global btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio
         threading.Thread.__init__(self)
         self.dimmer_step_size: int = 1
         self.pi = pigpio.pi()
@@ -107,7 +112,7 @@ class SunriseController():
         self.sec_per_step: int = 0
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
-        self.hookup_buttons(self.pi, [12, 16, 20, 21])
+        self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
     def hookup_buttons(self, pi, gpio_list:[]):
         for gpio in gpio_list:
