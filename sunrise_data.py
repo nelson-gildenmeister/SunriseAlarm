@@ -76,3 +76,5 @@ class SunriseData:
 
     def set_display_status(self, status: str):
         self
+
+

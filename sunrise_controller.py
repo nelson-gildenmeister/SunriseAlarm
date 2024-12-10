@@ -91,10 +91,7 @@ class SunriseController():
 
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
         threading.Thread.__init__(self)
-        btn1_gpio = 19
-        btn2_gpio = 16
-        btn3_gpio = 26
-        btn4_gpio = 20
+        self.dimmer_step_size: int = 1
         self.sunrise_scheduler = None
         self.time_increment_sched: Timer
         self.view = view
@@ -106,15 +103,14 @@ class SunriseController():
         self.sec_per_step: int = 0
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
+        self.hookup_buttons([12, 15, 20, 21])
+
+    def hookup_buttons(self, gpio_list:[]):
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(btn1_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(btn1_gpio, GPIO.FALLING, callback=self.button1_press(), bouncetime=300)
-        GPIO.setup(btn2_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(btn1_gpio, GPIO.FALLING, callback=self.button2_press(), bouncetime=300)
-        GPIO.setup(btn3_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(btn1_gpio, GPIO.FALLING, callback=self.button3_press(), bouncetime=300)
-        GPIO.setup(btn4_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(btn1_gpio, GPIO.FALLING, callback=self.button4_press(), bouncetime=300)
+        callback_list = [self.button1_press, self.button2_press, self.button2_press, self.button2_press,]
+        for gpio, callback in zip(gpio_list, callback_list):
+            GPIO.setup(gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(gpio, GPIO.FALLING, callback=callback, bouncetime=300)
 
     def startup(self):
         # TODO - Hook up button gpio pins to their event handlers
@@ -185,9 +181,13 @@ class SunriseController():
         # Calculate the end time based upon current time and duration setting.
         self.start = dt.datetime.now()
         self.sec_per_step: int = int((duration_minutes * 60) / self.dimmer.get_num_steps())
-        # Minimum is 1 second per step no matter what the duration
+        self.dimmer_step_size = 1
+
+        # If duration is too short for number of steps, calculate step size and set minimum seconds per step.
         if self.sec_per_step == 0:
             self.sec_per_step = 1
+            self.dimmer_step_size = int(self.dimmer.get_num_steps() / (duration_minutes * 60))
+
         start_level = self.dimmer.get_min_level()
         if starting_percentage > 0:
             start_level = int(self.dimmer.get_max_level() * (starting_percentage * 0.01))

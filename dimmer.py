@@ -69,9 +69,11 @@ class Dimmer:
     def get_num_steps(self) -> int:
         return self.__num_steps__
 
-    def increment_level(self) -> bool:
+    def increment_level(self, steps: int = 1) -> bool:
         if self.dutycycle < self.__max_dutycycle__:
-            self.dutycycle = self.dutycycle + 1
+            self.dutycycle = self.dutycycle + steps
+            if self.dutycycle > self.__max_dutycycle__:
+                self.dutycycle = self.__max_dutycycle__
             print(f'Setting duty cycle to {self.dutycycle}')
             self.pi.set_PWM_dutycycle(self.pwm_gpio, self.dutycycle)
             return True
