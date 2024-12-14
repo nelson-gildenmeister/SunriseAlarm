@@ -10,6 +10,7 @@ from dimmer import Dimmer
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
 import pigpio
+import queue
 
 
 btn1_gpio = 12
@@ -59,7 +60,6 @@ def calc_start_datetime(start_time: str, increment_from_today: int) -> dt.dateti
     dt_start = dt.datetime.fromtimestamp(epoch_start)
 
     dt_start = dt_start + dt.timedelta(days=increment_from_today)
-    # print(f'Calculated Start: {dt_start}')
     return dt_start
 
 
@@ -79,10 +79,16 @@ class DisplayThread(threading.Thread):
         self.view = view
         self.data = data
         self.event = event
+        self.msg_q = queue.Queue(2)
+
+    class DisplayThreadMessages(Enum):
+        Wake = 1
+
+    wake = DisplayThreadMessages.Wake
 
     def run(self):
         print("ENTER DisplayThread run()")
-        # Display event loop - run until display is off
+        # Display event loop - updates display while it is on
         self.view.turn_display_on()
         while True:
             while self.data.is_display_on():
@@ -91,12 +97,21 @@ class DisplayThread(threading.Thread):
                     return
                 time.sleep(1)
 
+            # Wait for something to wakeup the display
+            msg = self.msg_q.get(True)
+
+
+    def turn_on_display(self):
+        self.msg_q.put(self.wake, False)
+
+
 
 class SunriseController():
     sunrise_event: Event
 
 
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
+        self.disp_thread = None
         global btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio
         threading.Thread.__init__(self)
         self.dimmer_step_size: int = 1
@@ -117,15 +132,14 @@ class SunriseController():
     def hookup_buttons(self, pi, gpio_list:[]):
         for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
+            # Debounce the switches
             pi.set_glitch_filter(gpio, 300)
             pi.callback(gpio, pigpio.LOW, self.button_press)
 
     def startup(self):
-        # TODO - Hook up button gpio pins to their event handlers
-
         # Start display thread
-        disp_thread = DisplayThread(self.view, self.data, self.ctrl_event)
-        disp_thread.start()
+        self.disp_thread = DisplayThread(self.view, self.data, self.ctrl_event)
+        self.disp_thread.start()
 
         print("Entering Event loop...")
 
@@ -149,22 +163,18 @@ class SunriseController():
             # No need to do anything if already missed today's schedule sunrise.
             dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
 
-            # Resolution is 1 minute so don't include last minute in check or after finishing sunrise it will think
-            # we are in the middle of one (the last minute).
+            # Sunrise resolution is 1 minute so don't include last minute duration in check to prevent race conditions.
             if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.minutes[weekday] - 1)):
                 # In the middle of sunrise, set to proper level
                 print('In the middle of sunrise...')
                 display_mode = DisplayMode.running
                 minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[weekday])).minute
-                # percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
-                # self.start_schedule(minutes_remaining, percent_brightness)
-                self.start_schedule(minutes_remaining, 50)
+                percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
+                self.start_schedule(minutes_remaining, percent_brightness)
                 return
             elif dt_start > now:
-                # Sunrise start is today but in the future, set up an event to start
+                # Sunrise start is today but in the future - set up an event to start
                 print(f'Scheduling start today at: {self.settings.start_time[weekday]}')
-                # print(f'Scheduling start at: {start_time.time()}')
-                # dt_start = calc_start_datetime(st, 0)
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
                 return
 
@@ -203,7 +213,7 @@ class SunriseController():
         self.check_schedule()
 
     def check_schedule(self):
-        if self.dimmer.increment_level() and not self.cancel:
+        if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
             self.time_increment_sched = Timer(self.sec_per_step, self.check_schedule)
             self.time_increment_sched.start()
         else:
@@ -255,22 +265,21 @@ class SunriseController():
 
 
 
-    def display_on(self) -> bool:
-        if not self.data.is_display_on():
+    def display_on(self):
             if self.is_running:
                 self.data.set_display_mode(DisplayMode.running)
             else:
                 self.data.set_display_mode(DisplayMode.idle)
 
-            return False
+            self.disp_thread.turn_on_display()
 
-        return True
 
     def button_press(self, gpio, level, tick):
         global button_map
         btn = button_map[gpio]
         print(f'Button {btn} pressed...')
-        if not self.display_on():
+        if not self.data.is_display_on():
+            self.display_on()
             return
 
 
