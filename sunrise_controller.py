@@ -6,7 +6,10 @@ from enum import Enum
 from sched import scheduler, Event
 from threading import Timer
 
+from mypy.build import dump_graph
+
 from dimmer import Dimmer
+from menu_state import MenuState
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
 import pigpio
@@ -27,13 +30,6 @@ class DayOfWeek(Enum):
     Friday = 4
     Saturday = 5
     Sunday = 6
-
-
-class State(Enum):
-    IdleNoProg = 0
-    IdleProgSet = 1
-    InProgress = 2
-    MainMenu = 3
 
 
 @dataclass
@@ -128,6 +124,8 @@ class SunriseController():
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
+        self.menu_state: MenuState = self.initialize_menu_states()
+
 
     def hookup_buttons(self, pi, gpio_list:[]):
         for gpio in gpio_list:
@@ -296,3 +294,17 @@ class SunriseController():
     #         status_str = "Waiting for next sunrise"
     #     else:
     #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
+
+    def initialize_menu_states(self) -> MenuState:
+        # Returns the initial menu state
+        schedule = MenuState(None, "Schedule")
+        week_day = MenuState(schedule, "WeekDay")
+        schedule.set_next_state(week_day)
+        wkday_start = MenuState(week_day, "Start")
+        schedule.set_next_state(wkday_start)
+        wkday_dur  = MenuState(wkday_start, "Duration")
+
+
+
+
+        return main

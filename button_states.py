@@ -13,7 +13,9 @@ class ButtonStates(Enum):
 bs: ButtonStates
 
 
-class ButtonState:
+class ButtonsState:
     def __init__(self):
         global bs
         _button_symbol_map = {bs.Menu: "Menu"}
+        m1 = "Menu   On   Off   Dim"
+        m2 = " X     <     >   Back"
