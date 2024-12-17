@@ -307,4 +307,4 @@ class SunriseController():
 
 
 
-        return main
+        return schedule
