@@ -14,6 +14,7 @@ from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
 import pigpio
 import queue
+from typing import List
 
 
 btn1_gpio = 12
@@ -113,7 +114,7 @@ class SunriseController():
         self.dimmer_step_size: int = 1
         self.pi = pigpio.pi()
         self.sunrise_scheduler = None
-        self.time_increment_sched: Timer
+        self.time_increment_sched: threading.Timer
         self.view = view
         self.data: SunriseData = data
         self.settings: SunriseSettings = data.settings
@@ -127,12 +128,12 @@ class SunriseController():
         self.menu_state: MenuState = self.initialize_menu_states()
 
 
-    def hookup_buttons(self, pi, gpio_list:[]):
+    def hookup_buttons(self, pi, gpio_list:List[int]):
         for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
             # Debounce the switches
             pi.set_glitch_filter(gpio, 300)
-            pi.callback(gpio, pigpio.LOW, self.button_press)
+            pi.callback(gpio, pigpio.LOW, self.menu_state.get_handler())
 
     def startup(self):
         # Start display thread
@@ -244,8 +245,6 @@ class SunriseController():
             self.dimmer.set_level(self.dimmer.get_min_level())
 
     def schedule_sunrise_start(self, start_time: dt.datetime, duration_minutes: int):
-        # This method blocks so must be run in its own thread
-
         # Create a new scheduler
         self.sunrise_scheduler = scheduler(time.time, time.sleep)
 

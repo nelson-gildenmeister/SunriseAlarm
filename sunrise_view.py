@@ -19,6 +19,7 @@ from board import SCL, SDA
 
 class OledDisplay:
     __max_line_len__ = 23
+
     def __init__(self, display_auto_power_off_minutes: int, debug: bool):
         self.debug = debug
         self.display_on: bool = True
@@ -100,7 +101,7 @@ class OledDisplay:
             for self.x_pos in range(1, len(third_line) + 1):
                 # TODO - check flag to see if need to exit for display update
                 time.sleep(0.1)
-                # Wrap back around to to zero index
+                # Wrap back around to zero index
                 idx = self.x_pos % len(third_line)
                 self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
                 self.draw.text((x, top + 0), first_line, font=self.font, fill=255)
@@ -111,7 +112,6 @@ class OledDisplay:
                 # Display image.
                 self.disp.image(self.image)
                 self.disp.show()
-
 
     # Determine whether display has been on past the maximum on time.
     def is_display_on(self):

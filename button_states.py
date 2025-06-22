@@ -19,3 +19,11 @@ class ButtonsState:
         _button_symbol_map = {bs.Menu: "Menu"}
         m1 = "Menu   On   Off   Dim"
         m2 = " X     <     >   Back"
+        b1_next_state
+        b1_action
+        b2_next_state
+        b2_action
+        b3_next_state
+        b3_action
+        b4_next_state
+        b4_action
