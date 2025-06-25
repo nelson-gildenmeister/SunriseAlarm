@@ -9,19 +9,19 @@ from threading import Timer
 from mypy.build import dump_graph
 
 from dimmer import Dimmer
-from menu_state import MenuState
+from menu_state import MenuState, MenuStateName
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
 import pigpio
 import queue
 from typing import List
 
-
 btn1_gpio = 12
 btn2_gpio = 16
 btn3_gpio = 20
 btn4_gpio = 21
 button_map = {btn1_gpio: "1", btn2_gpio: "2", btn3_gpio: "3", btn4_gpio: "4"}
+
 
 class DayOfWeek(Enum):
     Monday = 0
@@ -97,15 +97,13 @@ class DisplayThread(threading.Thread):
             # Wait for something to wakeup the display
             msg = self.msg_q.get(True)
 
-
+    # Send a message to unblock the display thread and start display updates again.
     def turn_on_display(self):
         self.msg_q.put(self.wake, False)
 
 
-
-class SunriseController():
+class SunriseController:
     sunrise_event: Event
-
 
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
         self.disp_thread = None
@@ -125,10 +123,9 @@ class SunriseController():
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
-        self.menu_state: MenuState = self.initialize_menu_states()
+        self.menu_states: {MenuStateName, MenuState} = self.initialize_menu_states()
 
-
-    def hookup_buttons(self, pi, gpio_list:List[int]):
+    def hookup_buttons(self, pi, gpio_list: List[int]):
         for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
             # Debounce the switches
@@ -260,25 +257,24 @@ class SunriseController():
     def set_clock(self):
         pass
 
-
-
     def display_on(self):
-            if self.is_running:
-                self.data.set_display_mode(DisplayMode.running)
-            else:
-                self.data.set_display_mode(DisplayMode.idle)
+        if self.is_running:
+            self.data.set_display_mode(DisplayMode.running)
+        else:
+            self.data.set_display_mode(DisplayMode.idle)
 
-            self.disp_thread.turn_on_display()
-
+        self.disp_thread.turn_on_display()
 
     def button_press(self, gpio, level, tick):
         global button_map
         btn = button_map[gpio]
         print(f'Button {btn} pressed...')
+        # If display is not on, any button press will turn on the display but not do anything else.
         if not self.data.is_display_on():
             self.display_on()
             return
 
+        # Figure out which method to call for the button pressed
 
     def shutdown(self, sig, frame):
         self.dimmer.shutdown()
@@ -294,16 +290,20 @@ class SunriseController():
     #     else:
     #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
-    def initialize_menu_states(self) -> MenuState:
-        # Returns the initial menu state
-        schedule = MenuState(None, "Schedule")
-        week_day = MenuState(schedule, "WeekDay")
-        schedule.set_next_state(week_day)
-        wkday_start = MenuState(week_day, "Start")
-        schedule.set_next_state(wkday_start)
-        wkday_dur  = MenuState(wkday_start, "Duration")
+    def main_menu_handler(self):
+        pass
 
+    def set_program_handler(self):
+        pass
 
+    def network_handler(self):
+        pass
 
+    def enable_disable_handler(self):
+        pass
 
-        return schedule
+    def initialize_menu_states(self) -> {MenuStateName, MenuState}:
+        return {MenuStateName.main: MenuState(name=MenuStateName.main, handler=self.main_menu_handler),
+                MenuStateName.set_program: MenuState(name=MenuStateName.set_program, handler=self.set_program_handler),
+                MenuStateName.network: MenuState(name=MenuStateName.network, handler=self.network_handler),
+                MenuStateName.enable: MenuState(name=MenuStateName.enable, handler=self.enable_disable_handler)}
