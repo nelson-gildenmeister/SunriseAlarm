@@ -9,7 +9,7 @@ from threading import Timer
 from mypy.build import dump_graph
 
 from dimmer import Dimmer
-from menu_state import MenuState, MenuStateName
+from menu import MenuState, MenuStateName
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
 import pigpio
@@ -124,6 +124,7 @@ class SunriseController:
         self.ctrl_event: threading.Event = threading.Event()
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
         self.menu_states: {MenuStateName, MenuState} = self.initialize_menu_states()
+        self.current_menu_state = self.menu_states[MenuStateName.main]
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
         for gpio in gpio_list:
@@ -290,20 +291,13 @@ class SunriseController:
     #     else:
     #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
-    def main_menu_handler(self):
-        pass
 
-    def set_program_handler(self):
-        pass
 
-    def network_handler(self):
-        pass
-
-    def enable_disable_handler(self):
-        pass
-
+    # Create the menu states with their respective handlers
     def initialize_menu_states(self) -> {MenuStateName, MenuState}:
-        return {MenuStateName.main: MenuState(name=MenuStateName.main, handler=self.main_menu_handler),
+        return {MenuStateName.initial: MenuState(name=MenuStateName.initial, handler=self.main_menu_handler),
+            MenuStateName.main: MenuState(name=MenuStateName.main, handler=self.main_menu_handler),
                 MenuStateName.set_program: MenuState(name=MenuStateName.set_program, handler=self.set_program_handler),
-                MenuStateName.network: MenuState(name=MenuStateName.network, handler=self.network_handler),
-                MenuStateName.enable: MenuState(name=MenuStateName.enable, handler=self.enable_disable_handler)}
+                MenuStateName.enable: MenuState(name=MenuStateName.enable, handler=self.enable_disable_handler),
+                MenuStateName.set_date: MenuState(name=MenuStateName.set_date, handler=self.set_date_handler),
+                MenuStateName.network: MenuState(name=MenuStateName.network, handler=self.network_handler)}
