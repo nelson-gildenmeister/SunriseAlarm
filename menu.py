@@ -48,6 +48,7 @@ class InitialMenu(Menu):
         if self.controller.is_running:
             self.controller.cancel_running_schedule()
 
+        # Handle other button actions
         match btn:
             case 2:
                 self.controller.dimmer.increment_level(-10)

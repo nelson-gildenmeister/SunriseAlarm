@@ -74,8 +74,12 @@ class Dimmer:
             self.dutycycle = self.dutycycle + steps
             if self.dutycycle > self.__max_dutycycle__:
                 self.dutycycle = self.__max_dutycycle__
-            print(f'Setting duty cycle to {self.dutycycle}')
-            self.pi.set_PWM_dutycycle(self.pwm_gpio, self.dutycycle)
-            return True
+
+        if self.dutycycle < self.__min_dutycycle__:
+            self.dutycycle = self.__min_dutycycle__
+
+        print(f'Setting duty cycle to {self.dutycycle}')
+        self.pi.set_PWM_dutycycle(self.pwm_gpio, self.dutycycle)
+        return True
 
         return False
