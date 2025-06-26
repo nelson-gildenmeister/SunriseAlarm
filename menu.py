@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+from typing import Literal
 
+from mypy.reachability import contains_int_or_tuple_of_ints
 
-def noop_func(dummy_param):
-    pass
+from sunrise_controller import SunriseController
 
 
 class MenuStateName(Enum):
@@ -14,61 +15,110 @@ class MenuStateName(Enum):
     set_date = "set_date"
     network = "network"
 
-
-class MenuState:
-    def __init__(self, name, handler = noop_func(None)):
-        self.name:MenuStateName = name
-        self.handler = handler
-
-
-    def get_handler(self) -> ():
-        return self.handler
-
-
 class Menu(ABC):
-    def button_handler(self, btn:int):
-        pass
+    def __init__(self, controller: SunriseController):
+        self.controller = controller
 
-class InitialMenu(Menu):
-    def __init__(self):
-        self.menu_line3 = " Menu  0% - 100%  On/Off"
-        self.menu_line4 = "  X     <     >     X"
+    @abstractmethod
+    def reset(self):
+        pass
 
     @abstractmethod
     def button_handler(self, btn:int):
         pass
 
+
+class InitialMenu(Menu):
+    def __init__(self, controller: SunriseController):
+        super().__init__(controller)
+        self.menu_line4 = None
+        self.menu_line3 = None
+        self.reset()
+
+    def reset(self):
+        self.menu_line3 = " Menu  0% - 100%  On/Off"
+        self.menu_line4 = "  X     <     >     X"
+
+    def button_handler(self, btn:int) -> MenuStateName | None:
+        # TODO - Menu button changes to main menu
+        if btn == 1:
+            return MenuStateName.main
+
+        # Other buttons cancel a running schedule
+        if self.controller.is_running:
+            self.controller.cancel_running_schedule()
+
+        match btn:
+            case 2:
+                self.controller.dimmer.increment_level(-10)
+            case 3:
+                self.controller.dimmer.increment_level(10)
+            case 4:
+                if self.controller.dimmer.get_level():
+                    self.controller.dimmer.turn_off()
+                else:
+                    self.controller.dimmer.turn_on()
+            case _:
+                print("Invalid button number")
+
+        return MenuStateName.initial
+
+
 class MainMenu(Menu):
-    def __init__(self):
+    def __init__(self, controller: SunriseController):
+        super().__init__(controller)
+        self.current_sub_menu: MenuStateName = MenuStateName.main
+
+    def reset(self):
         self.current_sub_menu = MenuStateName.main
 
     def button_handler(self, btn:int):
         pass
 
+
 class SetProgramMenu(Menu):
-    def __init__(self):
+    def __init__(self, controller: SunriseController):
+        super().__init__(controller)
         self.current_sub_menu = "weekday"
 
-    def button_handler(self, btn:int):
+    def reset(self):
+        self.current_sub_menu = "weekday"
+
+    def button_handler(self, btn:int) -> MenuStateName:
         pass
+
 
 class EnableMenu(Menu):
-    def __init__(self):
+    def __init__(self, controller: SunriseController):
+        super().__init__(controller)
         self.current_sub_menu = ""
 
-    def button_handler(self, btn:int):
+    def reset(self):
+        self.current_sub_menu = ""
+
+    def button_handler(self, btn:int) -> MenuStateName:
         pass
+
 
 class SetDateMenu(Menu):
-    def __init__(self):
+    def __init__(self, controller: SunriseController):
+        super().__init__(controller)
         self.current_sub_menu = ""
 
-    def button_handler(self, btn:int):
+    def reset(self):
+        self.current_sub_menu = ""
+
+    def button_handler(self, btn:int) -> MenuStateName:
         pass
 
+
 class NetworkMenu(Menu):
-    def __init__(self):
+    def __init__(self, controller: SunriseController):
+        super().__init__(controller)
         self.current_sub_menu = ""
 
-    def button_handler(self, btn:int):
+    def reset(self):
+        self.current_sub_menu = ""
+
+    def button_handler(self, btn:int) -> MenuStateName:
         pass

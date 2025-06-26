@@ -9,7 +9,7 @@ from threading import Timer
 from mypy.build import dump_graph
 
 from dimmer import Dimmer
-from menu import MenuState, MenuStateName
+from menu import MenuState, MenuStateName, InitialMenu, MainMenu, SetProgramMenu, EnableMenu, SetDateMenu, NetworkMenu
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
 import pigpio
@@ -20,7 +20,7 @@ btn1_gpio = 12
 btn2_gpio = 16
 btn3_gpio = 20
 btn4_gpio = 21
-button_map = {btn1_gpio: "1", btn2_gpio: "2", btn3_gpio: "3", btn4_gpio: "4"}
+button_map = {btn1_gpio: 1, btn2_gpio: 2, btn3_gpio: 3, btn4_gpio: 4}
 
 
 class DayOfWeek(Enum):
@@ -123,8 +123,10 @@ class SunriseController:
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
-        self.menu_states: {MenuStateName, MenuState} = self.initialize_menu_states()
-        self.current_menu_state = self.menu_states[MenuStateName.main]
+        self.current_menu: MenuStateName = MenuStateName.initial
+        self.menus = {MenuStateName.initial: InitialMenu(), MenuStateName.main: MainMenu(),
+                      MenuStateName.set_program: SetProgramMenu(), MenuStateName.enable: EnableMenu,
+                      MenuStateName.set_date: SetDateMenu(), MenuStateName.network: NetworkMenu}
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
         for gpio in gpio_list:
@@ -233,6 +235,9 @@ class SunriseController:
                 # no event in the queue to cancel
                 pass
 
+        self.cancel_running_schedule()
+
+    def cancel_running_schedule(self):
         # If scheduled event is running, stop it
         try:
             self.time_increment_sched.cancel()
@@ -272,10 +277,20 @@ class SunriseController:
         print(f'Button {btn} pressed...')
         # If display is not on, any button press will turn on the display but not do anything else.
         if not self.data.is_display_on():
+            # Default back to initial menu - If we want to pick up where we left off, remove this line
+            self.reinit_menus()
             self.display_on()
             return
 
-        # Figure out which method to call for the button pressed
+        # Call the handler for the current menu
+        self.current_menu = self.menus[self.current_menu].button_handler(btn)
+
+    def reinit_menus(self):
+        # Iterate through the menu objects and reset them
+        for key in self.menus.keys():
+            self.menus[key].reset()
+
+        self.current_menu = self.menus[MenuStateName.initial]
 
     def shutdown(self, sig, frame):
         self.dimmer.shutdown()
@@ -291,13 +306,3 @@ class SunriseController:
     #     else:
     #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
-
-
-    # Create the menu states with their respective handlers
-    def initialize_menu_states(self) -> {MenuStateName, MenuState}:
-        return {MenuStateName.initial: MenuState(name=MenuStateName.initial, handler=self.main_menu_handler),
-            MenuStateName.main: MenuState(name=MenuStateName.main, handler=self.main_menu_handler),
-                MenuStateName.set_program: MenuState(name=MenuStateName.set_program, handler=self.set_program_handler),
-                MenuStateName.enable: MenuState(name=MenuStateName.enable, handler=self.enable_disable_handler),
-                MenuStateName.set_date: MenuState(name=MenuStateName.set_date, handler=self.set_date_handler),
-                MenuStateName.network: MenuState(name=MenuStateName.network, handler=self.network_handler)}
