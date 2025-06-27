@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Literal
-
-from mypy.reachability import contains_int_or_tuple_of_ints
 
 from sunrise_controller import SunriseController
 

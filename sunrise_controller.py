@@ -1,20 +1,19 @@
 import datetime as dt
+import queue
 import threading
 import time
 from dataclasses import dataclass
 from enum import Enum
 from sched import scheduler, Event
 from threading import Timer
+from typing import List
 
-from mypy.build import dump_graph
+import pigpio
 
 from dimmer import Dimmer
-from menu import MenuState, MenuStateName, InitialMenu, MainMenu, SetProgramMenu, EnableMenu, SetDateMenu, NetworkMenu
+from menu import MenuStateName, InitialMenu, MainMenu, SetProgramMenu, EnableMenu, SetDateMenu, NetworkMenu
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
-import pigpio
-import queue
-from typing import List
 
 btn1_gpio = 12
 btn2_gpio = 16
@@ -119,16 +118,18 @@ class SunriseController:
         self.ctrl_event: threading.Event = threading.Event()
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
         self.current_menu: MenuStateName = MenuStateName.initial
-        self.menus = {MenuStateName.initial: InitialMenu(), MenuStateName.main: MainMenu(),
-                      MenuStateName.set_program: SetProgramMenu(), MenuStateName.enable: EnableMenu,
-                      MenuStateName.set_date: SetDateMenu(), MenuStateName.network: NetworkMenu}
+        self.menus = {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
+                      MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
+                      MenuStateName.set_date: SetDateMenu(self), MenuStateName.network: NetworkMenu}
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
+        btn = 1
         for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
             # Debounce the switches
             pi.set_glitch_filter(gpio, 300)
-            pi.callback(gpio, pigpio.LOW, self.menu_state.get_handler())
+            pi.callback(gpio, pigpio.LOW, self.menus[self.current_menu].button_handler(btn))
+            btn = btn + 1
 
     def startup(self):
         # Start display thread
@@ -225,7 +226,8 @@ class SunriseController:
         # If scheduled event is not yet running, cancel it
         if self.sunrise_scheduler.queue:
             try:
-                scheduler.cancel(self.sunrise_event)
+                if self.sunrise_event is not None:
+                    scheduler.cancel(self.sunrise_event)
             except ValueError:
                 # no event in the queue to cancel
                 pass
