@@ -7,7 +7,7 @@ class Dimmer:
     __frequency__: int = 1000
     __max_duty_cycle__: int = 255
     __min_duty_cycle__: int = 0
-    __num_steps__: int = __max_duty_cycle__ - __min_duty_cycle__
+    __duty_cycle_range__: int = __max_duty_cycle__ - __min_duty_cycle__
 
     def __init__(self):
         self.is_enabled: bool = False
@@ -61,13 +61,15 @@ class Dimmer:
         return self.__min_duty_cycle__
 
     def turn_off(self):
-        self.pi.set_PWM_dutycycle(self.pwm_gpio, 0)
+        self.pi.set_PWM_dutycycle(self.pwm_gpio, self.__min_duty_cycle__)
+        self.duty_cycle = self.__min_duty_cycle__
 
     def turn_on(self):
         self.pi.set_PWM_dutycycle(self.pwm_gpio, self.__max_duty_cycle__)
+        self.duty_cycle = self.__max_duty_cycle__
 
     def get_num_steps(self) -> int:
-        return self.__num_steps__
+        return self.__duty_cycle_range__
 
     # Positive or negative change in brightness level.  Returns False if unable to change the
     # brightness level due to already being at maximum or minimum.
@@ -77,6 +79,46 @@ class Dimmer:
             return False
 
         self.duty_cycle = new_duty_cycle
-        print(f'Setting duty cycle to {self.duty_cycle}')
+        print(f'Changing duty cycle to {self.duty_cycle}')
         self.pi.set_PWM_dutycycle(self.pwm_gpio, self.duty_cycle)
         return True
+
+    # Increase the brightness level, if possible, by the percentage specified.  Returns the new
+    # brightness level as a percentage of the maximum range of brightness levels.
+    def increase_brightness_by_percent(self, percentage: int) -> int:
+        if percentage < 0:
+            return -1
+
+        dc_increment = percentage * 0.01 * self.__duty_cycle_range__
+
+        new_duty_cycle = self.duty_cycle + dc_increment
+        if new_duty_cycle > self.__max_duty_cycle__:
+            new_duty_cycle = self.__max_duty_cycle__
+
+        self.duty_cycle = new_duty_cycle
+        print(f'Increasing duty cycle to {self.duty_cycle}')
+        self.pi.set_PWM_dutycycle(self.pwm_gpio, self.duty_cycle)
+
+        current_percent_brightness = 100 * (new_duty_cycle / self.__duty_cycle_range__)
+
+        return int(current_percent_brightness)
+
+    # Decrease the brightness level, if possible, by the percentage specified.  Returns the new
+    # brightness level as a percentage of the maximum range of brightness levels.
+    def decrease_brightness_by_percent(self, percentage: int) -> int:
+        if percentage < 0:
+            return -1
+
+        dc_increment = percentage * 0.01 * self.__duty_cycle_range__
+
+        new_duty_cycle = self.duty_cycle - dc_increment
+        if new_duty_cycle < self.__max_duty_cycle__:
+            new_duty_cycle = self.__min_duty_cycle__
+
+        self.duty_cycle = new_duty_cycle
+        print(f'Decreasing duty cycle to {self.duty_cycle}')
+        self.pi.set_PWM_dutycycle(self.pwm_gpio, self.duty_cycle)
+
+        current_percent_brightness = 100 * (new_duty_cycle / self.__duty_cycle_range__)
+
+        return int(current_percent_brightness)

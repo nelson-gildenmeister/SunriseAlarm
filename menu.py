@@ -6,6 +6,7 @@ from mypy.reachability import contains_int_or_tuple_of_ints
 
 from sunrise_controller import SunriseController
 
+BRIGHTNESS_CHANGE_PERCENT: int = 10
 
 class MenuStateName(Enum):
     initial = "initial"
@@ -51,9 +52,9 @@ class InitialMenu(Menu):
         # Handle other button actions
         match btn:
             case 2:
-                self.controller.dimmer.increment_level(-10)
+                self.controller.dimmer.decrease_brightness_by_percent(BRIGHTNESS_CHANGE_PERCENT)
             case 3:
-                self.controller.dimmer.increment_level(10)
+                self.controller.dimmer.increase_brightness_by_percent(BRIGHTNESS_CHANGE_PERCENT)
             case 4:
                 if self.controller.dimmer.get_level():
                     self.controller.dimmer.turn_off()

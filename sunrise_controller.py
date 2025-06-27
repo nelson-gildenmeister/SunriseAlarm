@@ -35,11 +35,6 @@ class DayOfWeek(Enum):
 
 @dataclass
 class DisplayState:
-    button_states = {State.IdleNoProg: ['Menu', 'On', 'Off', 'Dim'],
-                     'idle_prog_set': ['Menu', 'On', 'Off', 'Dim'],
-                     'in_progress': ['Menu', 'On', 'Off', 'Dim'],
-                     'main_menu': ['Sel', '<', '>', 'Bck']}
-    status_menus = {'main_menu'}
     status = {'idle_no_prog': ['No sunrise program set'],
               'idle_prog_set': ['Next sunrise starts in: %1'],
               'in_progress': ['Sunrise started %1 minutes ago...%2 minutes remaining'],
