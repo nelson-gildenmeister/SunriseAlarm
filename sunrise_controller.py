@@ -23,6 +23,11 @@ btn3_gpio = 20
 btn4_gpio = 21
 button_map = {btn1_gpio: 1, btn2_gpio: 2, btn3_gpio: 3, btn4_gpio: 4}
 
+first_line = ""
+second_line = ""
+third_line = ""
+fourth_line = ""
+
 
 class DayOfWeek(Enum):
     Monday = 0
@@ -85,7 +90,7 @@ class DisplayThread(threading.Thread):
         self.view.turn_display_on()
         while True:
             while self.data.is_display_on():
-                self.view.update_display()
+                self.view.update_display(first_line, second_line, third_line, fourth_line)
                 if self.event.is_set():
                     return
                 time.sleep(1)
@@ -124,11 +129,14 @@ class SunriseController:
 
 
     def initialize_menus(self) -> {}:
+        global third_line
+        global fourth_line
         menus = {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
          MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
          MenuStateName.set_date: SetDateMenu(self), MenuStateName.network: NetworkMenu}
         menu = menus[MenuStateName.initial]
-        self.view.update_display("", "", menu.menu_line3, menu.menu_line4)
+        third_line =  menu.menu_line3
+        fourth_line = menu.menu_line4
         return menus
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
