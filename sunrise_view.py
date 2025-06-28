@@ -46,13 +46,13 @@ class OledDisplay:
         self.draw: ImageDraw = ImageDraw.Draw(self.image)
 
         # Load default font.
-        #self.font = ImageFont.load_default()
+        self.font = ImageFont.load_default()
 
         # Alternatively load a TTF font.  Make sure the .ttf font file is in the
         # same directory as the python script!
         # Some other nice fonts to try: http://www.dafont.com/bitmap.php
         #self.font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 9)
-        self.font = ImageFont.truetype('./Prototype.ttf', 9)
+        #self.font = ImageFont.truetype('./Prototype.ttf', 9)
 
         self.clear_display()
 
