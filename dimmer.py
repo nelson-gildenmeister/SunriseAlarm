@@ -96,10 +96,9 @@ class Dimmer:
             new_duty_cycle = self.__max_duty_cycle__
 
         self.duty_cycle = new_duty_cycle
-        print(f'Increasing duty cycle to {self.duty_cycle}')
-        self.pi.set_PWM_dutycycle(self.pwm_gpio, self.duty_cycle)
-
         current_percent_brightness = 100 * (new_duty_cycle / self.__duty_cycle_range__)
+        print(f'Increasing duty cycle to {self.duty_cycle}, brightness to {current_percent_brightness}%')
+        self.pi.set_PWM_dutycycle(self.pwm_gpio, self.duty_cycle)
 
         return int(current_percent_brightness)
 
@@ -112,13 +111,12 @@ class Dimmer:
         dc_increment = percentage * 0.01 * self.__duty_cycle_range__
 
         new_duty_cycle = self.duty_cycle - dc_increment
-        if new_duty_cycle < self.__max_duty_cycle__:
+        if new_duty_cycle < self.__min_duty_cycle__:
             new_duty_cycle = self.__min_duty_cycle__
 
         self.duty_cycle = new_duty_cycle
-        print(f'Decreasing duty cycle to {self.duty_cycle}')
-        self.pi.set_PWM_dutycycle(self.pwm_gpio, self.duty_cycle)
-
         current_percent_brightness = 100 * (new_duty_cycle / self.__duty_cycle_range__)
+        print(f'Decreasing duty cycle to {self.duty_cycle}, brightness to {current_percent_brightness}%')
+        self.pi.set_PWM_dutycycle(self.pwm_gpio, self.duty_cycle)
 
         return int(current_percent_brightness)
