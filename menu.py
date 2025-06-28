@@ -5,7 +5,7 @@ from sunrise_controller import SunriseController
 
 BRIGHTNESS_CHANGE_PERCENT: int = 10
 
-class MenuStateName(Enum):
+class MenuStateNamej(Enum):
     initial = "initial"
     main = "main"
     set_program = "set_program"
@@ -13,7 +13,7 @@ class MenuStateName(Enum):
     set_date = "set_date"
     network = "network"
 
-class Menu(ABC):
+class MenuJ(ABC):
     def __init__(self, controller: SunriseController):
         self.controller = controller
 
@@ -26,7 +26,7 @@ class Menu(ABC):
         pass
 
 
-class InitialMenu(Menu):
+class InitialMenu(MenuJ):
     def __init__(self, controller: SunriseController):
         super().__init__(controller)
         self.menu_line4 = None
@@ -37,10 +37,10 @@ class InitialMenu(Menu):
         self.menu_line3 = " Menu  0% - 100%  On/Off"
         self.menu_line4 = "  X     <     >     X"
 
-    def button_handler(self, btn:int) -> MenuStateName | None:
+    def button_handler(self, btn:int) -> MenuStateNamej | None:
         # TODO - Menu button changes to main menu
         if btn == 1:
-            return MenuStateName.main
+            return MenuStateNamej.main
 
         # Other buttons cancel a running schedule
         if self.controller.is_running:
@@ -60,22 +60,22 @@ class InitialMenu(Menu):
             case _:
                 print("Invalid button number")
 
-        return MenuStateName.initial
+        return MenuStateNamej.initial
 
 
-class MainMenu(Menu):
+class MainMenu(MenuJ):
     def __init__(self, controller: SunriseController):
         super().__init__(controller)
-        self.current_sub_menu: MenuStateName = MenuStateName.main
+        self.current_sub_menu: MenuStateNamej = MenuStateNamej.main
 
     def reset(self):
-        self.current_sub_menu = MenuStateName.main
+        self.current_sub_menu = MenuStateNamej.main
 
     def button_handler(self, btn:int):
         pass
 
 
-class SetProgramMenu(Menu):
+class SetProgramMenu(MenuJ):
     def __init__(self, controller: SunriseController):
         super().__init__(controller)
         self.current_sub_menu = "weekday"
@@ -83,11 +83,11 @@ class SetProgramMenu(Menu):
     def reset(self):
         self.current_sub_menu = "weekday"
 
-    def button_handler(self, btn:int) -> MenuStateName:
+    def button_handler(self, btn:int) -> MenuStateNamej:
         pass
 
 
-class EnableMenu(Menu):
+class EnableMenu(MenuJ):
     def __init__(self, controller: SunriseController):
         super().__init__(controller)
         self.current_sub_menu = ""
@@ -95,11 +95,11 @@ class EnableMenu(Menu):
     def reset(self):
         self.current_sub_menu = ""
 
-    def button_handler(self, btn:int) -> MenuStateName:
+    def button_handler(self, btn:int) -> MenuStateNamej:
         pass
 
 
-class SetDateMenu(Menu):
+class SetDateMenu(MenuJ):
     def __init__(self, controller: SunriseController):
         super().__init__(controller)
         self.current_sub_menu = ""
@@ -107,11 +107,11 @@ class SetDateMenu(Menu):
     def reset(self):
         self.current_sub_menu = ""
 
-    def button_handler(self, btn:int) -> MenuStateName:
+    def button_handler(self, btn:int) -> MenuStateNamej:
         pass
 
 
-class NetworkMenu(Menu):
+class NetworkMenu(MenuJ):
     def __init__(self, controller: SunriseController):
         super().__init__(controller)
         self.current_sub_menu = ""
@@ -119,5 +119,5 @@ class NetworkMenu(Menu):
     def reset(self):
         self.current_sub_menu = ""
 
-    def button_handler(self, btn:int) -> MenuStateName:
+    def button_handler(self, btn:int) -> MenuStateNamej:
         pass
