@@ -126,10 +126,14 @@ class OledDisplay:
             return True
 
         # Display needs to be turned off
+        print('Auto off display')
         self.display_on = False
         self.clear_display()
 
         return False
+
+    def reset_display_auto_off(self):
+        self.start_display_time = time.time()
 
     # Public method to turn display on
     def turn_display_on(self):
