@@ -99,7 +99,7 @@ class OledDisplay:
         self.disp.show()
 
         if third_line_scroll and len(third_line) > self.__max_line_len__:
-            for self.x_pos in range(1, len(third_line) + 1):
+            for self.x_pos in range(1, len(third_line) - self.__max_line_len__):
                 # TODO - check flag to see if need to exit for display update
                 time.sleep(0.1)
                 # Wrap back around to zero index

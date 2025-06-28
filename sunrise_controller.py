@@ -118,22 +118,25 @@ class SunriseController:
         self.sec_per_step: int = 0
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
-        self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
         self.current_menu: MenuStateName = MenuStateName.initial
-        self.menus = {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
-                      MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
-                      MenuStateName.set_date: SetDateMenu(self), MenuStateName.network: NetworkMenu}
+        self.menus = self.initialize_menus()
+        self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
+
+
+    def initialize_menus(self) -> {}:
+        menus = {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
+         MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
+         MenuStateName.set_date: SetDateMenu(self), MenuStateName.network: NetworkMenu}
+        menu = menus[MenuStateName.initial]
+        self.view.update_display("", "", menu.menu_line3, menu.menu_line4)
+        return menus
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
-        btn = 1
         for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
             # Debounce the switches
             pi.set_glitch_filter(gpio, 300)
-            menu = InitialMenu(self)
-            callback = menu.button_handler(btn)
-            pi.callback(gpio, pigpio.LOW, callback)
-            btn = btn + 1
+            pi.callback(gpio, pigpio.FALLING_EDGE, self.button_press)
 
     def startup(self):
         # Start display thread
@@ -328,10 +331,12 @@ class Menu(ABC):
         pass
 
 class InitialMenu(Menu):
+    menu_line3= " Menu  0% - 100%  On/Off"
+    menu_line4 = "  X     <     >     X"
     def __init__(self, controller):
         super().__init__(controller)
-        self.menu_line4 = None
-        self.menu_line3 = None
+        # self.menu_line4 = None
+        # self.menu_line3 = None
         self.reset()
 
     def reset(self):
