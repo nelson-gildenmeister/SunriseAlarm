@@ -130,7 +130,7 @@ class SunriseController:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
             # Debounce the switches
             pi.set_glitch_filter(gpio, 300)
-            menu = self.menus[MenuStateName.initial]
+            menu = InitialMenu(self)
             callback = menu.button_handler(btn)
             pi.callback(gpio, pigpio.LOW, callback)
             btn = btn + 1
