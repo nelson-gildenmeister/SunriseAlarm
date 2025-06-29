@@ -73,7 +73,7 @@ class OledDisplay:
         # Draw a black filled box to clear the image.
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
-        cmd = "date \"+%a, %b %d  %I:%M %p\""
+        cmd = "date \"+%a, %b %d %I:%M %P\""
         date = subprocess.check_output(cmd, shell=True).decode("utf-8")
 
         # Set display lines
