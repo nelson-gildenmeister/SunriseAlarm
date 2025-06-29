@@ -137,6 +137,7 @@ class SunriseController:
          MenuStateName.set_date: SetDateMenu(self), MenuStateName.network: NetworkMenu}
         menu = menus[MenuStateName.initial]
         fourth_line = Menu.menu_line4
+        self.view.display_line4 = fourth_line
         return menus
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
