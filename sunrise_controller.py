@@ -356,8 +356,12 @@ class InitialMenu(Menu):
         self.scroll = False
 
     def button_handler(self, btn: int) -> MenuStateName | None:
-        # Every button push resets the time for display auto power off
+        # Every button push resets the time for display auto power off but if display is off, no action is performed.
+        display_on = self.controller.view.is_display_on()
         self.controller.view.turn_display_on()
+        if not display_on:
+            return MenuStateName.initial
+
         # TODO - Menu button changes to main menu
         if btn == 1:
             return MenuStateName.main
