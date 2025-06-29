@@ -378,15 +378,15 @@ class InitialMenu(Menu):
             case 4:
                 if self.controller.dimmer.get_level():
                     self.controller.dimmer.turn_off()
+                    fourth_line = "Menu  Dim-  Dim+  On"
                 else:
                     self.controller.dimmer.turn_on()
+                    fourth_line = "Menu  Dim-  Dim+  Off"
+
+                self.controller.view.update_display(first_line, second_line, third_line, fourth_line, scroll)
             case _:
                 print("Invalid button number")
 
-        if self.controller.dimmer.get_level():
-            fourth_line = "Menu  Dim-  Dim+  Off"
-        else:
-            fourth_line = "Menu  Dim-  Dim+  On"
 
         return MenuStateName.initial
 
