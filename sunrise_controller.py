@@ -15,7 +15,7 @@ from dimmer import Dimmer
 from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
 
-BRIGHTNESS_CHANGE_PERCENT: int = 10
+BRIGHTNESS_CHANGE_PERCENT: int = 5
 
 btn1_gpio = 12
 btn2_gpio = 16
@@ -351,8 +351,8 @@ class InitialMenu(Menu):
         self.reset()
 
     def reset(self):
-        self.menu_line3 = "Menu 0% - 100% On/Off"
-        self.menu_line4 = " X   <     >     X"
+        self.menu_line3 = "Menu Dim+ Dim- On/Off"
+        self.menu_line4 = "  X    -    +     X  "
         self.scroll = False
 
     def button_handler(self, btn: int) -> MenuStateName | None:
