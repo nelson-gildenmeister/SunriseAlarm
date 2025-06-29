@@ -342,13 +342,16 @@ class Menu(ABC):
 
 class InitialMenu(Menu):
     menu_line3 = ""
-    menu_line4 = "Menu Dim- Dim+ On/Off"
+    menu_line4 = ""
     def __init__(self, controller):
         super().__init__(controller)
         self.scroll = True
 
     def reset(self):
-        self.menu_line4 = "Menu Dim- Dim+ On/Off"
+        if self.controller.dimmer.get_level():
+            self.menu_line4 = "Menu  Dim-  Dim+  Off"
+        else:
+            self.menu_line4 = "Menu  Dim-  Dim+  On"
         self.scroll = True
 
     def button_handler(self, btn: int) -> MenuStateName | None:
@@ -380,6 +383,11 @@ class InitialMenu(Menu):
                     self.controller.dimmer.turn_on()
             case _:
                 print("Invalid button number")
+
+        if self.controller.dimmer.get_level():
+            self.menu_line4 = "Menu  Dim-  Dim+  Off"
+        else:
+            self.menu_line4 = "Menu  Dim-  Dim+  On"
 
         return MenuStateName.initial
 
