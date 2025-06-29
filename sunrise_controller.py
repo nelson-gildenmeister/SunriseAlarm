@@ -384,7 +384,6 @@ class InitialMenu(Menu):
                     self.controller.dimmer.turn_on()
                     fourth_line = "Menu  Dim-  Dim+  Off"
 
-                self.controller.view.display_line4 = fourth_line
             case _:
                 print("Invalid button number")
 
