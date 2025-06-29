@@ -18,7 +18,7 @@ from board import SCL, SDA
 
 
 class OledDisplay:
-    __max_line_len__ = 23
+    __max_line_len__ = 21
 
     def __init__(self, display_auto_power_off_minutes: int, debug: bool):
         self.debug = debug
@@ -132,8 +132,6 @@ class OledDisplay:
 
         return False
 
-    def reset_display_auto_off(self):
-        self.start_display_time = time.time()
 
     # Public method to turn display on
     def turn_display_on(self):

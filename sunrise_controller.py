@@ -351,13 +351,13 @@ class InitialMenu(Menu):
         self.reset()
 
     def reset(self):
-        self.menu_line3 = "Menu  0% - 100%  On/Off"
-        self.menu_line4 = " X     <     >     X"
+        self.menu_line3 = "Menu 0% - 100% On/Off"
+        self.menu_line4 = " X   <     >     X"
         self.scroll = False
 
     def button_handler(self, btn: int) -> MenuStateName | None:
         # Every button push resets the time for display auto power off
-        self.controller.view.reset_display_auto_off()
+        self.controller.view.turn_display_on()
         # TODO - Menu button changes to main menu
         if btn == 1:
             return MenuStateName.main
