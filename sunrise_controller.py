@@ -351,9 +351,8 @@ class InitialMenu(Menu):
         self.reset()
 
     def reset(self):
-        self.menu_line3 = "Menu Dim+ Dim- On/Off"
-        self.menu_line4 = "  X    -    +     X  "
-        self.scroll = False
+        self.menu_line4 = "Menu Dim- Dim+ On/Off"
+        self.scroll = True
 
     def button_handler(self, btn: int) -> MenuStateName | None:
         # Every button push resets the time for display auto power off but if display is off, no action is performed.
