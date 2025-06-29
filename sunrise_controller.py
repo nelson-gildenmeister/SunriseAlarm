@@ -131,13 +131,11 @@ class SunriseController:
 
 
     def initialize_menus(self) -> {}:
-        global third_line
         global fourth_line
         menus = {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
          MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
          MenuStateName.set_date: SetDateMenu(self), MenuStateName.network: NetworkMenu}
         menu = menus[MenuStateName.initial]
-        third_line =  menu.menu_line3
         fourth_line = menu.menu_line4
         return menus
 
