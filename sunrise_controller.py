@@ -341,8 +341,7 @@ class Menu(ABC):
         pass
 
 class InitialMenu(Menu):
-    menu_line3= " Menu  0% - 100%  On/Off"
-    menu_line4 = "  X     <     >     X"
+    menu_line4 = "Menu Dim- Dim+ On/Off"
     def __init__(self, controller):
         super().__init__(controller)
         # self.menu_line4 = None
