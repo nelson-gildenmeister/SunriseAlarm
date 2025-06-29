@@ -134,7 +134,8 @@ class SunriseController:
         global fourth_line
         menus = {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
          MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
-         MenuStateName.set_date: SetDateMenu(self), MenuStateName.network: NetworkMenu}
+                 MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
+                 MenuStateName.network: NetworkMenu}
         menu = menus[MenuStateName.initial]
         fourth_line = Menu.menu_line4
         self.view.display_line4 = fourth_line
@@ -324,6 +325,7 @@ class MenuStateName(Enum):
     main = "main"
     set_program = "set_program"
     enable = "enable"
+    display_timer = "display_timer"
     set_date = "set_date"
     network = "network"
 
@@ -413,6 +415,17 @@ class SetProgramMenu(Menu):
         pass
 
 class EnableMenu(Menu):
+    def __init__(self, controller):
+        super().__init__(controller)
+        self.current_sub_menu = ""
+
+    def reset(self):
+        self.current_sub_menu = ""
+
+    def button_handler(self, btn: int) -> MenuStateName:
+        pass
+
+class SetDisplayOffTimeMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller)
         self.current_sub_menu = ""
