@@ -349,9 +349,9 @@ class InitialMenu(Menu):
 
     def reset(self):
         if self.controller.dimmer.get_level():
-            self.menu_line4 = "Menu  Dim-  Dim+  Off"
+            InitialMenu.menu_line4 = "Menu  Dim-  Dim+  Off"
         else:
-            self.menu_line4 = "Menu  Dim-  Dim+  On"
+            InitialMenu.menu_line4 = "Menu  Dim-  Dim+  On"
         self.scroll = True
 
     def button_handler(self, btn: int) -> MenuStateName | None:
@@ -385,9 +385,9 @@ class InitialMenu(Menu):
                 print("Invalid button number")
 
         if self.controller.dimmer.get_level():
-            self.menu_line4 = "Menu  Dim-  Dim+  Off"
+            InitialMenu.menu_line4 = "Menu  Dim-  Dim+  Off"
         else:
-            self.menu_line4 = "Menu  Dim-  Dim+  On"
+            InitialMenu.menu_line4 = "Menu  Dim-  Dim+  On"
 
         return MenuStateName.initial
 
