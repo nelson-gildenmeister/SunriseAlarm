@@ -136,7 +136,7 @@ class SunriseController:
          MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
          MenuStateName.set_date: SetDateMenu(self), MenuStateName.network: NetworkMenu}
         menu = menus[MenuStateName.initial]
-        fourth_line = menu.menu_line4
+        fourth_line = Menu.menu_line4
         return menus
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
@@ -327,6 +327,7 @@ class MenuStateName(Enum):
     network = "network"
 
 class Menu(ABC):
+    menu_line4 = ""
     def __init__(self, controller: SunriseController):
         self.controller = controller
 
@@ -339,7 +340,6 @@ class Menu(ABC):
         pass
 
 class InitialMenu(Menu):
-    menu_line4 = ""
     def __init__(self, controller):
         super().__init__(controller)
         self.scroll = True
@@ -347,9 +347,9 @@ class InitialMenu(Menu):
 
     def reset(self):
         if self.controller.dimmer.get_level():
-            menu_line4 = "Menu  Dim-  Dim+  Off"
+            Menu.menu_line4 = "Menu  Dim-  Dim+  Off"
         else:
-            menu_line4 = "Menu  Dim-  Dim+  On"
+            Menu.menu_line4 = "Menu  Dim-  Dim+  On"
         self.scroll = True
 
     def button_handler(self, btn: int) -> MenuStateName | None:
