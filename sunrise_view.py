@@ -19,6 +19,7 @@ from board import SCL, SDA
 
 class OledDisplay:
     __max_line_len__ = 21
+    display_line4 = ""
 
     def __init__(self, display_auto_power_off_minutes: int, debug: bool):
         self.debug = debug
@@ -109,6 +110,10 @@ class OledDisplay:
                 self.draw.text((x, top + 8), second_line, font=self.font, fill=255)
                 self.draw.text((x, top + 16), third_line[idx:], font=self.font, fill=255)
                 self.draw.text((x, top + 25), fourth_line, font=self.font, fill=255)
+
+                if fourth_line != OledDisplay.display_line4:
+                    fourth_line = OledDisplay.display_line4
+                    self.draw.text((x, top + 25), fourth_line, font=self.font, fill=255)
 
                 # Display image.
                 self.disp.image(self.image)
