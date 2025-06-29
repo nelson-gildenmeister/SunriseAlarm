@@ -341,20 +341,21 @@ class Menu(ABC):
         pass
 
 class InitialMenu(Menu):
-    menu_line3 = ""
     menu_line4 = ""
     def __init__(self, controller):
         super().__init__(controller)
         self.scroll = True
+        self.reset()
 
     def reset(self):
         if self.controller.dimmer.get_level():
-            InitialMenu.menu_line4 = "Menu  Dim-  Dim+  Off"
+            menu_line4 = "Menu  Dim-  Dim+  Off"
         else:
-            InitialMenu.menu_line4 = "Menu  Dim-  Dim+  On"
+            menu_line4 = "Menu  Dim-  Dim+  On"
         self.scroll = True
 
     def button_handler(self, btn: int) -> MenuStateName | None:
+        global fourth_line
         # Every button push resets the time for display auto power off but if display is off, no action is performed.
         if not self.controller.view.is_display_on():
             self.controller.view.turn_display_on()
@@ -385,9 +386,9 @@ class InitialMenu(Menu):
                 print("Invalid button number")
 
         if self.controller.dimmer.get_level():
-            InitialMenu.menu_line4 = "Menu  Dim-  Dim+  Off"
+            fourth_line = "Menu  Dim-  Dim+  Off"
         else:
-            InitialMenu.menu_line4 = "Menu  Dim-  Dim+  On"
+            fourth_line = "Menu  Dim-  Dim+  On"
 
         return MenuStateName.initial
 
