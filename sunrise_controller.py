@@ -92,6 +92,7 @@ class DisplayThread(threading.Thread):
         self.view.turn_display_on()
         self.view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
         self.view.update_display()
+        at_end = False
         while True:
             while self.data.is_display_on():
                 #self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
@@ -101,17 +102,18 @@ class DisplayThread(threading.Thread):
 
                 max_wait_time = 1
                 if self.scroll:
-                    incremental_wait_time = 0.3
-                    xs = (x * incremental_wait_time for x in range(0, max_wait_time))
-                    for _ in xs:
-                        try:
-                            msg = self.msg_q.get(False, incremental_wait_time)
-                            if msg == self.update:
-                                self.view.update_display()
-                        except queue.Empty:
-                            # Okay for no display changes
-                            self.view.scroll_line3()
-                            pass
+                    if at_end:
+                        incremental_wait_time = 2.0
+                    else:
+                        incremental_wait_time = 0.3
+                    try:
+                        msg = self.msg_q.get(False, incremental_wait_time)
+                        if msg == self.update:
+                            self.view.update_display()
+                    except queue.Empty:
+                        # Okay for no display changes
+                        at_end = self.view.scroll_line3()
+                        pass
                 else:
                     # Delay display update unless someone gives us a new update
                     try:

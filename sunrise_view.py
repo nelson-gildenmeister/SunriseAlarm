@@ -137,13 +137,14 @@ class OledDisplay:
         #         self.disp.image(self.image)
         #         self.disp.show()
 
-    def scroll_line3(self):
+    def scroll_line3(self) -> bool:
+        at_end = False
         # See if auto-power off
         if not self.is_display_on():
-            return
+            return at_end
 
         if not self.scroll and len (self.line3) < self.__max_line_len__:
-            return
+            return at_end
 
         top = self.padding
         # No way to clear just one line - everything is additive and spaces don't overwrite anything
@@ -171,6 +172,8 @@ class OledDisplay:
         self.scroll_idx = self.scroll_idx + 1
         if self.scroll_idx > len(self.line3) + 1 - self.__max_line_len__:
             self.scroll_idx = 0
+            at_end = True
+
 
         # Wrap back around to zero index
         idx = self.scroll_idx % len(self.line3)
