@@ -181,10 +181,10 @@ class OledDisplay:
         #self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
         if self.debug:
             self.debug = False
-            self.draw.text((0, top + 16), "BBBBBBBBBBBBBBBBBBBBBBBBB", font=self.font, fill=255)
+            self.draw.text((0, top + 16), "__________________________", font=self.font, fill=255)
         else:
             self.debug = True
-            self.draw.text((0, top + 16), "FFFFFFFFFFFFFFFFFFFFFFFFFF", font=self.font, fill=255)
+            self.draw.text((0, top + 16), "F                        F", font=self.font, fill=255)
         #self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
 
         print('Displaying scroll...')
