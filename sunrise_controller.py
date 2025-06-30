@@ -139,6 +139,7 @@ class DisplayThread(threading.Thread):
         self.line3 = line3
         self.line4 = line4
         self.scroll = scroll
+        self.view.set_display_lines(line1, line2, line3, line4)
         self.msg_q.put(self.update, False)
 
 
