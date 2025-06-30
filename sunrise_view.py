@@ -26,6 +26,11 @@ class OledDisplay:
         self.display_auto_power_off_minutes: float = display_auto_power_off_minutes
         self.start_display_time: float = time.time()
         self.x_pos: int = 0
+        self.line1: str = ""
+        self.line2: str = ""
+        self.line3: str = ""
+        self.line4 : str= ""
+        self.scroll: bool = False
 
         # Create the I2C interface.
         self.i2c = busio.I2C(SCL, SDA)
@@ -60,16 +65,30 @@ class OledDisplay:
         self.disp.fill(0)
         self.disp.show()
 
-    def update_display(self, first_line: str = "", second_line: str = "", third_line: str = "", fourth_line: str = "",
-                       third_line_scroll: bool = True):
+    def set_display_lines(self, line1: str, line2: str, line3: str, line4: str):
+        self.line1 = line1
+        self.line2 = line2
+        self.line3 = line3
+        self.line4 = line4
+
+    def set_line1(self, line1):
+        self.line1 = line1
+
+    def set_line2(self, line2):
+        self.line2 = line2
+
+    def set_line3(self, line3):
+        self.line3 = line3
+
+    def set_line4(self, line4):
+        self.line4 = line4
+
+    def update_display(self, line3_scroll: bool = True):
         # See if auto-power off
         if not self.is_display_on():
             return
 
         top = self.padding
-        # bottom = self.height - self.padding
-        # Move left to right keeping track of the current x position for drawing shapes.
-        x = 0
         # Draw a black filled box to clear the image.
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
@@ -78,37 +97,61 @@ class OledDisplay:
 
         # Set display lines
         self.x_pos = 0
-        if not first_line:
+        if not self.line1:
             first_line = 'Sunrise Alarm'
-        if not second_line:
+        else:
+            first_line = self.line1
+        if not self.line2:
             second_line = date
-        if not third_line:
-            third_line_scroll = True
+        else:
+            second_line = self.line2
+        if not self.line3:
             third_line = 'Idle - No sunrise scheduled'
-        if not fourth_line:
-            fourth_line = 'Menu   On   Off   Dim'
+        else:
+            third_line = self.line3
+        fourth_line = self.line4
 
         # Write four lines of text.
-        self.draw.text((x, top + 0), first_line, font=self.font, fill=255)
-        self.draw.text((x, top + 8), second_line, font=self.font, fill=255)
-        self.draw.text((x, top + 16), third_line[self.x_pos:], font=self.font, fill=255)
-        self.draw.text((x, top + 25), fourth_line, font=self.font, fill=255)
+        self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
+        self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
+        self.draw.text((0, top + 16), third_line[self.x_pos:], font=self.font, fill=255)
+        self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
 
         # Display image.
         self.disp.image(self.image)
         self.disp.show()
 
-        if third_line_scroll and len(third_line) > self.__max_line_len__:
+        if line3_scroll and len(third_line) > self.__max_line_len__:
             for self.x_pos in range(1, len(third_line) + 1 - self.__max_line_len__):
-                # TODO - check flag to see if need to exit for display update
                 time.sleep(0.1)
                 # Wrap back around to zero index
                 idx = self.x_pos % len(third_line)
                 self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
-                self.draw.text((x, top + 0), first_line, font=self.font, fill=255)
-                self.draw.text((x, top + 8), second_line, font=self.font, fill=255)
-                self.draw.text((x, top + 16), third_line[idx:], font=self.font, fill=255)
-                self.draw.text((x, top + 25), fourth_line, font=self.font, fill=255)
+                self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
+                self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
+                self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
+                self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
+
+                # Display image.
+                self.disp.image(self.image)
+                self.disp.show()
+
+    def scroll_line3(self):
+        # See if auto-power off
+        if not self.is_display_on():
+            return
+
+        top = self.padding
+        if self.scroll and len(self.line3) > self.__max_line_len__:
+            for self.x_pos in range(1, len(self.line3) + 1 - self.__max_line_len__):
+                time.sleep(0.1)
+                # Wrap back around to zero index
+                idx = self.x_pos % len(self.line3)
+                self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
+                self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
+                self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
+                self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
+                self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
 
                 # Display image.
                 self.disp.image(self.image)

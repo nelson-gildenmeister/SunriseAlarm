@@ -111,6 +111,7 @@ class DisplayThread(threading.Thread):
         self.msg_q.put(self.wake, False)
 
     def update_display(self, line1, line2, line3, line4, scroll = True):
+        print("Enter update_display()")
         self.line1 = line1
         self.line2 = line2
         self.line3 = line3
@@ -392,11 +393,13 @@ class InitialMenu(Menu):
                 dimmer_curr_on = self.controller.dimmer.is_on()
                 # Update display if dimmer now off
                 if dimmer_prev_on and not dimmer_curr_on:
+                    print("Updating display...")
                     self.controller.disp_thread.update_display("", "", "", "Menu  Dim-  Dim+  On")
             case 3:
                 self.controller.dimmer.increase_brightness_by_percent(BRIGHTNESS_CHANGE_PERCENT)
                 # Update display if it was off previously
                 if not dimmer_prev_on:
+                    print("Updating display...")
                     self.controller.disp_thread.update_display("", "", "", "Menu  Dim-  Dim+  Off")
             case 4:
                 line4 = "Menu  Dim-  Dim+  On"
@@ -405,6 +408,7 @@ class InitialMenu(Menu):
                 else:
                     line4 = "Menu  Dim-  Dim+  Off"
                     self.controller.dimmer.turn_on()
+                print("Updating display...")
                 self.controller.disp_thread.update_display("", "", "", line4)
             case _:
                 print("Invalid button number")
