@@ -84,7 +84,7 @@ class OledDisplay:
     def set_line4(self, line4):
         self.line4 = line4
 
-    def update_display(self, line3_scroll: bool = True):
+    def update_display(self):
         # See if auto-power off
         if not self.is_display_on():
             return

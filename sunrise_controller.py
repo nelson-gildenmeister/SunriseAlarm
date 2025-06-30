@@ -90,7 +90,8 @@ class DisplayThread(threading.Thread):
         print("ENTER DisplayThread run()")
         # Display event loop - updates display while it is on
         self.view.turn_display_on()
-        self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
+        self.view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
+        self.view.update_display()
         while True:
             while self.data.is_display_on():
                 #self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
@@ -107,7 +108,7 @@ class DisplayThread(threading.Thread):
                         try:
                             msg = self.msg_q.get(False, incremental_wait_time)
                             if msg == self.update:
-                                self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
+                                self.view.update_display()
                         except queue.Empty:
                             # Okay for no display changes
                             #self.view.scroll_line3()
@@ -117,7 +118,7 @@ class DisplayThread(threading.Thread):
                     try:
                         msg = self.msg_q.get(False, max_wait_time)
                         if msg == self.update:
-                            self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
+                            self.view.update_display()
                     except queue.Empty:
                         # Okay for no display changes
                         pass
