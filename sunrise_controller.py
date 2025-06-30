@@ -97,7 +97,11 @@ class DisplayThread(threading.Thread):
                     return
 
                 # Delay display update for 1 second unless someone gives us a display update
-                self.msg_q.get(False, 1)
+                try:
+                    self.msg_q.get(False, 1)
+                except queue.Empty:
+                    # Okay for no display changes
+                    pass
 
             # Wait for something to wakeup the display
             msg = self.msg_q.get(True)
