@@ -146,6 +146,12 @@ class OledDisplay:
             print("Not scrolling, line too short")
             return
 
+        top = self.padding
+        # Clear line3 first
+        self.draw.text((0, top + 16), '', font=self.font, fill=255)
+        self.disp.image(self.image)
+        self.disp.show()
+
         # Set display lines using defaults for empty lines
         if not self.line1:
             first_line = 'Sunrise Alarm'
@@ -163,7 +169,7 @@ class OledDisplay:
             third_line = self.line3
         fourth_line = self.line4
 
-        top = self.padding
+
         self.scroll_idx = self.scroll_idx + 1
         if self.scroll_idx > len(self.line3) + 1 - self.__max_line_len__:
             self.scroll_idx = 0
