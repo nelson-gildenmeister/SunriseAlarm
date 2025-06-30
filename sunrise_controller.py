@@ -77,6 +77,7 @@ class DisplayThread(threading.Thread):
         self.line3 = 'Idle - No sunrise scheduled'
         self.line4 = ''
         self.scroll = True
+        self.at_end = False
         self.msg_q = queue.Queue(2)
 
     class DisplayThreadMessages(Enum):
@@ -92,7 +93,7 @@ class DisplayThread(threading.Thread):
         self.view.turn_display_on()
         self.view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
         self.view.update_display()
-        at_end = False
+        self.at_end = False
         while True:
             while self.data.is_display_on():
                 #self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
@@ -102,7 +103,7 @@ class DisplayThread(threading.Thread):
 
                 max_wait_time = 1
                 if self.scroll:
-                    if at_end:
+                    if self.at_end:
                         incremental_wait_time = 2.0
                     else:
                         incremental_wait_time = 0.3
@@ -112,7 +113,7 @@ class DisplayThread(threading.Thread):
                             self.view.update_display()
                     except queue.Empty:
                         # Okay for no display changes
-                        at_end = self.view.scroll_line3()
+                        self.at_end = self.view.scroll_line3()
                         pass
                 else:
                     # Delay display update unless someone gives us a new update
