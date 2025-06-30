@@ -103,7 +103,7 @@ class DisplayThread(threading.Thread):
                     # Okay for no display changes
                     pass
 
-            # Wait for something to wakeup the display
+            # Wait for something to wake up the display
             msg = self.msg_q.get(True)
 
     # Send a message to unblock the display thread and start display updates again.
@@ -384,6 +384,10 @@ class InitialMenu(Menu):
             self.controller.cancel_running_schedule()
 
         dimmer_prev_on: bool = self.controller.dimmer.is_on()
+        if dimmer_prev_on:
+            print("Dimmer Prev = On")
+        else:
+            print("Dimmer Prev = Off")
 
         # Handle other button actions
         match btn:
