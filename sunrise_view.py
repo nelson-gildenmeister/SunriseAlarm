@@ -94,7 +94,7 @@ class OledDisplay:
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
         # Set display lines using defaults for empty lines
-        self.x_pos = 0
+        self.scroll_idx = 0
         if not self.line1:
             first_line = 'Sunrise Alarm'
         else:
@@ -114,7 +114,7 @@ class OledDisplay:
         # Write four lines of text.
         self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
         self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
-        self.draw.text((0, top + 16), third_line[self.x_pos:], font=self.font, fill=255)
+        self.draw.text((0, top + 16), third_line[self.scroll_idx:], font=self.font, fill=255)
         self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
 
         # Display image.
@@ -122,10 +122,10 @@ class OledDisplay:
         self.disp.show()
 
         if line3_scroll and len(third_line) > self.__max_line_len__:
-            for self.x_pos in range(1, len(third_line) + 1 - self.__max_line_len__):
+            for self.scroll_idx in range(1, len(third_line) + 1 - self.__max_line_len__):
                 time.sleep(0.1)
                 # Wrap back around to zero index
-                idx = self.x_pos % len(third_line)
+                idx = self.scroll_idx % len(third_line)
                 self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
                 self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
                 self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
@@ -139,6 +139,9 @@ class OledDisplay:
     def scroll_line3(self):
         # See if auto-power off
         if not self.is_display_on():
+            return
+
+        if not self.scroll and len (self.line3) < self.__max_line_len__:
             return
 
         # Set display lines using defaults for empty lines
@@ -159,21 +162,20 @@ class OledDisplay:
         fourth_line = self.line4
 
         top = self.padding
-        if self.scroll and len(self.line3) > self.__max_line_len__:
-            # TODO - remove for loop
-            for self.x_pos in range(1, len(self.line3) + 1 - self.__max_line_len__):
-                time.sleep(0.1)
-                # Wrap back around to zero index
-                self.scroll_idx = self.x_pos % len(self.line3)
-                self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
-                self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
-                self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
-                self.draw.text((0, top + 16), third_line[self.scroll_idx:], font=self.font, fill=255)
-                self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
+        if self.scroll_idx > len(self.line3) + 1 - self.__max_line_len__:
+            self.scroll_idx = 0
 
-                # Display image.
-                self.disp.image(self.image)
-                self.disp.show()
+        # Wrap back around to zero index
+        idx = self.scroll_idx % len(self.line3)
+        #self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
+        #self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
+        #self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
+        self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
+        #self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
+
+        # Display image.
+        self.disp.image(self.image)
+        self.disp.show()
 
     # Determine whether display has been on past the maximum on time.
     def is_display_on(self):
