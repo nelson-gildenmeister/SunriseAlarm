@@ -30,6 +30,7 @@ class OledDisplay:
         self.line2: str = ""
         self.line3: str = ""
         self.line4 : str= ""
+        self.scroll_idx = 0
         self.scroll: bool = False
 
         # Create the I2C interface.
@@ -92,16 +93,15 @@ class OledDisplay:
         # Draw a black filled box to clear the image.
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
-        cmd = "date \"+%a, %b %d %I:%M %P\""
-        date = subprocess.check_output(cmd, shell=True).decode("utf-8")
-
-        # Set display lines
+        # Set display lines using defaults for empty lines
         self.x_pos = 0
         if not self.line1:
             first_line = 'Sunrise Alarm'
         else:
             first_line = self.line1
         if not self.line2:
+            cmd = "date \"+%a, %b %d %I:%M %P\""
+            date = subprocess.check_output(cmd, shell=True).decode("utf-8")
             second_line = date
         else:
             second_line = self.line2
@@ -141,16 +141,34 @@ class OledDisplay:
         if not self.is_display_on():
             return
 
+        # Set display lines using defaults for empty lines
+        if not self.line1:
+            first_line = 'Sunrise Alarm'
+        else:
+            first_line = self.line1
+        if not self.line2:
+            cmd = "date \"+%a, %b %d %I:%M %P\""
+            date = subprocess.check_output(cmd, shell=True).decode("utf-8")
+            second_line = date
+        else:
+            second_line = self.line2
+        if not self.line3:
+            third_line = 'Idle - No sunrise scheduled'
+        else:
+            third_line = self.line3
+        fourth_line = self.line4
+
         top = self.padding
         if self.scroll and len(self.line3) > self.__max_line_len__:
+            # TODO - remove for loop
             for self.x_pos in range(1, len(self.line3) + 1 - self.__max_line_len__):
                 time.sleep(0.1)
                 # Wrap back around to zero index
-                idx = self.x_pos % len(self.line3)
+                self.scroll_idx = self.x_pos % len(self.line3)
                 self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
                 self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
                 self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
-                self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
+                self.draw.text((0, top + 16), third_line[self.scroll_idx:], font=self.font, fill=255)
                 self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
 
                 # Display image.
