@@ -136,7 +136,7 @@ class DisplayThread(threading.Thread):
         self.line3 = line3
         self.line4 = line4
         self.scroll = scroll
-        self.msg_q.put(self.wake, False)
+        self.msg_q.put(self.update, False)
 
 
 class SunriseController:
