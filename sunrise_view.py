@@ -148,7 +148,7 @@ class OledDisplay:
 
         top = self.padding
         # Clear line3 first
-        self.draw.text((0, top + 16), '', font=self.font, fill=255)
+        self.draw.text((0, top + 16), '                     ', font=self.font, fill=255)
         self.disp.image(self.image)
         self.disp.show()
 
