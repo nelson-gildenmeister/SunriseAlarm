@@ -174,11 +174,11 @@ class OledDisplay:
 
         # Wrap back around to zero index
         idx = self.scroll_idx % len(self.line3)
-        #self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
-        #self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
-        #self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
-        #self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
-        #self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
+        self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
+        self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
+        self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
+        self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
+        self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
 
         # Display image.
         self.disp.image(self.image)
