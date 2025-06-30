@@ -187,6 +187,8 @@ class OledDisplay:
         self.disp.image(self.image)
         self.disp.show()
 
+        return at_end
+
     # Determine whether display has been on past the maximum on time.
     def is_display_on(self):
         if not self.display_on:
