@@ -146,10 +146,9 @@ class OledDisplay:
             return
 
         top = self.padding
-        # Clear line3 first
-        self.draw.text((0, top + 16), '                       .', font=self.font, fill=255)
-        self.disp.image(self.image)
-        self.disp.show()
+        # No way to clear just one line - everything is additive and spaces don't overwrite anything
+        # Draw a black filled box to clear the image.
+        self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
         # Set display lines using defaults for empty lines
         if not self.line1:
@@ -179,15 +178,8 @@ class OledDisplay:
         #self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
         #self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
         #self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
-        if self.debug:
-            self.debug = False
-            self.draw.text((0, top + 16), "__________________________", font=self.font, fill=255)
-        else:
-            self.debug = True
-            self.draw.text((0, top + 16), "F                        F", font=self.font, fill=255)
         #self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
 
-        print('Displaying scroll...')
         # Display image.
         self.disp.image(self.image)
         self.disp.show()
