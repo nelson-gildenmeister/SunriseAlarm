@@ -141,13 +141,11 @@ class SunriseController:
 
 
     def initialize_menus(self) -> {}:
-        menus = {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
+        return {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
          MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
                  MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
                  MenuStateName.network: NetworkMenu}
-        menu = menus[MenuStateName.initial]
-        self.disp_thread.update_display("", "", "", Menu.menu_line4)
-        return menus
+
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
         for gpio in gpio_list:
@@ -160,6 +158,8 @@ class SunriseController:
         # Start display thread
         self.disp_thread = DisplayThread(self.view, self.data, self.ctrl_event)
         self.disp_thread.start()
+        current_menu = self. menus[self.current_menu]
+        self.disp_thread.update_display("", "", "", Menu.menu_line4)
 
         print("Entering Event loop...")
 
