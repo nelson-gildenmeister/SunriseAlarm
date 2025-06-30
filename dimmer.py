@@ -40,6 +40,9 @@ class Dimmer:
     def get_level(self) -> int:
         return self.duty_cycle
 
+    def is_on(self) -> bool:
+        return self.duty_cycle >= self.__min_duty_cycle__
+
     def enable(self):
         self.is_enabled = True
 

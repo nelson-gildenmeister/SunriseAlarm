@@ -23,12 +23,6 @@ btn3_gpio = 20
 btn4_gpio = 21
 button_map = {btn1_gpio: 1, btn2_gpio: 2, btn3_gpio: 3, btn4_gpio: 4}
 
-first_line = ""
-second_line = ""
-third_line = ""
-fourth_line = ""
-scroll = True
-
 
 class DayOfWeek(Enum):
     Monday = 0
@@ -78,30 +72,46 @@ class DisplayThread(threading.Thread):
         self.view = view
         self.data = data
         self.event = event
+        self.line1 = ""
+        self.line2 = ""
+        self.line3 = ""
+        self.line4 = ""
+        self.scroll = True
         self.msg_q = queue.Queue(2)
 
     class DisplayThreadMessages(Enum):
         Wake = 1
+        Update = 2
 
     wake = DisplayThreadMessages.Wake
+    update = DisplayThreadMessages.Update
 
     def run(self):
-        global first_line, second_line, third_line, fourth_line, scroll
         print("ENTER DisplayThread run()")
         # Display event loop - updates display while it is on
         self.view.turn_display_on()
         while True:
             while self.data.is_display_on():
-                self.view.update_display(first_line, second_line, third_line, fourth_line, scroll)
+                self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
                 if self.event.is_set():
                     return
-                time.sleep(1)
+
+                # Delay display update for 1 second unless someone gives us a display update
+                self.msg_q.get(False, 1)
 
             # Wait for something to wakeup the display
             msg = self.msg_q.get(True)
 
     # Send a message to unblock the display thread and start display updates again.
     def turn_on_display(self):
+        self.msg_q.put(self.wake, False)
+
+    def update_display(self, line1, line2, line3, line4, scroll = True):
+        self.line1 = line1
+        self.line2 = line2
+        self.line3 = line3
+        self.line4 = line4
+        self.scroll = scroll
         self.msg_q.put(self.wake, False)
 
 
@@ -131,14 +141,12 @@ class SunriseController:
 
 
     def initialize_menus(self) -> {}:
-        global fourth_line
         menus = {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
          MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
                  MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
                  MenuStateName.network: NetworkMenu}
         menu = menus[MenuStateName.initial]
-        fourth_line = Menu.menu_line4
-        self.view.display_line4 = fourth_line
+        self.disp_thread.update_display("", "", "", Menu.menu_line4)
         return menus
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
@@ -356,7 +364,6 @@ class InitialMenu(Menu):
         self.scroll = True
 
     def button_handler(self, btn: int) -> MenuStateName | None:
-        global fourth_line
         # Every button push resets the time for display auto power off but if display is off, no action is performed.
         if not self.controller.view.is_display_on():
             self.controller.view.turn_display_on()
@@ -372,20 +379,29 @@ class InitialMenu(Menu):
         if self.controller.is_running:
             self.controller.cancel_running_schedule()
 
+        dimmer_prev_on: bool = self.controller.dimmer.is_on()
+
         # Handle other button actions
         match btn:
             case 2:
                 self.controller.dimmer.decrease_brightness_by_percent(BRIGHTNESS_CHANGE_PERCENT)
+                dimmer_curr_on = self.controller.dimmer.is_on()
+                # Update display if dimmer now off
+                if dimmer_prev_on and not dimmer_curr_on:
+                    self.controller.disp_thread.update_display("", "", "", "Menu  Dim-  Dim+  On")
             case 3:
                 self.controller.dimmer.increase_brightness_by_percent(BRIGHTNESS_CHANGE_PERCENT)
+                # Update display if it was off previously
+                if not dimmer_prev_on:
+                    self.controller.disp_thread.update_display("", "", "", "Menu  Dim-  Dim+  Off")
             case 4:
+                line4 = "Menu  Dim-  Dim+  On"
                 if self.controller.dimmer.get_level():
                     self.controller.dimmer.turn_off()
-                    fourth_line = "Menu  Dim-  Dim+  On"
                 else:
+                    line4 = "Menu  Dim-  Dim+  Off"
                     self.controller.dimmer.turn_on()
-                    fourth_line = "Menu  Dim-  Dim+  Off"
-
+                self.controller.disp_thread.update_display("", "", "", line4)
             case _:
                 print("Invalid button number")
 
