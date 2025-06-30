@@ -162,6 +162,7 @@ class OledDisplay:
         fourth_line = self.line4
 
         top = self.padding
+        self.scroll_idx = self.scroll_idx + 1
         if self.scroll_idx > len(self.line3) + 1 - self.__max_line_len__:
             self.scroll_idx = 0
 
