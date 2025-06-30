@@ -172,7 +172,6 @@ class OledDisplay:
         self.scroll_idx = self.scroll_idx + 1
         if self.scroll_idx > len(self.line3) + 1 - self.__max_line_len__:
             self.scroll_idx = 0
-            print('At End')
             at_end = True
 
 

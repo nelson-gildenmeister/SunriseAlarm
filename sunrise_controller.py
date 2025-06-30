@@ -104,6 +104,7 @@ class DisplayThread(threading.Thread):
                 max_wait_time = 1
                 if self.scroll:
                     if self.at_end:
+                        print('Setting wait time to 2')
                         incremental_wait_time = 2.0
                     else:
                         incremental_wait_time = 0.3
