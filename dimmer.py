@@ -41,6 +41,7 @@ class Dimmer:
         return self.duty_cycle
 
     def is_on(self) -> bool:
+        print(f'Duty cycle = {self.duty_cycle}')
         return self.duty_cycle >= self.__min_duty_cycle__
 
     def enable(self):
