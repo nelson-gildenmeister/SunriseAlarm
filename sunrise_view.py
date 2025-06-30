@@ -32,6 +32,7 @@ class OledDisplay:
         self.line4 : str= ""
         self.scroll_idx = 0
         self.scroll: bool = False
+        self.debug = False
 
         # Create the I2C interface.
         self.i2c = busio.I2C(SCL, SDA)
@@ -178,7 +179,12 @@ class OledDisplay:
         #self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
         #self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
         #self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
-        self.draw.text((0, top + 16), third_line, font=self.font, fill=255)
+        if self.debug:
+            self.debug = False
+            self.draw.text((0, top + 16), "third_line", font=self.font, fill=255)
+        else:
+            self.debug = True
+            self.draw.text((0, top + 16), third_line, font=self.font, fill=255)
         #self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
 
         # Display image.
