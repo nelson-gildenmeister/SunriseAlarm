@@ -139,10 +139,14 @@ class OledDisplay:
     def scroll_line3(self):
         # See if auto-power off
         if not self.is_display_on():
+            print("Not scrolling, display off")
             return
 
         if not self.scroll and len (self.line3) < self.__max_line_len__:
+            print("Not scrolling, line too short")
             return
+
+        print('Scrolling...')
 
         # Set display lines using defaults for empty lines
         if not self.line1:

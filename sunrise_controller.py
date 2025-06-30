@@ -101,7 +101,7 @@ class DisplayThread(threading.Thread):
 
                 max_wait_time = 1
                 if self.scroll:
-                    incremental_wait_time = 0.05
+                    incremental_wait_time = 0.1
                     xs = (x * incremental_wait_time for x in range(0, max_wait_time))
                     for _ in xs:
                         try:
