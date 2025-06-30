@@ -100,6 +100,7 @@ class DisplayThread(threading.Thread):
 
                 max_wait_time = 1
                 if self.scroll:
+                    print("Scrolling...")
                     incremental_wait_time = 0.05
                     xs = (x * incremental_wait_time for x in range(0, max_wait_time))
                     for _ in xs:
@@ -107,9 +108,9 @@ class DisplayThread(threading.Thread):
                             msg = self.msg_q.get(False, incremental_wait_time)
                             if msg == self.update:
                                 self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
-                            self.view.scroll_line3()
                         except queue.Empty:
                             # Okay for no display changes
+                            #self.view.scroll_line3()
                             pass
                 else:
                     # Delay display update unless someone gives us a new update
