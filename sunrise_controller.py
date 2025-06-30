@@ -104,12 +104,11 @@ class DisplayThread(threading.Thread):
                 max_wait_time = 1
                 if self.scroll:
                     if self.at_end:
-                        print('Setting wait time to 2')
                         incremental_wait_time = 2.0
                     else:
                         incremental_wait_time = 0.3
                     try:
-                        msg = self.msg_q.get(False, incremental_wait_time)
+                        msg = self.msg_q.get(True, incremental_wait_time)
                         if msg == self.update:
                             self.view.update_display()
                     except queue.Empty:
@@ -119,7 +118,7 @@ class DisplayThread(threading.Thread):
                 else:
                     # Delay display update unless someone gives us a new update
                     try:
-                        msg = self.msg_q.get(False, max_wait_time)
+                        msg = self.msg_q.get(True, max_wait_time)
                         if msg == self.update:
                             self.view.update_display()
                     except queue.Empty:
