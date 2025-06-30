@@ -72,10 +72,10 @@ class DisplayThread(threading.Thread):
         self.view = view
         self.data = data
         self.event = event
-        self.line1 = ""
-        self.line2 = ""
-        self.line3 = ""
-        self.line4 = ""
+        self.line1 = ''
+        self.line2 = ''
+        self.line3 = 'Idle - No sunrise scheduled'
+        self.line4 = ''
         self.scroll = True
         self.msg_q = queue.Queue(2)
 

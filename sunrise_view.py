@@ -146,8 +146,6 @@ class OledDisplay:
             print("Not scrolling, line too short")
             return
 
-        print('Scrolling...')
-
         # Set display lines using defaults for empty lines
         if not self.line1:
             first_line = 'Sunrise Alarm'
