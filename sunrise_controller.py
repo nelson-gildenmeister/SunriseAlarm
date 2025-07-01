@@ -361,7 +361,7 @@ class SunriseController:
 
         self.current_menu = self.menus[MenuStateName.initial]
 
-    def shutdown(self, sig, frame):
+    def shutdown(self):
         self.dimmer.shutdown()
 
     # def update_status(self):
