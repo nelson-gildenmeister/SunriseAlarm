@@ -242,7 +242,7 @@ class SunriseController:
                 dt_start = calc_start_datetime(self.settings.start_time[day_index], day_increment)
                 print(f'Scheduling future start: {dt_start}, duration: {self.settings.minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[day_index])
-                self.disp_thread.update_line3_display(f'Next sunrise: {dt_start.ctime()}, duration: {self.settings.minutes[day_index]} minutes')
+                self.disp_thread.update_line3_display(f'Next sunrise: {dt_start.ctime()}')
                 break
             day_index = (day_index + 1) % (DayOfWeek.Sunday.value + 1)
             day_increment = day_increment + 1
@@ -303,11 +303,12 @@ class SunriseController:
             self.time_increment_sched.cancel()
         except:
             pass
+
         if self.is_running:
             self.cancel = True
             self.dimmer.set_level(self.dimmer.get_min_level())
             # TODO - update status correctly
-            self.disp_thread.update_line3_display('Next sunrise: TBD')
+            #self.disp_thread.update_line3_display('Next sunrise: TBD')
 
     def schedule_sunrise_start(self, start_time: dt.datetime, duration_minutes: int):
         # Create a new scheduler
