@@ -174,6 +174,7 @@ class OledDisplay:
             self.scroll_idx = 0
             at_end = True
 
+        print(f'Scroll idx = {self.scroll_idx}')
 
         # Wrap back around to zero index
         idx = self.scroll_idx % len(self.line3)
