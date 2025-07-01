@@ -142,6 +142,10 @@ class DisplayThread(threading.Thread):
         self.view.set_display_lines(line1, line2, line3, line4)
         self.msg_q.put(self.update, False)
 
+    def update_line3_display(self, line3):
+        self.line3 = line3
+        self.view.set_line3(line3)
+        self.msg_q.put(self.update, False)
 
 class SunriseController:
     sunrise_event: Event
