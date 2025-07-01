@@ -175,7 +175,7 @@ class OledDisplay:
 
 
         self.scroll_idx = self.scroll_idx + 1
-        if self.scroll_idx > len(self.line3) + 1:
+        if self.scroll_idx > len(self.line3):
             self.scroll_idx = 0
             at_end = True
 
