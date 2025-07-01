@@ -179,8 +179,6 @@ class OledDisplay:
             self.scroll_idx = 0
             at_end = True
 
-        print(f'Scroll idx = {self.scroll_idx}')
-
         # Wrap back around to zero index
         idx = self.scroll_idx % len(self.line3)
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)

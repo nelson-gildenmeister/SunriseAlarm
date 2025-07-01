@@ -106,7 +106,7 @@ class DisplayThread(threading.Thread):
                     if self.at_end:
                         incremental_wait_time = 2.0
                     else:
-                        incremental_wait_time = 0.3
+                        incremental_wait_time = 0.2
                     try:
                         msg = self.msg_q.get(True, incremental_wait_time)
                         if msg == self.update:
@@ -306,6 +306,7 @@ class SunriseController:
         if self.is_running:
             self.cancel = True
             self.dimmer.set_level(self.dimmer.get_min_level())
+            # TODO - update status
 
     def schedule_sunrise_start(self, start_time: dt.datetime, duration_minutes: int):
         # Create a new scheduler
