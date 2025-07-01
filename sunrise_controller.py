@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from sched import scheduler, Event
 from threading import Timer
-from typing import List
+from typing import List, Dict, Any
 
 import pigpio
 
@@ -33,6 +33,14 @@ class DayOfWeek(Enum):
     Saturday = 5
     Sunday = 6
 
+class MenuStateName(Enum):
+    initial = "initial"
+    main = "main"
+    set_program = "set_program"
+    enable = "enable"
+    display_timer = "display_timer"
+    set_date = "set_date"
+    network = "network"
 
 @dataclass
 class DisplayState:
@@ -163,7 +171,7 @@ class SunriseController:
         self.dimmer_step_size: int = 1
         self.pi = pigpio.pi()
         self.sunrise_scheduler = None
-        self.time_increment_sched: threading.Timer
+        self.time_increment_sched = None
         self.view = view
         self.data: SunriseData = data
         self.settings: SunriseSettings = data.settings
@@ -173,11 +181,11 @@ class SunriseController:
         self.sec_per_step: int = 0
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
-        self.current_menu: MenuStateName = MenuStateName.initial
+        self.current_menu_name: MenuStateName = MenuStateName.initial
         self.menus = self.initialize_menus()
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
-    def initialize_menus(self) -> {MenuStateName.value: Menu}:
+    def initialize_menus(self) -> Dict[MenuStateName.value, Any]:
         return {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
                 MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
                 MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
@@ -194,7 +202,7 @@ class SunriseController:
         # Start display thread
         self.disp_thread = DisplayThread(self.view, self.data, self.ctrl_event)
         self.disp_thread.start()
-        current_menu = self.menus[self.current_menu]
+        current_menu = self.menus[self.current_menu_name]
         print(f'current_menu: {current_menu.menu_line4}, Menu.menu_line4: {Menu.menu_line4}')
         self.disp_thread.update_line4_display(current_menu.menu_line4)
         #self.disp_thread.update_display("", "", "", Menu.menu_line4)
@@ -292,17 +300,15 @@ class SunriseController:
     def set_schedule(self):
         pass
 
-    def cancel_schedule(self):
-        # If scheduled event is not yet running, cancel it
+    def cancel_pending_schedule(self):
+        # If scheduled event is queued up to run, cancel it
         if self.sunrise_scheduler.queue:
             try:
-                if self.sunrise_event is not None:
+                if self.sunrise_event:
                     scheduler.cancel(self.sunrise_event)
             except ValueError:
                 # no event in the queue to cancel
                 pass
-
-        self.cancel_running_schedule()
 
     def cancel_running_schedule(self):
         # If scheduled event is running, stop it
@@ -353,14 +359,20 @@ class SunriseController:
             return
 
         # Call the handler for the current menu
-        self.current_menu = self.menus[self.current_menu].button_handler(btn)
+        new_menu_name = self.menus[self.current_menu_name].button_handler(btn)
+        # if button action changed the menu, update the display with new menu
+        if self.current_menu_name != new_menu_name:
+            self.current_menu_name = new_menu_name
+            menu = self.menus[self.current_menu_name]
+            menu.menu_line4
+
 
     def reinit_menus(self):
         # Iterate through the menu objects and reset them
         for key in self.menus.keys():
             self.menus[key].reset()
 
-        self.current_menu = self.menus[MenuStateName.initial]
+        self.current_menu_name = self.menus[MenuStateName.initial]
 
     def shutdown(self):
         self.dimmer.shutdown()
@@ -377,49 +389,42 @@ class SunriseController:
     #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
 
-class MenuStateName(Enum):
-    initial = "initial"
-    main = "main"
-    set_program = "set_program"
-    enable = "enable"
-    display_timer = "display_timer"
-    set_date = "set_date"
-    network = "network"
-
-
 class Menu(ABC):
+    menu_line3 = ""
     menu_line4 = ""
 
-    def __init__(self, controller: SunriseController):
+    def __init__(self, controller: SunriseController, menu_state_name: MenuStateName):
         self.controller = controller
+        self.menu_state_name = menu_state_name
 
     @abstractmethod
     def reset(self):
         pass
 
     @abstractmethod
-    def button_handler(self, btn: int):
+    def button_handler(self, btn: int) -> MenuStateName | None:
         pass
 
 
 class InitialMenu(Menu):
     def __init__(self, controller):
-        super().__init__(controller)
+        super().__init__(controller, MenuStateName.initial)
         self.scroll = True
         self.reset()
 
     def reset(self):
+        Menu.menu_line4 = ''
         if self.controller.dimmer.get_level():
-            Menu.menu_line4 = "Menu  Dim-  Dim+  Off"
+            Menu.menu_line4 = 'Menu  Dim-  Dim+  Off'
         else:
-            Menu.menu_line4 = "Menu  Dim-  Dim+  On"
+            Menu.menu_line4 = 'Menu  Dim-  Dim+  On'
         self.scroll = True
 
     def button_handler(self, btn: int) -> MenuStateName | None:
         # Every button push resets the time for display auto power off but if display is off, no action is performed.
         if not self.controller.view.is_display_on():
             self.controller.view.turn_display_on()
-            return MenuStateName.initial
+            return self.menu_state_name
 
         self.controller.view.turn_display_on()
 
@@ -440,56 +445,94 @@ class InitialMenu(Menu):
                 dimmer_curr_on = self.controller.dimmer.is_on()
                 # Update display if dimmer now off
                 if dimmer_prev_on and not dimmer_curr_on:
-                    print("Updating display...")
                     self.controller.disp_thread.update_line4_display('Menu  Dim-  Dim+  On')
             case 3:
                 self.controller.dimmer.increase_brightness_by_percent(BRIGHTNESS_CHANGE_PERCENT)
                 # Update display if it was off previously
                 if not dimmer_prev_on:
-                    print("Updating display...")
                     self.controller.disp_thread.update_line4_display('Menu  Dim-  Dim+  Off')
             case 4:
-                line4 = "Menu  Dim-  Dim+  On"
+                line4 = 'Menu  Dim-  Dim+  On'
                 if self.controller.dimmer.get_level():
                     self.controller.dimmer.turn_off()
                 else:
-                    line4 = "Menu  Dim-  Dim+  Off"
+                    line4 = 'Menu  Dim-  Dim+  Off'
                     self.controller.dimmer.turn_on()
                 print("Updating display...")
                 self.controller.disp_thread.update_line4_display(line4)
             case _:
                 print("Invalid button number")
 
-        return MenuStateName.initial
+        return self.menu_state_name
+
+class MainSubMenus(Enum):
+    program = 0
+    enable = 1
+    display = 2
+    set_date = 3
+    network = 4
 
 
 class MainMenu(Menu):
     def __init__(self, controller):
-        super().__init__(controller)
-        self.current_sub_menu: MenuStateName = MenuStateName.main
+        super().__init__(controller, MenuStateName.main)
+        self.current_sub_menu_idx: int = 0
+        self.sub_menu_list = ["Program", "Enable/Disable Schedule", "Display Auto-Off", "Network Settings"]
+        self.sub_menus = self.reset()
 
-    def reset(self):
-        self.current_sub_menu = MenuStateName.main
+    def reset(self)-> Dict[MainSubMenus.value, Any]:
+        self.current_sub_menu = MainSubMenus.program
+        Menu.menu_line3 = MainSubMenus.program.value
+        Menu.menu_line4 = ' X     <     >    Ret'
 
-    def button_handler(self, btn: int):
-        pass
+
+
+        return {MainSubMenus.program: SetProgramMenu, MainSubMenus.enable: EnableMenu, MainSubMenus.display: EnableMenu,
+                MainSubMenus.set_date: SetDateMenu, MainSubMenus.network: NetworkMenu}
+
+    def button_handler(self, btn: int) -> MenuStateName | None:
+        # Every button push resets the time for display auto power off but if display is off, no action is performed.
+        if not self.controller.view.is_display_on():
+            self.controller.view.turn_display_on()
+            return self.menu_state_name
+
+        match btn:
+            case 1:
+                # Select button pressed, go to new menu
+                return self.sub_menus[self.current_sub_menu]
+            case 2:
+                # Left arrow
+                idx = (self.current_sub_menu_idx - 1) % len(self.sub_menu_list)
+                Menu.menu_line3 = self.sub_menu_list[idx]
+                self.controller.disp_thread.update_line4_display(Menu.menu_line3)
+            case 3:
+                # Right arrow
+                idx = (self.current_sub_menu_idx + 1) % len(self.sub_menu_list)
+                Menu.menu_line3 = self.sub_menu_list[idx]
+                self.controller.disp_thread.update_line4_display(Menu.menu_line3)
+                pass
+            case 4:
+                # Previous
+                return MenuStateName.initial
+
+        return self.menu_state_name
 
 
 class SetProgramMenu(Menu):
     def __init__(self, controller):
-        super().__init__(controller)
+        super().__init__(controller, MenuStateName.set_program)
         self.current_sub_menu = "weekday"
 
     def reset(self):
         self.current_sub_menu = "weekday"
 
-    def button_handler(self, btn: int) -> MenuStateName:
+    def button_handler(self, btn: int) -> MenuStateName | None:
         pass
 
 
 class EnableMenu(Menu):
     def __init__(self, controller):
-        super().__init__(controller)
+        super().__init__(controller, MenuStateName.enable)
         self.current_sub_menu = ""
 
     def reset(self):
@@ -501,35 +544,35 @@ class EnableMenu(Menu):
 
 class SetDisplayOffTimeMenu(Menu):
     def __init__(self, controller):
-        super().__init__(controller)
+        super().__init__(controller, MenuStateName.display_timer)
         self.current_sub_menu = ""
 
     def reset(self):
         self.current_sub_menu = ""
 
-    def button_handler(self, btn: int) -> MenuStateName:
+    def button_handler(self, btn: int) -> MenuStateName | None:
         pass
 
 
 class SetDateMenu(Menu):
     def __init__(self, controller):
-        super().__init__(controller)
+        super().__init__(controller, MenuStateName.set_date)
         self.current_sub_menu = ""
 
     def reset(self):
         self.current_sub_menu = ""
 
-    def button_handler(self, btn: int) -> MenuStateName:
+    def button_handler(self, btn: int) -> MenuStateName | None:
         pass
 
 
 class NetworkMenu(Menu):
     def __init__(self, controller):
-        super().__init__(controller)
+        super().__init__(controller, MenuStateName.network)
         self.current_sub_menu = ""
 
     def reset(self):
         self.current_sub_menu = ""
 
-    def button_handler(self, btn: int) -> MenuStateName:
+    def button_handler(self, btn: int) -> MenuStateName | None:
         pass
