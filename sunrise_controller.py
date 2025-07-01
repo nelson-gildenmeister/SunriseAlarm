@@ -104,9 +104,9 @@ class DisplayThread(threading.Thread):
                 max_wait_time = 1
                 if self.scroll:
                     if self.at_end:
-                        incremental_wait_time = 6.0
+                        incremental_wait_time = 2.0
                     else:
-                        incremental_wait_time = 2.2
+                        incremental_wait_time = 0.1
                     try:
                         msg = self.msg_q.get(True, incremental_wait_time)
                         if msg == self.update:
