@@ -143,7 +143,8 @@ class OledDisplay:
         if not self.is_display_on():
             return at_end
 
-        if not self.scroll or len (self.line3) < self.__max_line_len__:
+        if not self.scroll or len(self.line3) < self.__max_line_len__:
+            print(f'Scroll: {self.scroll}, length: {len(self.line3)}')
             return at_end
 
         top = self.padding
