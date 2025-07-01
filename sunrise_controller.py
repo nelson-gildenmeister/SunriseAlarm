@@ -132,7 +132,7 @@ class DisplayThread(threading.Thread):
     def turn_on_display(self):
         self.msg_q.put(self.wake, False)
 
-    def update_display(self, line1, line2, line3, line4, scroll = True):
+    def update_display(self, line1, line2, line3, line4, scroll=True):
         print("Enter update_display()")
         self.line1 = line1
         self.line2 = line2
@@ -151,6 +151,7 @@ class DisplayThread(threading.Thread):
         self.line4 = line4
         self.view.set_line4(line4)
         self.msg_q.put(self.update, False)
+
 
 class SunriseController:
     sunrise_event: Event
@@ -176,13 +177,11 @@ class SunriseController:
         self.menus = self.initialize_menus()
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
-
-    def initialize_menus(self) -> {}:
+    def initialize_menus(self) -> {MenuStateName.value: Menu}:
         return {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
-         MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
-                 MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
-                 MenuStateName.network: NetworkMenu}
-
+                MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
+                MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
+                MenuStateName.network: NetworkMenu}
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
         for gpio in gpio_list:
@@ -195,8 +194,10 @@ class SunriseController:
         # Start display thread
         self.disp_thread = DisplayThread(self.view, self.data, self.ctrl_event)
         self.disp_thread.start()
-        current_menu = self. menus[self.current_menu]
-        self.disp_thread.update_line4_display(Menu.menu_line4)
+        current_menu = self.menus[self.current_menu]
+        print(f'current_menu: {current_menu.menu_line4}, Menu.menu_line4: {Menu.menu_line4}')
+        self.disp_thread.update_line4_display(current_menu.menu_line4)
+        #self.disp_thread.update_display("", "", "", Menu.menu_line4)
 
         print("Entering Event loop...")
 
@@ -375,6 +376,7 @@ class SunriseController:
     #     else:
     #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
+
 class MenuStateName(Enum):
     initial = "initial"
     main = "main"
@@ -384,8 +386,10 @@ class MenuStateName(Enum):
     set_date = "set_date"
     network = "network"
 
+
 class Menu(ABC):
     menu_line4 = ""
+
     def __init__(self, controller: SunriseController):
         self.controller = controller
 
@@ -396,6 +400,7 @@ class Menu(ABC):
     @abstractmethod
     def button_handler(self, btn: int):
         pass
+
 
 class InitialMenu(Menu):
     def __init__(self, controller):
@@ -455,8 +460,8 @@ class InitialMenu(Menu):
             case _:
                 print("Invalid button number")
 
-
         return MenuStateName.initial
+
 
 class MainMenu(Menu):
     def __init__(self, controller):
@@ -469,6 +474,7 @@ class MainMenu(Menu):
     def button_handler(self, btn: int):
         pass
 
+
 class SetProgramMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller)
@@ -479,6 +485,7 @@ class SetProgramMenu(Menu):
 
     def button_handler(self, btn: int) -> MenuStateName:
         pass
+
 
 class EnableMenu(Menu):
     def __init__(self, controller):
@@ -491,6 +498,7 @@ class EnableMenu(Menu):
     def button_handler(self, btn: int) -> MenuStateName:
         pass
 
+
 class SetDisplayOffTimeMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller)
@@ -502,6 +510,7 @@ class SetDisplayOffTimeMenu(Menu):
     def button_handler(self, btn: int) -> MenuStateName:
         pass
 
+
 class SetDateMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller)
@@ -512,6 +521,7 @@ class SetDateMenu(Menu):
 
     def button_handler(self, btn: int) -> MenuStateName:
         pass
+
 
 class NetworkMenu(Menu):
     def __init__(self, controller):
