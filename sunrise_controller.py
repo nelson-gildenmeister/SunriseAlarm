@@ -185,7 +185,7 @@ class SunriseController:
         self.menus = self.initialize_menus()
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
-    def initialize_menus(self) -> Dict[MenuStateName.name, Any]:
+    def initialize_menus(self) -> Dict[Any, Any]:
         return {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
                 MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
                 MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
