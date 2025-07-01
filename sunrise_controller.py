@@ -74,7 +74,7 @@ class DisplayThread(threading.Thread):
         self.event = event
         self.line1 = ''
         self.line2 = ''
-        self.line3 = 'Idle - No sunrise scheduled'
+        self.line3 = ''
         self.line4 = ''
         self.scroll = True
         self.at_end = False
@@ -235,14 +235,20 @@ class SunriseController:
         # case it is the only scheduled time (i.e., next week on same day)
         day_index = (weekday + 1) % (DayOfWeek.Sunday.value + 1)
         day_increment = 1
+        have_scheduled_start = False
         for day in range(DayOfWeek.Sunday.value):
             if self.settings.start_time[day_index]:
+                have_scheduled_start = True
                 dt_start = calc_start_datetime(self.settings.start_time[day_index], day_increment)
                 print(f'Scheduling future start: {dt_start}, duration: {self.settings.minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[day_index])
+                self.disp_thread.update_line3_display(f'Next scheduled sunrise: {dt_start}, duration: {self.settings.minutes[day_index]} minutes')
                 break
             day_index = (day_index + 1) % (DayOfWeek.Sunday.value + 1)
             day_increment = day_increment + 1
+
+        if not have_scheduled_start:
+            self.disp_thread.update_line3_display('Idle, no sunrise scheduled')
 
     def start_schedule(self, duration_minutes: int, starting_percentage: int = 0):
         print('Sunrise starting....')
