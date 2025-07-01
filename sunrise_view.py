@@ -31,7 +31,7 @@ class OledDisplay:
         self.line3: str = ""
         self.line4 : str= ""
         self.scroll_idx = 0
-        self.scroll: bool = False
+        self.scroll: bool = True
         self.debug = False
 
         # Create the I2C interface.
@@ -143,7 +143,7 @@ class OledDisplay:
         if not self.is_display_on():
             return at_end
 
-        if not self.scroll and len (self.line3) < self.__max_line_len__:
+        if not self.scroll or len (self.line3) < self.__max_line_len__:
             return at_end
 
         top = self.padding
