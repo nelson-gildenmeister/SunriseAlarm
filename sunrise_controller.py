@@ -147,6 +147,11 @@ class DisplayThread(threading.Thread):
         self.view.set_line3(line3)
         self.msg_q.put(self.update, False)
 
+    def update_line4_display(self, line4):
+        self.line4 = line4
+        self.view.set_line4(line4)
+        self.msg_q.put(self.update, False)
+
 class SunriseController:
     sunrise_event: Event
 
@@ -430,13 +435,13 @@ class InitialMenu(Menu):
                 # Update display if dimmer now off
                 if dimmer_prev_on and not dimmer_curr_on:
                     print("Updating display...")
-                    self.controller.disp_thread.update_display("", "", "", "Menu  Dim-  Dim+  On")
+                    self.controller.disp_thread.update_line4_display('Menu  Dim-  Dim+  On')
             case 3:
                 self.controller.dimmer.increase_brightness_by_percent(BRIGHTNESS_CHANGE_PERCENT)
                 # Update display if it was off previously
                 if not dimmer_prev_on:
                     print("Updating display...")
-                    self.controller.disp_thread.update_display("", "", "", "Menu  Dim-  Dim+  Off")
+                    self.controller.disp_thread.update_line4_display('Menu  Dim-  Dim+  Off')
             case 4:
                 line4 = "Menu  Dim-  Dim+  On"
                 if self.controller.dimmer.get_level():
@@ -445,7 +450,7 @@ class InitialMenu(Menu):
                     line4 = "Menu  Dim-  Dim+  Off"
                     self.controller.dimmer.turn_on()
                 print("Updating display...")
-                self.controller.disp_thread.update_display("", "", "", line4)
+                self.controller.disp_thread.update_line4_display(line4)
             case _:
                 print("Invalid button number")
 
