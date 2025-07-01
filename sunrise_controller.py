@@ -306,7 +306,8 @@ class SunriseController:
         if self.is_running:
             self.cancel = True
             self.dimmer.set_level(self.dimmer.get_min_level())
-            # TODO - update status
+            # TODO - update status correctly
+            self.disp_thread.update_line3_display('Next sunrise: TBD')
 
     def schedule_sunrise_start(self, start_time: dt.datetime, duration_minutes: int):
         # Create a new scheduler
