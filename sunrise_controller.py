@@ -480,7 +480,7 @@ class MainMenu(Menu):
         self.sub_menu_list = ["Program", "Enable/Disable Schedule", "Display Auto-Off", "Network Settings"]
         self.sub_menus = self.reset()
 
-    def reset(self)-> Dict[MainSubMenus.value, Any]:
+    def reset(self)-> Dict[Any, Any]:
         self.current_sub_menu = MainSubMenus.program
         Menu.menu_line3 = MainSubMenus.program.value
         Menu.menu_line4 = ' X     <     >    Ret'
