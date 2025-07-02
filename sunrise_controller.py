@@ -513,11 +513,13 @@ class MainMenu(Menu):
                 idx = (self.current_sub_menu_idx - 1) % len(self.sub_menu_list)
                 self.menu_line3 = self.sub_menu_list[idx]
                 self.controller.disp_thread.update_line3_display(self.menu_line3)
+                self.current_sub_menu_idx = idx
             case 3:
                 # Right arrow
                 idx = (self.current_sub_menu_idx + 1) % len(self.sub_menu_list)
                 self.menu_line3 = self.sub_menu_list[idx]
                 self.controller.disp_thread.update_line3_display(self.menu_line3)
+                self.current_sub_menu_idx = idx
                 pass
             case 4:
                 # Previous
