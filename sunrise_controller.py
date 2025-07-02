@@ -364,7 +364,7 @@ class SunriseController:
         if self.current_menu_name != new_menu_name:
             self.current_menu_name = new_menu_name
             menu = self.menus[self.current_menu_name]
-            menu.menu_line4
+            menu.reset()
 
 
     def reinit_menus(self):
@@ -419,6 +419,7 @@ class InitialMenu(Menu):
         else:
             Menu.menu_line4 = 'Menu  Dim-  Dim+  On'
         self.scroll = True
+        self.controller.disp_thread.update_line4_display(Menu.menu_line4)
 
     def button_handler(self, btn: int) -> MenuStateName | None:
         # Every button push resets the time for display auto power off but if display is off, no action is performed.
@@ -476,15 +477,17 @@ class MainSubMenus(Enum):
 class MainMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.main)
+        self.current_sub_menu = MainSubMenus.program
         self.current_sub_menu_idx: int = 0
         self.sub_menu_list = ["Program", "Enable/Disable Schedule", "Display Auto-Off", "Network Settings"]
         self.sub_menus = self.reset()
 
     def reset(self)-> Dict[Any, Any]:
         self.current_sub_menu = MainSubMenus.program
-        Menu.menu_line3 = MainSubMenus.program.value
-        Menu.menu_line4 = ' X     <     >    Ret'
-
+        Menu.menu_line3 = self.sub_menu_list[MainSubMenus.program.value]
+        Menu.menu_line4 = ' X     <     >    Prev'
+        self.controller.disp_thread.update_line3_display(Menu.menu_line3)
+        self.controller.disp_thread.update_line4_display(Menu.menu_line4)
 
 
         return {MainSubMenus.program: SetProgramMenu, MainSubMenus.enable: EnableMenu, MainSubMenus.display: EnableMenu,
