@@ -366,6 +366,7 @@ class SunriseController:
             self.current_menu_name = new_menu_name
             menu = self.menus[self.current_menu_name]
             menu.reset()
+            menu.update_display()
 
 
     def reinit_menus(self):
