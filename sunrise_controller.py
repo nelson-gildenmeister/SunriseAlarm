@@ -418,7 +418,7 @@ class InitialMenu(Menu):
         self.reset()
 
     def reset(self):
-        Menu.menu_line4 = ''
+        self.menu_line4 = ''
         if self.controller.dimmer.get_level():
             self.menu_line4 = 'Menu  Dim-  Dim+  Off'
         else:
@@ -488,7 +488,10 @@ class MainMenu(Menu):
         self.menu_line4 = ''
         self.current_sub_menu = MainSubMenus.program
         self.current_sub_menu_idx: int = 0
-        self.sub_menu_list = ["Program", "Enable/Disable Schedule", "Display Auto-Off", "Network Settings"]
+        # The following two lists must correspond to each other. Both are indexed by self.current_sub_menu_idx
+        self.sub_menu_list = ['Program', 'Enable/Disable Schedule', 'Display Auto-Off', 'Date/Time', 'Network Settings']
+        self.sub_menu_key_list = [MenuStateName.set_program, MenuStateName.enable, MenuStateName.display_timer,
+                                  MenuStateName.set_date, MenuStateName.network]
         self.sub_menus = self.reset()
 
     def reset(self)-> Dict[Any, Any]:
@@ -512,17 +515,17 @@ class MainMenu(Menu):
         match btn:
             case 1:
                 # Select button pressed, go to new menu
-                return self.sub_menus[self.current_sub_menu]
+                return self.sub_menu_key_list[self.current_sub_menu_idx]
             case 2:
                 # Left arrow
                 idx = (self.current_sub_menu_idx - 1) % len(self.sub_menu_list)
-                Menu.menu_line3 = self.sub_menu_list[idx]
-                self.controller.disp_thread.update_line4_display(Menu.menu_line3)
+                self.menu_line3 = self.sub_menu_list[idx]
+                self.controller.disp_thread.update_line4_display(self.menu_line3)
             case 3:
                 # Right arrow
                 idx = (self.current_sub_menu_idx + 1) % len(self.sub_menu_list)
-                Menu.menu_line3 = self.sub_menu_list[idx]
-                self.controller.disp_thread.update_line4_display(Menu.menu_line3)
+                self.menu_line3 = self.sub_menu_list[idx]
+                self.controller.disp_thread.update_line4_display(self.menu_line3)
                 pass
             case 4:
                 # Previous
