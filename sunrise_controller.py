@@ -203,7 +203,7 @@ class SunriseController:
         self.disp_thread = DisplayThread(self.view, self.data, self.ctrl_event)
         self.disp_thread.start()
         current_menu = self.menus[self.current_menu_name]
-        print(f'current_menu: {current_menu.menu_line4}, Menu.menu_line4: {Menu.menu_line4}')
+        print(f'current_menu_name: {self.current_menu_name},  current_menu: {current_menu}')
         current_menu.update_display()
 
         print("Entering Event loop...")
