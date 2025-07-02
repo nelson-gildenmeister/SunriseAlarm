@@ -360,6 +360,8 @@ class SunriseController:
         # Call the handler for the current menu
         new_menu_name = self.menus[self.current_menu_name].button_handler(btn)
         # if button action changed the menu, update the display with new menu
+        print(f'new_menu_name = {new_menu_name}')
+        print(f'current_menu_name = {self.current_menu_name}')
         if self.current_menu_name != new_menu_name:
             self.current_menu_name = new_menu_name
             menu = self.menus[self.current_menu_name]
@@ -409,8 +411,8 @@ class Menu(ABC):
 class InitialMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.initial)
-        self.menu_line3 = ""
-        self.menu_line4 = ""
+        self.menu_line3 = ''
+        self.menu_line4 = ''
 
         self.scroll = True
         self.reset()
@@ -424,7 +426,6 @@ class InitialMenu(Menu):
         self.scroll = True
 
     def update_display(self):
-        print(f'InitialMenu:update_display(), line4 = {self.menu_line4}')
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> MenuStateName | None:
@@ -483,8 +484,8 @@ class MainSubMenus(Enum):
 class MainMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.main)
-        self.menu_line3 = ""
-        self.menu_line4 = ""
+        self.menu_line3 = ''
+        self.menu_line4 = ''
         self.current_sub_menu = MainSubMenus.program
         self.current_sub_menu_idx: int = 0
         self.sub_menu_list = ["Program", "Enable/Disable Schedule", "Display Auto-Off", "Network Settings"]
@@ -533,8 +534,8 @@ class MainMenu(Menu):
 class SetProgramMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.set_program)
-        self.menu_line3 = ""
-        self.menu_line4 = ""
+        self.menu_line3 = ''
+        self.menu_line4 = ''
         self.current_sub_menu = "weekday"
 
     def reset(self):
@@ -551,12 +552,12 @@ class SetProgramMenu(Menu):
 class EnableMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.enable)
-        self.menu_line3 = ""
-        self.menu_line4 = ""
-        self.current_sub_menu = ""
+        self.menu_line3 = ''
+        self.menu_line4 = ''
+        self.current_sub_menu = ''
 
     def reset(self):
-        self.current_sub_menu = ""
+        self.current_sub_menu = ''
 
     def update_display(self):
         self.controller.disp_thread.update_line3_display(self.menu_line3)
@@ -569,9 +570,9 @@ class EnableMenu(Menu):
 class SetDisplayOffTimeMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.display_timer)
-        self.menu_line3 = ""
-        self.menu_line4 = ""
-        self.current_sub_menu = ""
+        self.menu_line3 = ''
+        self.menu_line4 = ''
+        self.current_sub_menu = ''
 
     def reset(self):
         self.current_sub_menu = ""
@@ -587,12 +588,12 @@ class SetDisplayOffTimeMenu(Menu):
 class SetDateMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.set_date)
-        self.menu_line3 = ""
-        self.menu_line4 = ""
-        self.current_sub_menu = ""
+        self.menu_line3 = ''
+        self.menu_line4 = ''
+        self.current_sub_menu = ''
 
     def reset(self):
-        self.current_sub_menu = ""
+        self.current_sub_menu = ''
 
     def update_display(self):
         self.controller.disp_thread.update_line3_display(self.menu_line3)
@@ -605,12 +606,12 @@ class SetDateMenu(Menu):
 class NetworkMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.network)
-        self.menu_line3 = ""
-        self.menu_line4 = ""
-        self.current_sub_menu = ""
+        self.menu_line3 = ''
+        self.menu_line4 = ''
+        self.current_sub_menu = ''
 
     def reset(self):
-        self.current_sub_menu = ""
+        self.current_sub_menu = ''
 
     def update_display(self):
         self.controller.disp_thread.update_line3_display(self.menu_line3)
