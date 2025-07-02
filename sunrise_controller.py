@@ -204,8 +204,7 @@ class SunriseController:
         self.disp_thread.start()
         current_menu = self.menus[self.current_menu_name]
         print(f'current_menu: {current_menu.menu_line4}, Menu.menu_line4: {Menu.menu_line4}')
-        self.disp_thread.update_line4_display(current_menu.menu_line4)
-        #self.disp_thread.update_display("", "", "", Menu.menu_line4)
+        current_menu.update_display()
 
         print("Entering Event loop...")
 
@@ -402,6 +401,10 @@ class Menu(ABC):
         pass
 
     @abstractmethod
+    def update_display(self):
+        pass
+
+    @abstractmethod
     def button_handler(self, btn: int) -> MenuStateName | None:
         pass
 
@@ -419,6 +422,8 @@ class InitialMenu(Menu):
         else:
             Menu.menu_line4 = 'Menu  Dim-  Dim+  On'
         self.scroll = True
+
+    def update_display(self):
         self.controller.disp_thread.update_line4_display(Menu.menu_line4)
 
     def button_handler(self, btn: int) -> MenuStateName | None:
@@ -486,12 +491,13 @@ class MainMenu(Menu):
         self.current_sub_menu = MainSubMenus.program
         Menu.menu_line3 = self.sub_menu_list[MainSubMenus.program.value]
         Menu.menu_line4 = ' X     <     >    Prev'
-        self.controller.disp_thread.update_line3_display(Menu.menu_line3)
-        self.controller.disp_thread.update_line4_display(Menu.menu_line4)
-
 
         return {MainSubMenus.program: SetProgramMenu, MainSubMenus.enable: EnableMenu, MainSubMenus.display: EnableMenu,
                 MainSubMenus.set_date: SetDateMenu, MainSubMenus.network: NetworkMenu}
+
+    def update_display(self):
+        self.controller.disp_thread.update_line3_display(Menu.menu_line3)
+        self.controller.disp_thread.update_line4_display(Menu.menu_line4)
 
     def button_handler(self, btn: int) -> MenuStateName | None:
         # Every button push resets the time for display auto power off but if display is off, no action is performed.
@@ -529,6 +535,10 @@ class SetProgramMenu(Menu):
     def reset(self):
         self.current_sub_menu = "weekday"
 
+    def update_display(self):
+        self.controller.disp_thread.update_line3_display(Menu.menu_line3)
+        self.controller.disp_thread.update_line4_display(Menu.menu_line4)
+
     def button_handler(self, btn: int) -> MenuStateName | None:
         pass
 
@@ -540,6 +550,10 @@ class EnableMenu(Menu):
 
     def reset(self):
         self.current_sub_menu = ""
+
+    def update_display(self):
+        self.controller.disp_thread.update_line3_display(Menu.menu_line3)
+        self.controller.disp_thread.update_line4_display(Menu.menu_line4)
 
     def button_handler(self, btn: int) -> MenuStateName:
         pass
@@ -553,6 +567,10 @@ class SetDisplayOffTimeMenu(Menu):
     def reset(self):
         self.current_sub_menu = ""
 
+    def update_display(self):
+        self.controller.disp_thread.update_line3_display(Menu.menu_line3)
+        self.controller.disp_thread.update_line4_display(Menu.menu_line4)
+
     def button_handler(self, btn: int) -> MenuStateName | None:
         pass
 
@@ -565,6 +583,10 @@ class SetDateMenu(Menu):
     def reset(self):
         self.current_sub_menu = ""
 
+    def update_display(self):
+        self.controller.disp_thread.update_line3_display(Menu.menu_line3)
+        self.controller.disp_thread.update_line4_display(Menu.menu_line4)
+
     def button_handler(self, btn: int) -> MenuStateName | None:
         pass
 
@@ -576,6 +598,10 @@ class NetworkMenu(Menu):
 
     def reset(self):
         self.current_sub_menu = ""
+
+    def update_display(self):
+        self.controller.disp_thread.update_line3_display(Menu.menu_line3)
+        self.controller.disp_thread.update_line4_display(Menu.menu_line4)
 
     def button_handler(self, btn: int) -> MenuStateName | None:
         pass
