@@ -486,7 +486,7 @@ class MainMenu(Menu):
         self.current_sub_menu = MainSubMenus.program
         self.current_sub_menu_idx: int = 0
         # The following two lists must correspond to each other. Both are indexed by self.current_sub_menu_idx
-        self.sub_menu_list = ['Program', 'Enable/Disable Schedule', 'Display Auto-Off', 'Date/Time', 'Network Settings']
+        self.sub_menu_list = ['Program', 'Enable Schedule', 'Display Auto-Off', 'Date/Time', 'Network Settings']
         self.sub_menu_key_list = [MenuStateName.set_program, MenuStateName.enable, MenuStateName.display_timer,
                                   MenuStateName.set_date, MenuStateName.network]
         self.sub_menus = self.reset()
