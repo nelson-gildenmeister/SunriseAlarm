@@ -424,6 +424,7 @@ class InitialMenu(Menu):
         self.scroll = True
 
     def update_display(self):
+        print(f'InitialMenu:update_display(), line4 = {Menu.menu_line4}')
         self.controller.disp_thread.update_line4_display(Menu.menu_line4)
 
     def button_handler(self, btn: int) -> MenuStateName | None:
