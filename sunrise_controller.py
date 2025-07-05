@@ -527,31 +527,54 @@ class MainMenu(Menu):
 
         return self.menu_state_name
 
+class ProgramMenuState(Enum):
+    main = 0
+    sub = 1
+    time = 2
+    duration = 3
+
 
 class SetProgramMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.set_program)
-        self.menu_line3 = ''
-        self.menu_line4 = ''
-        self.current_sub_menu = "weekday"
+        self.menu_line3 = 'Weekday'
+        self.menu_line4 = 'X     <     >    Prev'
+        self.current: ProgramMenuState = ProgramMenuState.main
+        self.menu_idx = 0
+        self.menu_list = ['Weekday', 'Weekend', 'Day']
+
+        self.current_sub_idx = 0
+        self.weekday_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        self.weekend_list = ['Saturday', "Sunday"]
+        self.day_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', "Sunday"]
 
     def reset(self):
-        self.current_sub_menu = "weekday"
+        pass
 
     def update_display(self):
         self.controller.disp_thread.update_line3_display(self.menu_line3)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> MenuStateName | None:
-        pass
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                pass
+            case 3:
+                pass
+            case 4:
+                pass
+
 
 
 class EnableMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.enable)
         self.menu_line3 = ''
-        self.menu_line4 = ''
-        self.current_sub_menu = ''
+        self.menu_line4 = 'X     <     >    Prev'
+
 
     def reset(self):
         self.current_sub_menu = ''
