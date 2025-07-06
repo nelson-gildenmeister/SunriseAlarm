@@ -530,8 +530,11 @@ class MainMenu(Menu):
 class ProgramMenuState(Enum):
     main = 0
     sub = 1
-    time = 2
-    duration = 3
+    weekday = 2
+    weekend = 3
+    daily = 4
+    start = 5
+    duration = 6
 
 
 class SetProgramMenu(Menu):
@@ -539,14 +542,22 @@ class SetProgramMenu(Menu):
         super().__init__(controller, MenuStateName.set_program)
         self.menu_line3 = 'Weekday'
         self.menu_line4 = 'X     <     >    Prev'
-        self.current: ProgramMenuState = ProgramMenuState.main
+
+        self.current_state: ProgramMenuState = ProgramMenuState.main
         self.menu_idx = 0
         self.menu_list = ['Weekday', 'Weekend', 'Day']
 
-        self.current_sub_idx = 0
+        self.weekday_idx = 0
         self.weekday_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        self.weekend_idx = 0
         self.weekend_list = ['Saturday', "Sunday"]
-        self.day_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', "Sunday"]
+        self.daily_idx = 0
+        self.daily_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', "Sunday"]
+
+        self.sub_idx = 0
+        self.sub_list = ['Start', 'Duration']
+
+        self.indices = [self.menu_idx, self.weekday_idx, self.weekend_idx, self.daily_idx, self.sub_idx]
 
     def reset(self):
         pass
@@ -563,7 +574,21 @@ class SetProgramMenu(Menu):
             case 2:
                 pass
             case 3:
-                pass
+                match self.current_state:
+                    case 0:
+                        pass
+                    case 1:
+                        pass
+                    case 2:
+                        pass
+                    case 3:
+                        pass
+                    case 4:
+                        pass
+                    case 5:
+                        pass
+                    case 6:
+                        pass
             case 4:
                 pass
 
