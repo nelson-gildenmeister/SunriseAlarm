@@ -34,7 +34,7 @@ class DayOfWeek(Enum):
     Sunday = 6
 
 class MenuStateName(Enum):
-    initial = "initial"
+    top = "top"
     main = "main"
     set_program = "set_program"
     enable = "enable"
@@ -181,13 +181,13 @@ class SunriseController:
         self.sec_per_step: int = 0
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
-        self.current_menu_name: MenuStateName = MenuStateName.initial
+        self.current_menu_name: MenuStateName = MenuStateName.top
         self.menus = self.initialize_menus()
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
     def initialize_menus(self) -> Dict[Any, Any]:
-        return {MenuStateName.initial: InitialMenu(self), MenuStateName.main: MainMenu(self),
-                MenuStateName.set_program: SetProgramMenu(self), MenuStateName.enable: EnableMenu,
+        return {MenuStateName.top: TopMenu(self), MenuStateName.main: MainMenu(self),
+                MenuStateName.set_program: ScheduleMenu(self), MenuStateName.enable: EnableMenu,
                 MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
                 MenuStateName.network: NetworkMenu}
 
@@ -374,7 +374,7 @@ class SunriseController:
         for key in self.menus.keys():
             self.menus[key].reset()
 
-        self.current_menu_name = self.menus[MenuStateName.initial]
+        self.current_menu_name = self.menus[MenuStateName.top]
 
     def shutdown(self):
         self.dimmer.shutdown()
@@ -409,9 +409,9 @@ class Menu(ABC):
         pass
 
 
-class InitialMenu(Menu):
+class TopMenu(Menu):
     def __init__(self, controller):
-        super().__init__(controller, MenuStateName.initial)
+        super().__init__(controller, MenuStateName.top)
         self.menu_line3 = ''
         self.menu_line4 = ''
 
@@ -496,7 +496,7 @@ class MainMenu(Menu):
         self.menu_line3 = self.sub_menu_list[MainSubMenus.program.value]
         self.menu_line4 = ' X     <     >    Prev'
 
-        return {MainSubMenus.program: SetProgramMenu, MainSubMenus.enable: EnableMenu, MainSubMenus.display: EnableMenu,
+        return {MainSubMenus.program: ScheduleMenu, MainSubMenus.enable: EnableMenu, MainSubMenus.display: EnableMenu,
                 MainSubMenus.set_date: SetDateMenu, MainSubMenus.network: NetworkMenu}
 
     def update_display(self):
@@ -523,41 +523,45 @@ class MainMenu(Menu):
                 pass
             case 4:
                 # Previous
-                return MenuStateName.initial
+                return MenuStateName.top
 
         return self.menu_state_name
 
-class ProgramMenuState(Enum):
-    main = 0
-    sub = 1
-    weekday = 2
-    weekend = 3
-    daily = 4
-    start = 5
-    duration = 6
+
+class ScheduleTopMenu(Enum):
+    weekday = 0
+    weekend = 1
+    daily = 2
+
+class DailyMenu(Enum):
+    sunday = 0
+    monday = 1
+    tuesday = 2
+    wednesday = 3
+    thursday = 4
+    friday = 5
+    saturday = 6
+
+class TimeMenu(Enum):
+    start = 0
+    duration = 1
 
 
-class SetProgramMenu(Menu):
+
+class ScheduleMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.set_program)
         self.menu_line3 = 'Weekday'
         self.menu_line4 = 'X     <     >    Prev'
 
-        self.current_state: ProgramMenuState = ProgramMenuState.main
-        self.menu_idx = 0
-        self.menu_list = ['Weekday', 'Weekend', 'Day']
+        self.top: ScheduleTopMenu = ScheduleTopMenu.weekday
+        self.top_disp_list = ['Weekday', 'Weekend', 'Daily']
 
-        self.weekday_idx = 0
-        self.weekday_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-        self.weekend_idx = 0
-        self.weekend_list = ['Saturday', "Sunday"]
-        self.daily_idx = 0
-        self.daily_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', "Sunday"]
+        self.day: DailyMenu = DailyMenu.sunday
+        self.daily_disp_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', "Sunday"]
 
-        self.sub_idx = 0
-        self.sub_list = ['Start', 'Duration']
-
-        self.indices = [self.menu_idx, self.weekday_idx, self.weekend_idx, self.daily_idx, self.sub_idx]
+        self.time: TimeMenu = TimeMenu.start
+        self.time_disp_list = ['Start', 'Duration']
 
     def reset(self):
         pass
@@ -572,24 +576,21 @@ class SetProgramMenu(Menu):
                 # Select
                 pass
             case 2:
+                # Left
                 pass
             case 3:
-                match self.current_state:
-                    case 0:
+                # Right
+                # Handling depends upon what menu we are currently in
+                match self.top:
+                    case ScheduleTopMenu.weekday:
+                        # How to determine leaf menu???????????
                         pass
-                    case 1:
+                    case ScheduleTopMenu.weekend:
                         pass
-                    case 2:
-                        pass
-                    case 3:
-                        pass
-                    case 4:
-                        pass
-                    case 5:
-                        pass
-                    case 6:
+                    case ScheduleTopMenu.daily:
                         pass
             case 4:
+                # Prev
                 pass
 
 
