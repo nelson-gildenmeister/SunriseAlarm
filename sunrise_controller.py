@@ -37,10 +37,36 @@ class MenuStateName(Enum):
     top = "top"
     main = "main"
     set_program = "set_program"
+    set_weekday = "set_weekday"
+    set_weekend = "set_weekend"
+    set_daily = "set_daily"
+    set_start = "set_start"
+    set_duration = "set_duration"
     enable = "enable"
     display_timer = "display_timer"
     set_date = "set_date"
     network = "network"
+
+class MenuNames(Enum):
+    main = 'Main'
+    schedule = 'Schedule'
+    set_weekday = 'Weekday'
+    set_weekend = 'Weekend'
+    set_daily = 'Daily'
+    set_start = 'Start Time'
+    set_duration = 'Duration'
+    enable = 'Enable Schedules'
+    enable_sub = 'Weekday   Weekend   Daily'
+    sunday = 'Sunday'
+    monday = 'Monday'
+    tuesday = 'Tuesday'
+    wednesday = 'Wednesday'
+    thursday = 'Thursday'
+    friday = 'Friday'
+    saturday = 'Saturday'
+    time_set = ''
+    set_date = 'Date/Time'
+    network = 'Network'
 
 @dataclass
 class DisplayState:
@@ -186,6 +212,32 @@ class SunriseController:
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
     def initialize_menus(self) -> Dict[Any, Any]:
+        # First create the menu objects
+        main_menu = Menu([MenuNames.schedule, MenuNames.enable, MenuNames.set_date, MenuNames.network])
+        schedule_menu = Menu([MenuNames.set_weekday, MenuNames.set_weekend, MenuNames.set_daily])
+        enable_menu = Menu()
+        date_time_menu = Menu()
+        network_menu = Menu()
+        weekday_menu = Menu()
+        weekend_menu = Menu()
+        daily_menu = Menu()
+        start_time_menu = TimeMenu()
+        set_time_menu = TimeMenu()
+        duration_menu = TimeMenu()
+        set_duration_minutes_menu = TimeMenu()
+        enable_sub_menu = Menu([MenuNames.enable_sub])
+
+        # Fill in the data members of the menu objects
+        schedule_menu.set_prev_menu(main_menu)
+
+        weekday_menu.set_prev_menu(schedule_menu)
+        weekend_menu.set_prev_menu(schedule_menu)
+        daily_menu.set_prev_menu(schedule_menu)
+
+        enable_sub_menu.set_line4('Disabled Disabled Disabled Prev')
+
+
+        main_menu.set_next_menu()
         return {MenuStateName.top: TopMenu(self), MenuStateName.main: MainMenu(self),
                 MenuStateName.set_program: ScheduleMenu(self), MenuStateName.enable: EnableMenu,
                 MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
@@ -390,8 +442,50 @@ class SunriseController:
     #     else:
     #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
+class Menu:
+    def __init__(self, menu_list):
+        self.current_sub_menu_idx = 0
+        self.sub_menu_list = menu_list
+        self.line4 = ' X     <     >    Prev'
+        self.prev_menu = None
+        self.next_menu = None
+        self.select_action = None
+        self.left_action = None
+        self.right_action = None
+        self.prev_action = None
 
-class Menu(ABC):
+
+    def set_line4(self, line4):
+        self.line4 = line4
+
+    def set_prev_menu(self, prev_menu):
+        self.prev_menu = prev_menu
+
+    def set_next_menu(self, next_menu):
+        self.next_menu = next_menu
+
+    def set_select_action(self, select_action):
+        self.select_action = select_action
+
+    def set_left_action(self, left_action):
+        self.left_action = left_action
+
+    def set_right_action(self, right_action):
+        self.right_action = right_action
+
+    def set_prev_action(self, prev_action):
+        self.prev_action = prev_action
+
+
+class TimeMenu(Menu):
+    def __init__(self):
+        super().__init__(None)
+        self.day = None
+
+    def set_day(self, day):
+        self.day = day
+
+class TestMenu(ABC):
     def __init__(self, controller: SunriseController, menu_state_name: MenuStateName):
         self.controller = controller
         self.menu_state_name = menu_state_name
@@ -409,7 +503,7 @@ class Menu(ABC):
         pass
 
 
-class TopMenu(Menu):
+class TopMenu(TestMenu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.top)
         self.menu_line3 = ''
@@ -478,7 +572,7 @@ class MainSubMenus(Enum):
     network = 4
 
 
-class MainMenu(Menu):
+class MainMenu(TestMenu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.main)
         self.menu_line3 = ''
@@ -529,11 +623,13 @@ class MainMenu(Menu):
 
 
 class ScheduleTopMenu(Enum):
+    invalid = -1
     weekday = 0
     weekend = 1
     daily = 2
 
 class DailyMenu(Enum):
+    invalid = -1
     sunday = 0
     monday = 1
     tuesday = 2
@@ -543,12 +639,13 @@ class DailyMenu(Enum):
     saturday = 6
 
 class TimeMenu(Enum):
+    invalid = -1
     start = 0
     duration = 1
 
 
 
-class ScheduleMenu(Menu):
+class ScheduleMenu(TestMenu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.set_program)
         self.menu_line3 = 'Weekday'
@@ -558,10 +655,15 @@ class ScheduleMenu(Menu):
         self.top_disp_list = ['Weekday', 'Weekend', 'Daily']
 
         self.day: DailyMenu = DailyMenu.sunday
-        self.daily_disp_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', "Sunday"]
+        self.daily_disp_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
         self.time: TimeMenu = TimeMenu.start
         self.time_disp_list = ['Start', 'Duration']
+
+        self.set_start_time = False
+        self.start_time:dt = dt.datetime.now()
+        self.set_duration = False
+        self.duration:dt.timedelta = dt.timedelta(0)
 
     def reset(self):
         pass
@@ -595,7 +697,8 @@ class ScheduleMenu(Menu):
 
 
 
-class EnableMenu(Menu):
+
+class EnableMenu(TestMenu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.enable)
         self.menu_line3 = ''
@@ -613,7 +716,7 @@ class EnableMenu(Menu):
         pass
 
 
-class SetDisplayOffTimeMenu(Menu):
+class SetDisplayOffTimeMenu(TestMenu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.display_timer)
         self.menu_line3 = ''
@@ -631,7 +734,7 @@ class SetDisplayOffTimeMenu(Menu):
         pass
 
 
-class SetDateMenu(Menu):
+class SetDateMenu(TestMenu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.set_date)
         self.menu_line3 = ''
@@ -649,7 +752,7 @@ class SetDateMenu(Menu):
         pass
 
 
-class NetworkMenu(Menu):
+class NetworkMenu(TestMenu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.network)
         self.menu_line3 = ''
