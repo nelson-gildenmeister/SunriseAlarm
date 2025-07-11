@@ -33,6 +33,7 @@ class DayOfWeek(Enum):
     Saturday = 5
     Sunday = 6
 
+
 class MenuStateName(Enum):
     top = "top"
     main = "main"
@@ -46,6 +47,7 @@ class MenuStateName(Enum):
     display_timer = "display_timer"
     set_date = "set_date"
     network = "network"
+
 
 class MenuNames(Enum):
     main = 'Main'
@@ -67,6 +69,7 @@ class MenuNames(Enum):
     time_set = ''
     set_date = 'Date/Time'
     network = 'Network'
+
 
 @dataclass
 class DisplayState:
@@ -134,7 +137,7 @@ class DisplayThread(threading.Thread):
         self.at_end = False
         while True:
             while self.data.is_display_on():
-                #self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
+                # self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
 
                 if self.event.is_set():
                     return
@@ -216,22 +219,26 @@ class SunriseController:
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
     def initialize_menus(self) -> Dict[Any, Any]:
-        # First create the menu objects
+        handlers = MenuHandlers()
         main_menu = Menu([MenuNames.schedule, MenuNames.enable, MenuNames.set_date, MenuNames.network])
         schedule_menu = Menu([MenuNames.set_weekday, MenuNames.set_weekend, MenuNames.set_daily])
         enable_menu = Menu([])
-        date_time_menu = Menu()
-        network_menu = Menu()
-        weekday_menu = Menu()
-        weekend_menu = Menu()
-        daily_menu = Menu()
-        start_time_menu = TimeMenu()
-        set_time_menu = TimeMenu()
-        duration_menu = TimeMenu()
-        set_duration_minutes_menu = TimeMenu()
+        date_time_menu = Menu([])
+        network_menu = Menu([])
+        weekday_menu = Menu([])
+        weekend_menu = Menu([])
+        daily_menu = Menu([MenuNames.sunday, MenuNames.monday, MenuNames.tuesday, MenuNames.wednesday,
+                           MenuNames.thursday, MenuNames.friday, MenuNames.saturday])
+        start_time_menu = TimeMenu([])
+        set_time_menu = TimeMenu([])
+        duration_menu = TimeMenu([])
+        set_duration_minutes_menu = TimeMenu([])
         enable_sub_menu = Menu([MenuNames.enable_sub])
 
         # Fill in the data members of the menu objects including handlers for button presses.
+        main_menu.set_line3(main_menu.sub_menu_list[0]).set_btn1_action(handlers.main_menu_select).set_btn2_action(
+            handlers.main_menu_left).set_btn3_action(handlers.main_menu_right()).set_btn4_action(
+            handlers.main_menu_previous())
         schedule_menu.set_prev_menu(main_menu)
 
         weekday_menu.set_prev_menu(schedule_menu)
@@ -239,7 +246,6 @@ class SunriseController:
         daily_menu.set_prev_menu(schedule_menu)
 
         enable_sub_menu.set_line4('Disabled Disabled Disabled Prev')
-
 
         main_menu.set_next_menu()
         return {MenuStateName.top: TopMenu(self), MenuStateName.main: MainMenu(self),
@@ -313,7 +319,7 @@ class SunriseController:
                 dt_start = calc_start_datetime(self.settings.start_time[day_index], day_increment)
                 print(f'Scheduling future start: {dt_start}, duration: {self.settings.minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[day_index])
-                #self.disp_thread.update_line3_display(f'Next sunrise: {dt_start.ctime()}')
+                # self.disp_thread.update_line3_display(f'Next sunrise: {dt_start.ctime()}')
                 self.disp_thread.update_line3_display(
                     f'Next sunrise: {DayOfWeek(dt_start.weekday()).name} at {dt_start.hour}:{dt_start.minute}')
                 break
@@ -376,7 +382,7 @@ class SunriseController:
             self.cancel = True
             self.dimmer.set_level(self.dimmer.get_min_level())
             # TODO - update status correctly
-            #self.disp_thread.update_line3_display('Next sunrise: TBD')
+            # self.disp_thread.update_line3_display('Next sunrise: TBD')
 
     def schedule_sunrise_start(self, start_time: dt.datetime, duration_minutes: int):
         # Create a new scheduler
@@ -424,7 +430,6 @@ class SunriseController:
             menu.reset()
             menu.update_display()
 
-
     def shutdown(self):
         self.dimmer.shutdown()
 
@@ -445,7 +450,16 @@ class MenuHandlers:
     def __init__(self):
         pass
 
-    def main_menu_btn1(self):
+    def main_menu_select(self):
+        pass
+
+    def main_menu_left(self):
+        pass
+
+    def main_menu_right(self):
+        pass
+
+    def main_menu_previous(self):
         pass
 
 
@@ -457,11 +471,10 @@ class Menu:
         self.line4 = ' X     <     >    Prev'
         self.prev_menu = None
         self.next_menu = None
-        self.select_action = None
-        self.left_action = None
-        self.right_action = None
-        self.prev_action = None
-
+        self.btn1_handler = None
+        self.btn2_handler = None
+        self.btn3_handler = None
+        self.btn4_handler = None
 
     def set_line3(self, line3) -> Self:
         self.line3 = line3
@@ -479,21 +492,33 @@ class Menu:
         self.next_menu = next_menu
         return self
 
-    def set_select_action(self, select_action) -> Self:
-        self.select_action = select_action
+    def set_btn1_action(self, select_action) -> Self:
+        self.btn1_handler = select_action
         return self
 
-    def set_left_action(self, left_action) -> Self:
-        self.left_action = left_action
+    def set_btn2_action(self, left_action) -> Self:
+        self.btn2_handler = left_action
         return self
 
-    def set_right_action(self, right_action) -> Self:
-        self.right_action = right_action
+    def set_btn3_action(self, right_action) -> Self:
+        self.btn3_handler = right_action
         return self
 
-    def set_prev_action(self, prev_action) -> Self:
-        self.prev_action = prev_action
+    def set_btn4_action(self, prev_action) -> Self:
+        self.btn4_handler = prev_action
         return self
+
+    def button_handler(self, btn: int):
+        match btn:
+            case 1:
+                self.btn1_handler()
+            case 2:
+                self.btn2_handler()
+            case 3:
+                self.btn3_handler()
+            case 4:
+                self.btn4_handler()
+
 
 
 class TimeMenu(Menu):
@@ -585,6 +610,7 @@ class TopMenu(TestMenu):
 
         return self.menu_state_name
 
+
 class MainSubMenus(Enum):
     program = 0
     enable = 1
@@ -606,7 +632,7 @@ class MainMenu(TestMenu):
                                   MenuStateName.set_date, MenuStateName.network]
         self.sub_menus = self.reset()
 
-    def reset(self)-> Dict[Any, Any]:
+    def reset(self) -> Dict[Any, Any]:
         self.current_sub_menu = MainSubMenus.program
         self.menu_line3 = self.sub_menu_list[MainSubMenus.program.value]
         self.menu_line4 = ' X     <     >    Prev'
@@ -649,6 +675,7 @@ class ScheduleTopMenu(Enum):
     weekend = 1
     daily = 2
 
+
 class DailyMenu(Enum):
     invalid = -1
     sunday = 0
@@ -659,11 +686,11 @@ class DailyMenu(Enum):
     friday = 5
     saturday = 6
 
+
 class TimeMenu(Enum):
     invalid = -1
     start = 0
     duration = 1
-
 
 
 class ScheduleMenu(TestMenu):
@@ -682,9 +709,9 @@ class ScheduleMenu(TestMenu):
         self.time_disp_list = ['Start', 'Duration']
 
         self.set_start_time = False
-        self.start_time:dt = dt.datetime.now()
+        self.start_time: dt = dt.datetime.now()
         self.set_duration = False
-        self.duration:dt.timedelta = dt.timedelta(0)
+        self.duration: dt.timedelta = dt.timedelta(0)
 
     def reset(self):
         pass
@@ -717,14 +744,11 @@ class ScheduleMenu(TestMenu):
                 pass
 
 
-
-
 class EnableMenu(TestMenu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.enable)
         self.menu_line3 = ''
         self.menu_line4 = 'X     <     >    Prev'
-
 
     def reset(self):
         self.current_sub_menu = ''
