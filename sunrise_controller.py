@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from sched import scheduler, Event
 from threading import Timer
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Self
 
 import pigpio
 
@@ -77,6 +77,10 @@ class DisplayState:
 
 
 def calc_start_datetime(start_time: str, increment_from_today: int) -> dt.datetime:
+    """ Settings for start are day of week and hour:minute. To figure out actual date/time of start, need to
+        add in the number of days from today's date.  E.g., if it is Tuesday and next sunrise is next Tuesday, the
+        increment will be 7 days.
+    """
     month = dt.datetime.now().month
     day = dt.datetime.now().day
     year = dt.datetime.now().year
@@ -215,7 +219,7 @@ class SunriseController:
         # First create the menu objects
         main_menu = Menu([MenuNames.schedule, MenuNames.enable, MenuNames.set_date, MenuNames.network])
         schedule_menu = Menu([MenuNames.set_weekday, MenuNames.set_weekend, MenuNames.set_daily])
-        enable_menu = Menu()
+        enable_menu = Menu([])
         date_time_menu = Menu()
         network_menu = Menu()
         weekday_menu = Menu()
@@ -227,7 +231,7 @@ class SunriseController:
         set_duration_minutes_menu = TimeMenu()
         enable_sub_menu = Menu([MenuNames.enable_sub])
 
-        # Fill in the data members of the menu objects
+        # Fill in the data members of the menu objects including handlers for button presses.
         schedule_menu.set_prev_menu(main_menu)
 
         weekday_menu.set_prev_menu(schedule_menu)
@@ -263,44 +267,46 @@ class SunriseController:
         while True:
             self.handle_schedule_change()
             print("Event Loop: Waiting for event....")
-            # Block waiting for an event that is set whenever a sunrise completes or schedule is changed.
+            # Block and wait for an event that is sent whenever a sunrise completes or schedule is changed.
             self.ctrl_event.wait()
             print("GOT EVENT!!!!!!!!!!!!")
             self.ctrl_event.clear()
 
     def handle_schedule_change(self):
+        """ Called upon startup and whenever a change is made to the saved schedule. Sends an"""
         # Default to idle
         self.data.set_display_mode(DisplayMode.idle)
         now = dt.datetime.now()
-        weekday = now.weekday()
+        today = now.weekday()
 
-        if self.settings.start_time[weekday]:
+        if self.settings.start_time[today]:
             # There is a sunrise scheduled for today.
             # Handle 2 cases: 1) In the middle of a sunrise , 2) scheduled for later today.
             # No need to do anything if already missed today's schedule sunrise.
-            dt_start = calc_start_datetime(self.settings.start_time[weekday], 0)
+            dt_start = calc_start_datetime(self.settings.start_time[today], 0)
 
             # Sunrise resolution is 1 minute so don't include last minute duration in check to prevent race conditions.
-            if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.minutes[weekday] - 1)):
+            if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.minutes[today] - 1)):
                 # In the middle of sunrise, set to proper level
                 print('In the middle of sunrise...')
                 display_mode = DisplayMode.running
-                minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[weekday])).minute
-                percent_brightness = int(minutes_remaining / self.settings.minutes[weekday])
+                minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[today])).minute
+                percent_brightness = int(minutes_remaining / self.settings.minutes[today])
                 self.start_schedule(minutes_remaining, percent_brightness)
                 return
             elif dt_start > now:
                 # Sunrise start is today but in the future - set up an event to start
-                print(f'Scheduling start today at: {self.settings.start_time[weekday]}')
-                self.schedule_sunrise_start(dt_start, self.settings.minutes[weekday])
+                print(f'Scheduling start today at: {self.settings.start_time[today]}')
+                self.schedule_sunrise_start(dt_start, self.settings.minutes[today])
                 return
 
-        # Look for the next scheduled sunrise and set up an event for it.
-        # Start tomorrow. Be sure to wrap around if end of week (Sunday) and include today's day in
-        # case it is the only scheduled time (i.e., next week on same day)
-        day_index = (weekday + 1) % (DayOfWeek.Sunday.value + 1)
-        day_increment = 1
+        # No sunrise scheduled for today so look for the next scheduled sunrise and set up an event for it.
+        # Go through every day of the week starting tomorrow and wrap around to hit every day
+        # of the week including the day of week that matches today to cover the case where next sunrise is next week
+        # on the same day (E.g., It's Tuesday and next sunrise is 7 days from now on next Tuesday).
         have_scheduled_start = False
+        day_index = (today + 1) % (DayOfWeek.Sunday.value + 1)
+        day_increment = 1
         for day in range(DayOfWeek.Sunday.value):
             if self.settings.start_time[day_index]:
                 have_scheduled_start = True
@@ -308,7 +314,8 @@ class SunriseController:
                 print(f'Scheduling future start: {dt_start}, duration: {self.settings.minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.minutes[day_index])
                 #self.disp_thread.update_line3_display(f'Next sunrise: {dt_start.ctime()}')
-                self.disp_thread.update_line3_display(f'Next sunrise: Tuesday at 05:30 AM')
+                self.disp_thread.update_line3_display(
+                    f'Next sunrise: {DayOfWeek(dt_start.weekday()).name} at {dt_start.hour}:{dt_start.minute}')
                 break
             day_index = (day_index + 1) % (DayOfWeek.Sunday.value + 1)
             day_increment = day_increment + 1
@@ -347,9 +354,6 @@ class SunriseController:
             self.cancel = False
             self.dimmer.turn_off()
             self.ctrl_event.set()
-
-    def set_schedule(self):
-        pass
 
     def cancel_pending_schedule(self):
         # If scheduled event is queued up to run, cancel it
@@ -405,7 +409,7 @@ class SunriseController:
         # If display is not on, any button press will turn on the display but not do anything else.
         if not self.data.is_display_on():
             # Default back to initial menu - If we want to pick up where we left off, remove this line
-            self.reinit_menus()
+            self.initialize_menus()
             self.display_on()
             return
 
@@ -421,13 +425,6 @@ class SunriseController:
             menu.update_display()
 
 
-    def reinit_menus(self):
-        # Iterate through the menu objects and reset them
-        for key in self.menus.keys():
-            self.menus[key].reset()
-
-        self.current_menu_name = self.menus[MenuStateName.top]
-
     def shutdown(self):
         self.dimmer.shutdown()
 
@@ -442,10 +439,21 @@ class SunriseController:
     #     else:
     #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
+
+# All the button handlers for the various menus are contained within this class.
+class MenuHandlers:
+    def __init__(self):
+        pass
+
+    def main_menu_btn1(self):
+        pass
+
+
 class Menu:
     def __init__(self, menu_list):
         self.current_sub_menu_idx = 0
         self.sub_menu_list = menu_list
+        self.line3 = ''
         self.line4 = ' X     <     >    Prev'
         self.prev_menu = None
         self.next_menu = None
@@ -455,26 +463,37 @@ class Menu:
         self.prev_action = None
 
 
-    def set_line4(self, line4):
+    def set_line3(self, line3) -> Self:
+        self.line3 = line3
+        return self
+
+    def set_line4(self, line4) -> Self:
         self.line4 = line4
+        return self
 
-    def set_prev_menu(self, prev_menu):
+    def set_prev_menu(self, prev_menu) -> Self:
         self.prev_menu = prev_menu
+        return self
 
-    def set_next_menu(self, next_menu):
+    def set_next_menu(self, next_menu) -> Self:
         self.next_menu = next_menu
+        return self
 
-    def set_select_action(self, select_action):
+    def set_select_action(self, select_action) -> Self:
         self.select_action = select_action
+        return self
 
-    def set_left_action(self, left_action):
+    def set_left_action(self, left_action) -> Self:
         self.left_action = left_action
+        return self
 
-    def set_right_action(self, right_action):
+    def set_right_action(self, right_action) -> Self:
         self.right_action = right_action
+        return self
 
-    def set_prev_action(self, prev_action):
+    def set_prev_action(self, prev_action) -> Self:
         self.prev_action = prev_action
+        return self
 
 
 class TimeMenu(Menu):
@@ -482,8 +501,10 @@ class TimeMenu(Menu):
         super().__init__(None)
         self.day = None
 
-    def set_day(self, day):
+    def set_day(self, day) -> Self:
         self.day = day
+        return self
+
 
 class TestMenu(ABC):
     def __init__(self, controller: SunriseController, menu_state_name: MenuStateName):
