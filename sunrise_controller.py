@@ -513,7 +513,6 @@ class MainMenu(Menu):
         self.sub_menus = self.reset()
 
     def reset(self) -> Dict[Any, Any]:
-        self.current_sub_menu = MainSubMenus.program
         self.menu_line3 = self.sub_menu_list[MainSubMenus.program.value]
         self.menu_line4 = ' X     <     >    Prev'
 
@@ -524,12 +523,11 @@ class MainMenu(Menu):
         self.controller.disp_thread.update_line3_display(self.menu_line3)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
-    # TODO - return the Menu Object instead of the name?
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
                 # Select button pressed, go to new menu
-                return self.sub_menu_key_list[self.current_sub_menu_idx]
+                return self.new_menu_factory(self.sub_menu_key_list[self.current_sub_menu_idx])
             case 2:
                 # Left arrow
                 idx = (self.current_sub_menu_idx - 1) % len(self.sub_menu_list)
