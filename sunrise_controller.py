@@ -37,7 +37,7 @@ class DayOfWeek(Enum):
 class MenuStateName(Enum):
     top = "top"
     main = "main"
-    set_program = "set_program"
+    schedule = "schedule"
     set_weekday = "set_weekday"
     set_weekend = "set_weekend"
     set_daily = "set_daily"
@@ -219,35 +219,6 @@ class SunriseController:
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
     def initialize_menus(self) -> Dict[Any, Any]:
-        handlers = MenuHandlers()
-        main_menu = Menu([MenuNames.schedule, MenuNames.enable, MenuNames.set_date, MenuNames.network])
-        schedule_menu = Menu([MenuNames.set_weekday, MenuNames.set_weekend, MenuNames.set_daily])
-        enable_menu = Menu([])
-        date_time_menu = Menu([])
-        network_menu = Menu([])
-        weekday_menu = Menu([])
-        weekend_menu = Menu([])
-        daily_menu = Menu([MenuNames.sunday, MenuNames.monday, MenuNames.tuesday, MenuNames.wednesday,
-                           MenuNames.thursday, MenuNames.friday, MenuNames.saturday])
-        start_time_menu = TimeMenu([])
-        set_time_menu = TimeMenu([])
-        duration_menu = TimeMenu([])
-        set_duration_minutes_menu = TimeMenu([])
-        enable_sub_menu = Menu([MenuNames.enable_sub])
-
-        # Fill in the data members of the menu objects including handlers for button presses.
-        main_menu.set_line3(main_menu.sub_menu_list[0]).set_btn1_action(handlers.main_menu_select).set_btn2_action(
-            handlers.main_menu_left).set_btn3_action(handlers.main_menu_right()).set_btn4_action(
-            handlers.main_menu_previous())
-        schedule_menu.set_prev_menu(main_menu)
-
-        weekday_menu.set_prev_menu(schedule_menu)
-        weekend_menu.set_prev_menu(schedule_menu)
-        daily_menu.set_prev_menu(schedule_menu)
-
-        enable_sub_menu.set_line4('Disabled Disabled Disabled Prev')
-
-        main_menu.set_next_menu()
         return {MenuStateName.top: TopMenu(self), MenuStateName.main: MainMenu(self),
                 MenuStateName.set_program: ScheduleMenu(self), MenuStateName.enable: EnableMenu,
                 MenuStateName.display_timer: SetDisplayOffTimeMenu(self), MenuStateName.set_date: SetDateMenu(self),
@@ -445,93 +416,7 @@ class SunriseController:
     #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
 
 
-# All the button handlers for the various menus are contained within this class.
-class MenuHandlers:
-    def __init__(self):
-        pass
-
-    def main_menu_select(self):
-        pass
-
-    def main_menu_left(self):
-        pass
-
-    def main_menu_right(self):
-        pass
-
-    def main_menu_previous(self):
-        pass
-
-
-class Menu:
-    def __init__(self, menu_list):
-        self.current_sub_menu_idx = 0
-        self.sub_menu_list = menu_list
-        self.line3 = ''
-        self.line4 = ' X     <     >    Prev'
-        self.prev_menu = None
-        self.next_menu = None
-        self.btn1_handler = None
-        self.btn2_handler = None
-        self.btn3_handler = None
-        self.btn4_handler = None
-
-    def set_line3(self, line3) -> Self:
-        self.line3 = line3
-        return self
-
-    def set_line4(self, line4) -> Self:
-        self.line4 = line4
-        return self
-
-    def set_prev_menu(self, prev_menu) -> Self:
-        self.prev_menu = prev_menu
-        return self
-
-    def set_next_menu(self, next_menu) -> Self:
-        self.next_menu = next_menu
-        return self
-
-    def set_btn1_action(self, select_action) -> Self:
-        self.btn1_handler = select_action
-        return self
-
-    def set_btn2_action(self, left_action) -> Self:
-        self.btn2_handler = left_action
-        return self
-
-    def set_btn3_action(self, right_action) -> Self:
-        self.btn3_handler = right_action
-        return self
-
-    def set_btn4_action(self, prev_action) -> Self:
-        self.btn4_handler = prev_action
-        return self
-
-    def button_handler(self, btn: int):
-        match btn:
-            case 1:
-                self.btn1_handler()
-            case 2:
-                self.btn2_handler()
-            case 3:
-                self.btn3_handler()
-            case 4:
-                self.btn4_handler()
-
-
-
-class TimeMenu(Menu):
-    def __init__(self):
-        super().__init__(None)
-        self.day = None
-
-    def set_day(self, day) -> Self:
-        self.day = day
-        return self
-
-
-class TestMenu(ABC):
+class Menu(ABC):
     def __init__(self, controller: SunriseController, menu_state_name: MenuStateName):
         self.controller = controller
         self.menu_state_name = menu_state_name
@@ -549,7 +434,7 @@ class TestMenu(ABC):
         pass
 
 
-class TopMenu(TestMenu):
+class TopMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.top)
         self.menu_line3 = ''
@@ -619,7 +504,8 @@ class MainSubMenus(Enum):
     network = 4
 
 
-class MainMenu(TestMenu):
+# TODO - In the init, put in list/stack of previous Menu objects.  That way, the state of each prior menu is retained.
+class MainMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.main)
         self.menu_line3 = ''
@@ -628,7 +514,7 @@ class MainMenu(TestMenu):
         self.current_sub_menu_idx: int = 0
         # The following two lists must correspond to each other. Both are indexed by self.current_sub_menu_idx
         self.sub_menu_list = ['Program', 'Enable Schedule', 'Display Auto-Off', 'Date/Time', 'Network Settings']
-        self.sub_menu_key_list = [MenuStateName.set_program, MenuStateName.enable, MenuStateName.display_timer,
+        self.sub_menu_key_list = [MenuStateName.schedule, MenuStateName.enable, MenuStateName.display_timer,
                                   MenuStateName.set_date, MenuStateName.network]
         self.sub_menus = self.reset()
 
@@ -644,6 +530,7 @@ class MainMenu(TestMenu):
         self.controller.disp_thread.update_line3_display(self.menu_line3)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
+    # TODO - return the Menu Object instead of the name?
     def button_handler(self, btn: int) -> MenuStateName | None:
         match btn:
             case 1:
@@ -687,13 +574,13 @@ class DailyMenu(Enum):
     saturday = 6
 
 
-class TimeMenu(Enum):
+class TimeMenuState(Enum):
     invalid = -1
     start = 0
     duration = 1
 
 
-class ScheduleMenu(TestMenu):
+class ScheduleMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.set_program)
         self.menu_line3 = 'Weekday'
@@ -704,9 +591,6 @@ class ScheduleMenu(TestMenu):
 
         self.day: DailyMenu = DailyMenu.sunday
         self.daily_disp_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-
-        self.time: TimeMenu = TimeMenu.start
-        self.time_disp_list = ['Start', 'Duration']
 
         self.set_start_time = False
         self.start_time: dt = dt.datetime.now()
@@ -743,8 +627,67 @@ class ScheduleMenu(TestMenu):
                 # Prev
                 pass
 
+class ScheduleWeekdayMenu(Menu):
+    def __init__(self, controller):
+        super().__init__(controller, MenuStateName.set_weekday)
+        self.menu_list = ['Sunrise Start', 'Sunrise Duration']
+        self.menu_idx = 0
+        self.menu_line2 = 'Main->Schedule->Weekday'
+        self.menu_line3 = self.menu_list[self.menu_idx]
+        self.menu_line4 = 'X     <     >    Prev'
 
-class EnableMenu(TestMenu):
+    def reset(self):
+        pass
+
+    def update_display(self):
+        self.controller.disp_thread.update_line3_display(self.menu_line3)
+        self.controller.disp_thread.update_line4_display(self.menu_line4)
+
+    def button_handler(self, btn: int) -> MenuStateName | None:
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                pass
+
+# Do we keep the previous menu object or just the relevant data?
+class ScheduleSunriseStart(Menu):
+    def __init__(self, controller, prev_menu):
+        super().__init__(controller, MenuStateName.set_start)
+
+    def reset(self):
+        pass
+
+    def update_display(self):
+        pass
+
+    def button_handler(self, btn: int) -> MenuStateName | None:
+        pass
+
+
+class ScheduleSunriseDuration(Menu):
+    def __init__(self, controller):
+        super().__init__(controller, MenuStateName.set_start)
+
+    def reset(self):
+        pass
+
+    def update_display(self):
+        pass
+
+    def button_handler(self, btn: int) -> MenuStateName | None:
+        pass
+
+
+class EnableMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.enable)
         self.menu_line3 = ''
@@ -760,8 +703,17 @@ class EnableMenu(TestMenu):
     def button_handler(self, btn: int) -> MenuStateName:
         pass
 
+class TimeMenu(Menu):
+    def __init__(self, controller: SunriseController, menu_state_name: MenuStateName):
+        super().__init__(controller, menu_state_name)
+        self.time_disp_list = ['Start', 'Duration']
+        self.day = None
 
-class SetDisplayOffTimeMenu(TestMenu):
+    def set_day(self, day) -> Self:
+        self.day = day
+        return self
+
+class SetDisplayOffTimeMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.display_timer)
         self.menu_line3 = ''
@@ -779,7 +731,7 @@ class SetDisplayOffTimeMenu(TestMenu):
         pass
 
 
-class SetDateMenu(TestMenu):
+class SetDateMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.set_date)
         self.menu_line3 = ''
@@ -797,7 +749,7 @@ class SetDateMenu(TestMenu):
         pass
 
 
-class NetworkMenu(TestMenu):
+class NetworkMenu(Menu):
     def __init__(self, controller):
         super().__init__(controller, MenuStateName.network)
         self.menu_line3 = ''
