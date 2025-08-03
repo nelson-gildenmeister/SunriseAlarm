@@ -434,8 +434,7 @@ def get_hierarchical_menu_string(current_menu: Menu) -> str:
     menu_string = current_menu.get_menu_name().value
     menu = current_menu.previous_menu
     while menu and menu.menu_name != MenuName.top:
-        menu_string += '->'
-        menu_string += menu.get_menu_name().value
+        menu_string = menu.get_menu_name().value+ '->' + menu_string
         menu = menu.previous_menu
     return menu_string
 
