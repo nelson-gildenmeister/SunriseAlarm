@@ -522,7 +522,6 @@ class MainMenu(Menu):
         pass
 
     def update_display(self):
-        print(f'MainMenu update_display, str: {self.get_hierarchical_menu_string(self)}')
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
         self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
@@ -534,16 +533,12 @@ class MainMenu(Menu):
                 return self.new_menu_factory(self.menus[self.menu_idx])
             case 2:
                 # Left arrow
-                idx = (self.menu_idx - 1) % len(self.menus)
-                self.menu_line3 = self.menus[idx].value
-                self.controller.disp_thread.update_line3_display(self.menu_line3)
-                self.menu_idx = idx
+                self.menu_idx = (self.menu_idx - 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
             case 3:
                 # Right arrow
-                idx = (self.menu_idx + 1) % len(self.menus)
-                self.menu_line3 = self.menus[idx]
-                self.controller.disp_thread.update_line3_display(self.menu_line3)
-                self.menu_idx = idx
+                self.menu_idx = (self.menu_idx + 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
                 pass
             case 4:
                 # Previous
@@ -619,16 +614,12 @@ class ScheduleMenu(Menu):
                 return self.new_menu_factory(self.menus[self.menu_idx])
             case 2:
                 # Left
-                idx = (self.menu_idx - 1) % len(self.menus)
-                self.menu_line3 = self.menus[idx].value
-                self.controller.disp_thread.update_line3_display(self.menu_line3)
-                self.menu_idx = idx
+                self.menu_idx = (self.menu_idx - 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
             case 3:
                 # Right
-                idx = (self.menu_idx + 1) % len(self.menus)
-                self.menu_line3 = self.menus[idx]
-                self.controller.disp_thread.update_line3_display(self.menu_line3)
-                self.menu_idx = idx
+                self.menu_idx = (self.menu_idx + 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
             case 4:
                 # Prev
                 return self.previous_menu
