@@ -207,6 +207,7 @@ class SunriseController:
         self.is_running: bool = False
         self.ctrl_event: threading.Event = threading.Event()
         self.current_menu: Menu = TopMenu(self)
+        self.current_status: str = 'No sunrise program set'
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
@@ -458,7 +459,7 @@ class TopMenu(Menu):
     def update_display(self):
         # TODO - Update line 3 with status
         self.controller.disp_thread.update_line2_display(None)
-        self.controller.disp_thread.update_line3_display(None)
+        self.controller.disp_thread.update_line3_display(self.controller.current_status)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
