@@ -106,7 +106,8 @@ class OledDisplay:
             second_line = date
         else:
             second_line = self.line2
-            third_line = self.line3
+
+        third_line = self.line3
         fourth_line = self.line4
 
         # Write four lines of text.
