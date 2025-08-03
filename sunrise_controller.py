@@ -417,7 +417,7 @@ class Menu(ABC):
         """
 
         # Recurse back to root item to get all the previous menus except Top
-        menu_string = current_menu.get_menu_name()
+        menu_string = current_menu.get_menu_name().value
         menu = current_menu.previous_menu
         while menu and menu.menu_name != MenuName.top:
             menu_string += '->'
