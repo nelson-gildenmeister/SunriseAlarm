@@ -133,7 +133,10 @@ Add this line before the exit line:
 ```
 
 ### Miscellaneous Info for pigpio:
-https://raspberrypi.stackexchange.com/questions/89577/led-pwm-fading-is-flickering  (Startup instructions are no longer correct, use instructions in this README)
+Startup instructions are no longer correct, use instructions in this README
+
+https://raspberrypi.stackexchange.com/questions/89577/led-pwm-fading-is-flickering
+
 https://abyz.me.uk/rpi/pigpio/download.html
 
 Stop the pigpio daemon:
