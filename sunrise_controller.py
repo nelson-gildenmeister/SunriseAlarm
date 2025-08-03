@@ -370,9 +370,13 @@ class SunriseController:
         global button_map
         btn = button_map[gpio]
         print(f'Button {btn} pressed...')
-        # If display is not on, any button press will turn on the display but not do anything else.
+        # If display is not on, any button press will turn on the display and go back to the top menu
         if not self.data.is_display_on():
+            print('   display is off, turning back on...')
             self.display_on()
+            if self.current_menu.get_menu_name() != MenuName.top:
+                self.current_menu = TopMenu(self)
+                self.current_menu.update_display()
             return
 
         # Call the handler for the current menu
@@ -425,7 +429,7 @@ class Menu(ABC):
 def get_hierarchical_menu_string(current_menu: Menu) -> str | None:
     """
     Returns back a string representing the current menu and its hierarchy.
-    E.g., Main->Schedule->Weekday
+    E.g., Schedule->Weekday
     :param current_menu:
     :return: string with hierarchy up to and including the current menu
     """
@@ -659,22 +663,34 @@ class ScheduleWeekdayMenu(Menu):
         self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
-    def button_handler(self, btn: int) -> Menu | None:
+    def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
-                # Select
-                pass
+                # Select button pressed, go to new menu
+                return self.new_menu_factory(self.menus[self.menu_idx])
             case 2:
                 # Left
-                pass
+                self.menu_idx = (self.menu_idx - 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
             case 3:
                 # Right
-                pass
+                self.menu_idx = (self.menu_idx + 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
             case 4:
                 # Prev
                 return self.previous_menu
 
         return self
+
+    def new_menu_factory(self, menu_type) -> Menu:
+        match menu_type:
+            case MenuName.set_start:
+                return ScheduleSunriseStart(self)
+            case MenuName.set_duration:
+                return ScheduleSunriseDuration(self)
+
+        print('ERROR: ScheduleWeekdayMenu Unhandled menu type, returning to top menu')
+        return TopMenu(self.controller)
 
 class ScheduleWeekendMenu(Menu):
     def __init__(self, controller, prev_menu):
@@ -743,7 +759,6 @@ class ScheduleDailyMenu(Menu):
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
 
-# Do we keep the previous menu object or just the relevant data?
 class ScheduleSunriseStart(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.set_start, prev_menu)
