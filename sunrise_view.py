@@ -71,8 +71,6 @@ class OledDisplay:
         self.line1 = line1
         self.line2 = line2
         self.line3 = line3
-        if not line3:
-            print('set_display_lines() line3 blank')
         self.line4 = line4
 
     def set_line1(self, line1):
@@ -83,8 +81,6 @@ class OledDisplay:
 
     def set_line3(self, line3):
         self.line3 = line3
-        if not line3:
-            print('set_line3() line3 blank')
 
     def set_line4(self, line4):
         self.line4 = line4
@@ -110,9 +106,6 @@ class OledDisplay:
             second_line = date
         else:
             second_line = self.line2
-        if not self.line3:
-            third_line = 'Status Not Defined'
-        else:
             third_line = self.line3
         fourth_line = self.line4
 
