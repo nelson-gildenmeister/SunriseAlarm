@@ -421,7 +421,7 @@ class Menu(ABC):
         menu = current_menu.previous_menu
         while menu and menu.menu_name != MenuName.top:
             menu_string += '->'
-            menu_string += menu.get_menu_name()
+            menu_string += menu.get_menu_name().value
             menu = menu.previous_menu
         return menu_string
 
@@ -523,8 +523,8 @@ class MainMenu(Menu):
     def update_display(self):
         print(f'MainMenu update_display, str: {self.get_hierarchical_menu_string(self)}')
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        # self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
-        # self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+        self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
