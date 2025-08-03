@@ -458,7 +458,7 @@ class TopMenu(Menu):
 
     def update_display(self):
         # TODO - Update line 2 with time!!!
-        self.controller.disp_thread.update_line3_display(None)
+        self.controller.disp_thread.update_line2_display(None)
         self.controller.disp_thread.update_line3_display('')
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
