@@ -377,7 +377,7 @@ class SunriseController:
         new_menu = self.current_menu.button_handler(btn)
         # if button action changed the menu, update the display with new menu
         print(f'current_menu name = {self.current_menu.get_menu_name().value}')
-        print(f'new_menu name = {new_menu.get_menu_name().value}')
+        print(f'new_menu_name = {new_menu.get_menu_name().value}')
 
         # If the menu changed, record it as the current and update the display to reflect the new menu
         if new_menu.get_menu_name() != self.current_menu.get_menu_name():
@@ -522,9 +522,9 @@ class MainMenu(Menu):
 
     def update_display(self):
         print(f'MainMenu update_display, name: {self.menus[self.menu_idx].value}')
-        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
-        self.controller.disp_thread.update_line4_display("junk")
+        # self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
+        # self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+        # self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
