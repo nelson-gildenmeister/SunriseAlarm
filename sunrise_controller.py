@@ -745,8 +745,9 @@ class ScheduleSunriseDuration(Menu):
 class EnableMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.enable, prev_menu)
-        self.menu_line3 = ''
-        self.menu_line4 = 'X     <     >    Prev'
+        self.menu_idx = 0
+        self.menus = [MenuName.set_weekday, MenuName.set_weekend, MenuName.set_daily]
+        self.menu_line4 = 'Enable  Enable  Enable  Prev'
 
     def reset(self):
         pass
