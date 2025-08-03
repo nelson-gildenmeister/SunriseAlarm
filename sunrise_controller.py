@@ -788,7 +788,7 @@ class SetDisplayOffTimeMenu(Menu):
         self.current_sub_menu = ''
 
     def reset(self):
-        self.current_sub_menu = ""
+        pass
 
     def update_display(self):
         self.controller.disp_thread.update_line3_display(self.menu_line3)
