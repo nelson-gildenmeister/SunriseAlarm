@@ -457,6 +457,9 @@ class TopMenu(Menu):
         self.scroll = True
 
     def update_display(self):
+        # TODO - Update line 2 with status!!!
+        self.controller.disp_thread.update_line3_display('TODO!!!!')
+        self.controller.disp_thread.update_line3_display('')
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
