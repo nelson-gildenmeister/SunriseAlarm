@@ -85,7 +85,7 @@ Top row pins Left to Right:
 2 (5V), 4 (5V), 6 (Ground)
 Second row pins Left to Right:
 1 (3V3), 3 (SDA I2C), 5 (SCL I2C)
-
+```
 -----------
 |   2 4 6 |
 | O o o o |
@@ -96,7 +96,7 @@ Second row pins Left to Right:
 |                             |
 |                             |
 -------------------------------
-
+```
 5) Start pigpio daemon:
 > sudo pigpiod
 To start automatically upon boot:
