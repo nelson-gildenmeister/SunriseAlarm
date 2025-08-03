@@ -16,6 +16,7 @@ from sunrise_data import SunriseData, SunriseSettings, DisplayMode
 from sunrise_view import OledDisplay
 
 BRIGHTNESS_CHANGE_PERCENT: int = 5
+DISPLAY_MSG_Q_SIZE: int = 4
 
 btn1_gpio = 12
 btn2_gpio = 16
@@ -105,7 +106,7 @@ class DisplayThread(threading.Thread):
         self.line4 = ''
         self.scroll = True
         self.at_end = False
-        self.msg_q = queue.Queue(2)
+        self.msg_q = queue.Queue(DISPLAY_MSG_Q_SIZE)
 
     class DisplayThreadMessages(Enum):
         Wake = 1
