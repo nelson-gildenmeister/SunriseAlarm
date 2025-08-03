@@ -118,7 +118,8 @@ Second row pins Left to Right:
 |                             |
 -------------------------------
 ```
-5) Start pigpio daemon:
+
+### Start pigpio daemon:
 ```
 > sudo pigpiod
 ```
