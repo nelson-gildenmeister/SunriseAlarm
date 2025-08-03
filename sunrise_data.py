@@ -16,16 +16,7 @@ class SunriseSettings:
         self.mode: str = mode
         self.start_time: list[str] = start_time
         self.minutes: list[int] = minutes
-        sd = {"Start": 0, "Duration": 0}
-        self.menu = {'Schedule':
-                         {'WkDay': sd,
-                          'WkEnd': sd,
-                          'Day':
-                              {'Monday': sd, 'Tuesday': sd, 'Wednesday': sd, 'Thursday': sd, 'Friday': sd,
-                                          'Saturday': sd, 'Sunday': sd}},
-                     'Clock Set':
-                          {'Date': 0, 'Time': 0},
-                     'WiFi': {'SSID': 0, 'Password': 0}}
+
 
     def is_program_running(self) -> bool:
         if self.mode == "program":
