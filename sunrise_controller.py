@@ -169,6 +169,11 @@ class DisplayThread(threading.Thread):
         self.view.set_display_lines(line1, line2, line3, line4)
         self.msg_q.put(self.update, False)
 
+    def update_line2_display(self, line2):
+        self.line2 = line2
+        self.view.set_line2(line2)
+        self.msg_q.put(self.update, False)
+
     def update_line3_display(self, line3):
         self.line3 = line3
         self.view.set_line3(line3)
@@ -202,7 +207,6 @@ class SunriseController:
         self.ctrl_event: threading.Event = threading.Event()
         self.current_menu: Menu = TopMenu(self)
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
-
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
         for gpio in gpio_list:
@@ -378,7 +382,6 @@ class SunriseController:
             self.current_menu = new_menu
             self.current_menu.update_display()
 
-
     def shutdown(self):
         self.dimmer.shutdown()
 
@@ -395,13 +398,30 @@ class SunriseController:
 
 
 class Menu(ABC):
-    def __init__(self, controller: SunriseController, menu_state_name: MenuName, previous_menu: Self=None):
+    def __init__(self, controller: SunriseController, menu_name: MenuName, previous_menu: Self = None):
         self.controller = controller
-        self.menu_state_name = menu_state_name
+        self.menu_name = menu_name
         self.previous_menu: Self = previous_menu
 
     def get_menu_name(self) -> MenuName:
-        return self.menu_state_name
+        return self.menu_name
+
+    def get_hierarchical_menu_string(self, current_menu: Self) -> str:
+        """
+        Returns back a string representing the current menu and its hierarchy.
+        E.g., Main->Schedule->Weekday
+        :param current_menu:
+        :return: string with hierarchy up to and including the current menu
+        """
+
+        # Recurse back to root item to get all the previous menus except Top
+        menu_string = current_menu.get_menu_name()
+        menu = current_menu.previous_menu
+        while menu and menu.menu_name != MenuName.top:
+            menu_string += '->'
+            menu_string += menu.get_menu_name()
+            menu = menu.previous_menu
+        return menu_string
 
     @abstractmethod
     def reset(self):
@@ -442,7 +462,7 @@ class TopMenu(Menu):
 
         # TODO - Menu button changes to main menu
         if btn == 1:
-            return MainMenu(self.controller)
+            return MainMenu(self.controller, self)
 
         # Other buttons cancel a running schedule
         if self.controller.is_running:
@@ -496,11 +516,11 @@ class MainMenu(Menu):
         self.menu_line3 = self.menus[self.menu_idx]
         self.menu_line4 = ' X     <     >    Prev'
 
-
     def reset(self) -> Dict[Any, Any]:
         pass
 
     def update_display(self):
+        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
         self.controller.disp_thread.update_line3_display(self.menu_line3)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
@@ -541,7 +561,7 @@ class MainMenu(Menu):
             case MainSubMenus.network:
                 return NetworkMenu(self.controller, self)
 
-        print('ERROR: Unhandled menu type, returning to top menu')
+        print('ERROR: MainMenu Unhandled menu type, returning to top menu')
         return TopMenu(self.controller)
 
 
@@ -572,7 +592,6 @@ class TimeMenuState(Enum):
 class ScheduleMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.schedule, prev_menu)
-
         self.menu_idx = 0
         self.menus = [MenuName.set_weekday, MenuName.set_weekend, MenuName.set_daily]
         self.menu_line3 = self.menus[self.menu_idx]
@@ -587,6 +606,7 @@ class ScheduleMenu(Menu):
         pass
 
     def update_display(self):
+        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
         self.controller.disp_thread.update_line3_display(self.menu_line3)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
@@ -609,7 +629,7 @@ class ScheduleMenu(Menu):
                 self.menu_idx = idx
             case 4:
                 # Prev
-                pass
+                return self.previous_menu
 
     def new_menu_factory(self, menu_type) -> Menu:
         match menu_type:
@@ -617,21 +637,27 @@ class ScheduleMenu(Menu):
                 return ScheduleWeekdayMenu(self.controller, self)
             case MenuName.set_weekend:
                 return ScheduleWeekendMenu(self.controller, self)
+            case MenuName.set_daily:
+                return ScheduleDailyMenu(self.controller, self)
+
+        print('ERROR: ScheduleMenu Unhandled menu type, returning to top menu')
+        return TopMenu(self.controller)
 
 
 class ScheduleWeekdayMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.set_weekday, prev_menu)
-        self.menu_list = ['Sunrise Start', 'Sunrise Duration']
         self.menu_idx = 0
-        self.menu_line2 = 'Main->Schedule->Weekday'
-        self.menu_line3 = self.menu_list[self.menu_idx]
+        self.menus = [MenuName.set_start, MenuName.set_duration]
+
+        self.menu_line3 = self.menus[self.menu_idx]
         self.menu_line4 = 'X     <     >    Prev'
 
     def reset(self):
         pass
 
     def update_display(self):
+        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
         self.controller.disp_thread.update_line3_display(self.menu_line3)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
@@ -650,27 +676,35 @@ class ScheduleWeekdayMenu(Menu):
                 # Prev
                 pass
 
+
 class ScheduleWeekendMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.set_weekday, prev_menu)
-
+        self.menu_idx = 0
+        self.menus = [MenuName.set_start, MenuName.set_duration]
+        self.menu_line3 = self.menus[self.menu_idx]
+        self.menu_line4 = 'X     <     >    Prev'
 
     def reset(self):
         pass
 
     def update_display(self):
-        pass
+        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
+        self.controller.disp_thread.update_line3_display(self.menu_line3)
+        self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Self:
         pass
 
 
-
-class ScheduleDayMenu(Menu):
+class ScheduleDailyMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.set_weekday, prev_menu)
-        self.day: DailyMenu = DailyMenu.sunday
-        self.daily_disp_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        self.menu_idx = 0
+        self.menus = [MenuName.monday, MenuName.tuesday, MenuName.wednesday, MenuName.thursday, MenuName.friday,
+                      MenuName.saturday, MenuName.sunday]
+        self.menu_line3 = self.menus[self.menu_idx]
+        self.menu_line4 = 'X     <     >    Prev'
 
     def reset(self):
         pass
@@ -679,7 +713,9 @@ class ScheduleDayMenu(Menu):
         pass
 
     def update_display(self):
-        pass
+        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
+        self.controller.disp_thread.update_line3_display(self.menu_line3)
+        self.controller.disp_thread.update_line4_display(self.menu_line4)
 
 
 # Do we keep the previous menu object or just the relevant data?
@@ -727,6 +763,7 @@ class EnableMenu(Menu):
     def button_handler(self, btn: int) -> MenuName:
         pass
 
+
 class TimeMenu(Menu):
     def reset(self):
         pass
@@ -745,6 +782,7 @@ class TimeMenu(Menu):
     def set_day(self, day) -> Self:
         self.day = day
         return self
+
 
 class SetDisplayOffTimeMenu(Menu):
     def __init__(self, controller, prev_menu):
