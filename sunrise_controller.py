@@ -409,23 +409,6 @@ class Menu(ABC):
     def get_menu_name(self) -> MenuName:
         return self.menu_name
 
-    def get_hierarchical_menu_string(self, current_menu: Self) -> str:
-        """
-        Returns back a string representing the current menu and its hierarchy.
-        E.g., Main->Schedule->Weekday
-        :param current_menu:
-        :return: string with hierarchy up to and including the current menu
-        """
-
-        # Recurse back to root item to get all the previous menus except Top
-        menu_string = current_menu.get_menu_name().value
-        menu = current_menu.previous_menu
-        while menu and menu.menu_name != MenuName.top:
-            menu_string += '->'
-            menu_string += menu.get_menu_name().value
-            menu = menu.previous_menu
-        return menu_string
-
     @abstractmethod
     def reset(self):
         pass
@@ -438,6 +421,22 @@ class Menu(ABC):
     def button_handler(self, btn: int) -> Self:
         pass
 
+def get_hierarchical_menu_string(current_menu: Menu) -> str:
+    """
+    Returns back a string representing the current menu and its hierarchy.
+    E.g., Main->Schedule->Weekday
+    :param current_menu:
+    :return: string with hierarchy up to and including the current menu
+    """
+
+    # Recurse back to root item to get all the previous menus except Top
+    menu_string = current_menu.get_menu_name().value
+    menu = current_menu.previous_menu
+    while menu and menu.menu_name != MenuName.top:
+        menu_string += '->'
+        menu_string += menu.get_menu_name().value
+        menu = menu.previous_menu
+    return menu_string
 
 class TopMenu(Menu):
     def __init__(self, controller):
@@ -457,9 +456,9 @@ class TopMenu(Menu):
         self.scroll = True
 
     def update_display(self):
-        # TODO - Update line 2 with time!!!
+        # TODO - Update line 3 with status
         self.controller.disp_thread.update_line2_display(None)
-        self.controller.disp_thread.update_line3_display('')
+        self.controller.disp_thread.update_line3_display(None)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
@@ -525,7 +524,7 @@ class MainMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
+        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
         self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
@@ -606,7 +605,7 @@ class ScheduleMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
+        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
         self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
@@ -652,7 +651,7 @@ class ScheduleWeekdayMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
+        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
         self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
@@ -684,7 +683,7 @@ class ScheduleWeekendMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
+        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
         self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
@@ -707,7 +706,7 @@ class ScheduleDailyMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
+        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
         self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
