@@ -522,7 +522,7 @@ class MainMenu(Menu):
 
     def update_display(self):
         print(f'MainMenu update_display, name: {self.menus[self.menu_idx].value}')
-        # self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
+        self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
         # self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         # self.controller.disp_thread.update_line4_display(self.menu_line4)
 
