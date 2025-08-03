@@ -513,7 +513,6 @@ class MainMenu(Menu):
         self.menu_idx: int = 0
         self.menus = [MenuName.schedule, MenuName.enable, MenuName.display_timer,
                       MenuName.set_date, MenuName.network]
-        self.menu_line3 = self.menus[self.menu_idx]
         self.menu_line4 = ' X     <     >    Prev'
 
     def reset(self) -> Dict[Any, Any]:
@@ -521,7 +520,7 @@ class MainMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menu_line3)
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx])
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
@@ -594,7 +593,6 @@ class ScheduleMenu(Menu):
         super().__init__(controller, MenuName.schedule, prev_menu)
         self.menu_idx = 0
         self.menus = [MenuName.set_weekday, MenuName.set_weekend, MenuName.set_daily]
-        self.menu_line3 = self.menus[self.menu_idx]
         self.menu_line4 = 'X     <     >    Prev'
 
         self.set_start_time = False
@@ -607,7 +605,7 @@ class ScheduleMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menu_line3)
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx])
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
@@ -649,8 +647,6 @@ class ScheduleWeekdayMenu(Menu):
         super().__init__(controller, MenuName.set_weekday, prev_menu)
         self.menu_idx = 0
         self.menus = [MenuName.set_start, MenuName.set_duration]
-
-        self.menu_line3 = self.menus[self.menu_idx]
         self.menu_line4 = 'X     <     >    Prev'
 
     def reset(self):
@@ -658,7 +654,7 @@ class ScheduleWeekdayMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menu_line3)
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx])
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu | None:
@@ -682,7 +678,6 @@ class ScheduleWeekendMenu(Menu):
         super().__init__(controller, MenuName.set_weekday, prev_menu)
         self.menu_idx = 0
         self.menus = [MenuName.set_start, MenuName.set_duration]
-        self.menu_line3 = self.menus[self.menu_idx]
         self.menu_line4 = 'X     <     >    Prev'
 
     def reset(self):
@@ -690,7 +685,7 @@ class ScheduleWeekendMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menu_line3)
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx])
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Self:
