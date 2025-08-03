@@ -219,7 +219,7 @@ class SunriseController:
         # Start display thread
         self.disp_thread = DisplayThread(self.view, self.data, self.ctrl_event)
         self.disp_thread.start()
-        print(f'current_menu_name: {self.current_menu.get_menu_name().name}')
+        print(f'current_menu_name: {self.current_menu.get_menu_name().value}')
         self.current_menu.update_display()
 
         print("Entering Event loop...")
@@ -376,8 +376,8 @@ class SunriseController:
         # Call the handler for the current menu
         new_menu = self.current_menu.button_handler(btn)
         # if button action changed the menu, update the display with new menu
-        print(f'current_menu name = {self.current_menu.get_menu_name().name}')
-        print(f'new_menu name = {new_menu.get_menu_name().name}')
+        print(f'current_menu name = {self.current_menu.get_menu_name().value}')
+        print(f'new_menu name = {new_menu.get_menu_name().value}')
 
         # If the menu changed, record it as the current and update the display to reflect the new menu
         if new_menu.get_menu_name() != self.current_menu.get_menu_name():
@@ -534,7 +534,7 @@ class MainMenu(Menu):
             case 2:
                 # Left arrow
                 idx = (self.menu_idx - 1) % len(self.menus)
-                self.menu_line3 = self.menus[idx].name
+                self.menu_line3 = self.menus[idx].value
                 self.controller.disp_thread.update_line3_display(self.menu_line3)
                 self.menu_idx = idx
             case 3:
@@ -608,7 +608,7 @@ class ScheduleMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].name)
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
@@ -619,7 +619,7 @@ class ScheduleMenu(Menu):
             case 2:
                 # Left
                 idx = (self.menu_idx - 1) % len(self.menus)
-                self.menu_line3 = self.menus[idx].name
+                self.menu_line3 = self.menus[idx].value
                 self.controller.disp_thread.update_line3_display(self.menu_line3)
                 self.menu_idx = idx
             case 3:
@@ -657,7 +657,7 @@ class ScheduleWeekdayMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].name)
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu | None:
@@ -688,7 +688,7 @@ class ScheduleWeekendMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].name)
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Self:
@@ -711,7 +711,7 @@ class ScheduleDailyMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.update_line2_display(self.get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].name)
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
 
