@@ -669,7 +669,7 @@ class ScheduleWeekdayMenu(Menu):
                 pass
             case 4:
                 # Prev
-                pass
+                return self.previous_menu
 
         return self
 
@@ -688,8 +688,22 @@ class ScheduleWeekendMenu(Menu):
         self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
-    def button_handler(self, btn: int) -> Self:
-        pass
+    def button_handler(self, btn: int) -> Menu:
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
 
 
 class ScheduleDailyMenu(Menu):
@@ -703,8 +717,22 @@ class ScheduleDailyMenu(Menu):
     def reset(self):
         pass
 
-    def button_handler(self, btn: int) -> Self:
-        pass
+    def button_handler(self, btn: int) -> Menu:
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
 
     def update_display(self):
         self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
@@ -723,8 +751,22 @@ class ScheduleSunriseStart(Menu):
     def update_display(self):
         pass
 
-    def button_handler(self, btn: int) -> MenuName | None:
-        pass
+    def button_handler(self, btn: int) -> Menu:
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
 
 
 class ScheduleSunriseDuration(Menu):
@@ -737,8 +779,22 @@ class ScheduleSunriseDuration(Menu):
     def update_display(self):
         pass
 
-    def button_handler(self, btn: int) -> MenuName | None:
-        pass
+    def button_handler(self, btn: int) -> Menu:
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
 
 
 class EnableMenu(Menu):
@@ -753,8 +809,22 @@ class EnableMenu(Menu):
         self.controller.disp_thread.update_line3_display('Weekday  Weekend  Daily  Prev')
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
-    def button_handler(self, btn: int) -> MenuName:
-        pass
+    def button_handler(self, btn: int) -> Menu:
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
 
 
 class TimeMenu(Menu):
@@ -765,7 +835,21 @@ class TimeMenu(Menu):
         pass
 
     def button_handler(self, btn: int) -> Menu:
-        pass
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
 
     def __init__(self, controller: SunriseController, menu_state_name: MenuName, prev_menu):
         super().__init__(controller, menu_state_name, prev_menu)
@@ -792,7 +876,21 @@ class SetDisplayOffTimeMenu(Menu):
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
-        pass
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
 
 
 class SetDateMenu(Menu):
@@ -810,7 +908,21 @@ class SetDateMenu(Menu):
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
-        pass
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
 
 
 class NetworkMenu(Menu):
@@ -828,4 +940,18 @@ class NetworkMenu(Menu):
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
-        pass
+        match btn:
+            case 1:
+                # Select
+                pass
+            case 2:
+                # Left
+                pass
+            case 3:
+                # Right
+                pass
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
