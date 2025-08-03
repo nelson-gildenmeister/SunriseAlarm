@@ -301,6 +301,8 @@ class SunriseController:
         if starting_percentage > 0:
             start_level = int(self.dimmer.get_max_level() * (starting_percentage * 0.01))
         self.dimmer.set_level(start_level)
+        # Turn on the display
+        self.display_on()
         self.check_schedule()
 
     def check_schedule(self):
@@ -745,15 +747,13 @@ class ScheduleSunriseDuration(Menu):
 class EnableMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.enable, prev_menu)
-        self.menu_idx = 0
-        self.menus = [MenuName.set_weekday, MenuName.set_weekend, MenuName.set_daily]
         self.menu_line4 = 'Enable  Enable  Enable  Prev'
 
     def reset(self):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line3_display(self.menu_line3)
+        self.controller.disp_thread.update_line3_display('Weekday  Weekend  Daily  Prev')
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> MenuName:
@@ -767,7 +767,7 @@ class TimeMenu(Menu):
     def update_display(self):
         pass
 
-    def button_handler(self, btn: int) -> 'Menu' | None:
+    def button_handler(self, btn: int) -> Menu:
         pass
 
     def __init__(self, controller: SunriseController, menu_state_name: MenuName, prev_menu):
