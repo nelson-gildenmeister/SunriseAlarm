@@ -623,6 +623,7 @@ class ScheduleMenu(Menu):
             case 4:
                 # Prev
                 return self.previous_menu
+        return self
 
     def new_menu_factory(self, menu_type) -> Menu:
         match menu_type:
@@ -667,6 +668,7 @@ class ScheduleWeekdayMenu(Menu):
                 # Prev
                 pass
 
+        return self
 
 class ScheduleWeekendMenu(Menu):
     def __init__(self, controller, prev_menu):
