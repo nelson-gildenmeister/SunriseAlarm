@@ -430,10 +430,10 @@ def get_hierarchical_menu_string(current_menu: Menu) -> str:
     :return: string with hierarchy up to and including the current menu
     """
 
-    # Recurse back to root item to get all the previous menus except Top
+    # Recurse back to root item to get all the previous menus except Top and Main
     menu_string = current_menu.get_menu_name().value
     menu = current_menu.previous_menu
-    while menu and menu.menu_name != MenuName.top:
+    while menu and (menu.menu_name != MenuName.top) and (menu.menu_name != MenuName.main):
         menu_string = menu.get_menu_name().value+ '->' + menu_string
         menu = menu.previous_menu
     return menu_string
