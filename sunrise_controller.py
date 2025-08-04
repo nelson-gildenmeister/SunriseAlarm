@@ -187,9 +187,10 @@ class DisplayThread(threading.Thread):
 
 
 class SunriseController:
-    sunrise_event: Event
+    sunrise_event: Event | None
 
     def __init__(self, view: OledDisplay, data: SunriseData, dimmer: Dimmer):
+        self.running_duration_minutes = None
         self.disp_thread = None
         global btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio
         threading.Thread.__init__(self)
@@ -201,10 +202,11 @@ class SunriseController:
         self.data: SunriseData = data
         self.settings: SunriseSettings = data.settings
         self.dimmer: Dimmer = dimmer
-        self.start: dt.datetime = dt.datetime.now()
         self.cancel: bool = False
         self.sec_per_step: int = 0
         self.is_running: bool = False
+        self.running_start_time: dt.datetime = dt.datetime.now()
+        self.running_duration_minutes: int = 0
         self.ctrl_event: threading.Event = threading.Event()
         self.current_menu: Menu = TopMenu(self)
         self.current_status: str = 'No sunrise program set'
@@ -252,6 +254,7 @@ class SunriseController:
                 # In the middle of sunrise, set to proper level
                 print('In the middle of sunrise...')
                 self.is_running = True
+                self.running_start_time = now
                 minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[today])).minute
                 percent_brightness = int(minutes_remaining / self.settings.minutes[today])
                 self.start_schedule(minutes_remaining, percent_brightness)
@@ -286,11 +289,19 @@ class SunriseController:
             self.disp_thread.update_line3_display('Idle, no sunrise scheduled')
 
     def start_schedule(self, duration_minutes: int, starting_percentage: int = 0):
+        """
+        Called from an event thread or directly.
+        :param duration_minutes:
+        :param starting_percentage:
+        :return:
+        """
         print('Sunrise starting....')
         self.is_running = True
+        self.sunrise_event = None
         self.dimmer.enable()
         # Calculate the end time based upon current time and duration setting.
-        self.start = dt.datetime.now()
+        self.running_start_time = dt.datetime.now()
+        self.running_duration_minutes = duration_minutes
         self.sec_per_step: int = int((duration_minutes * 60) / self.dimmer.get_num_steps())
         self.dimmer_step_size = 1
 
@@ -312,12 +323,14 @@ class SunriseController:
             self.time_increment_sched = Timer(self.sec_per_step, self.check_schedule)
             self.time_increment_sched.start()
         else:
-            # Either we are done or cancelled
+            # Either we are done or were cancelled
             print("Sunrise complete")
             self.is_running = False
             self.cancel = False
             self.dimmer.turn_off()
             self.ctrl_event.set()
+            # Queue up the next sunrise event
+            self.handle_schedule_change()
 
     def cancel_pending_schedule(self):
         # If scheduled event is queued up to run, cancel it
@@ -325,6 +338,7 @@ class SunriseController:
             try:
                 if self.sunrise_event:
                     scheduler.cancel(self.sunrise_event)
+                    self.sunrise_event = None
             except ValueError:
                 # no event in the queue to cancel
                 pass
@@ -338,9 +352,9 @@ class SunriseController:
 
         if self.is_running:
             self.cancel = True
+            # No need to clear out the event we track since it is cleared when start running
             self.dimmer.set_level(self.dimmer.get_min_level())
-            # TODO - update status correctly
-            # self.disp_thread.update_line3_display('Next sunrise: TBD')
+            self.update_status()
 
     def schedule_sunrise_start(self, start_time: dt.datetime, duration_minutes: int):
         # Create a new scheduler
@@ -387,16 +401,22 @@ class SunriseController:
     def shutdown(self):
         self.dimmer.shutdown()
 
-    # def update_status(self):
-    #     current = time.time()
-    #     elapsed_minutes = int((current - start_time) / 60)
-    #     remain_minutes = int(end_time - elapsed_minutes)
-    #     if elapsed_minutes == 0:
-    #         status_str = f"Sunrise just started...less than {end_time} minutes remaining"
-    #     elif remain_minutes <= 0:
-    #         status_str = "Waiting for next sunrise"
-    #     else:
-    #         status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
+    def update_status(self):
+        status_str = "No sunrise scheduled"
+        if self.is_running:
+            now = dt.datetime.now()
+            elapsed_minutes = (now - self.running_start_time).total_seconds()/60
+            remain_minutes = self.running_duration_minutes - elapsed_minutes
+            if elapsed_minutes == 0:
+                status_str = f"Sunrise just started...less than {remain_minutes} minutes remaining"
+            else:
+                status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
+        else:
+            # idle - see if there is a sunrise scheduled
+            if self.sunrise_event:
+                pass
+
+
 
 
 class Menu(ABC):
