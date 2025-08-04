@@ -1,6 +1,4 @@
 import json
-from enum import Enum
-
 
 
 class SunriseSettings:
@@ -31,7 +29,6 @@ class SunriseData:
         # self.sunrise_duration_minutes: dt.timedelta = dt.timedelta(minutes=0)
         self.sunrise_settings_filename = "settings.json"
         self.settings: SunriseSettings = self.load_settings()
-        self.display_mode: DisplayStatusMode = DisplayStatusMode.idle
         self.display_status_line: str = "Idle"
         self.display_change: bool = False
 
