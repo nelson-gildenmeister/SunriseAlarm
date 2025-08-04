@@ -12,7 +12,7 @@ from typing import List, Dict, Any, Self
 import pigpio
 
 from dimmer import Dimmer
-from sunrise_data import SunriseData, SunriseSettings, DisplayMode
+from sunrise_data import SunriseData, SunriseSettings
 from sunrise_view import OledDisplay
 
 BRIGHTNESS_CHANGE_PERCENT: int = 5
@@ -237,7 +237,7 @@ class SunriseController:
     def handle_schedule_change(self):
         """ Called upon startup and whenever a change is made to the saved schedule. Sends an"""
         # Default to idle
-        self.data.set_display_mode(DisplayMode.idle)
+        self.is_running = False
         now = dt.datetime.now()
         today = now.weekday()
 
@@ -251,7 +251,7 @@ class SunriseController:
             if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.minutes[today] - 1)):
                 # In the middle of sunrise, set to proper level
                 print('In the middle of sunrise...')
-                display_mode = DisplayMode.running
+                self.is_running = True
                 minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[today])).minute
                 percent_brightness = int(minutes_remaining / self.settings.minutes[today])
                 self.start_schedule(minutes_remaining, percent_brightness)
@@ -359,11 +359,6 @@ class SunriseController:
         pass
 
     def display_on(self):
-        if self.is_running:
-            self.data.set_display_mode(DisplayMode.running)
-        else:
-            self.data.set_display_mode(DisplayMode.idle)
-
         self.disp_thread.turn_on_display()
 
     def button_press(self, gpio, level, tick):
@@ -371,8 +366,7 @@ class SunriseController:
         btn = button_map[gpio]
         print(f'Button {btn} pressed...')
         # If display is not on, any button press will turn on the display and go back to the top menu
-        if not self.data.is_display_on():
-            print('   display is off, turning back on...')
+        if not self.view.is_display_on():
             self.display_on()
             if self.current_menu.get_menu_name() != MenuName.top:
                 self.current_menu = TopMenu(self)
@@ -685,9 +679,9 @@ class ScheduleWeekdayMenu(Menu):
     def new_menu_factory(self, menu_type) -> Menu:
         match menu_type:
             case MenuName.set_start:
-                return ScheduleSunriseStart(self)
+                return ScheduleSunriseStart(self.controller, self)
             case MenuName.set_duration:
-                return ScheduleSunriseDuration(self)
+                return ScheduleSunriseDuration(self.controller, self)
 
         print('ERROR: ScheduleWeekdayMenu Unhandled menu type, returning to top menu')
         return TopMenu(self.controller)

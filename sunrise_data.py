@@ -2,12 +2,6 @@ import json
 from enum import Enum
 
 
-class DisplayMode(Enum):
-    off = 0
-    idle = 1
-    running = 2
-    menu = 3
-
 
 class SunriseSettings:
 
@@ -37,7 +31,7 @@ class SunriseData:
         # self.sunrise_duration_minutes: dt.timedelta = dt.timedelta(minutes=0)
         self.sunrise_settings_filename = "settings.json"
         self.settings: SunriseSettings = self.load_settings()
-        self.display_mode: DisplayMode = DisplayMode.idle
+        self.display_mode: DisplayStatusMode = DisplayStatusMode.idle
         self.display_status_line: str = "Idle"
         self.display_change: bool = False
 
@@ -56,16 +50,5 @@ class SunriseData:
             j = json.load(in_file, object_hook=setting_decoder)
             return j
 
-    def get_display_modde(self) -> DisplayMode:
-        return self.display_mode
-
-    def is_display_on(self) -> bool:
-        return self.display_mode != DisplayMode.off
-
-    def set_display_mode(self, mode: DisplayMode):
-        self.display_mode = mode
-
-    def set_display_status(self, status: str):
-        self
 
 
