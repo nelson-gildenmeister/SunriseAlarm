@@ -540,7 +540,7 @@ class MainMenu(Menu):
         self.menu_idx: int = 0
         self.menus = [MenuName.schedule, MenuName.enable, MenuName.display_timer,
                       MenuName.set_date, MenuName.network]
-        self.menu_line4 = ' X     <     >    Prev'
+        self.menu_line4 = ' X    <     >    Prev'
 
     def reset(self) -> Dict[Any, Any]:
         pass
@@ -772,30 +772,81 @@ class ScheduleDailyMenu(Menu):
         self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
+def create_12hour_clock_display(hour: int, minute: int, is_pm: bool, field_idx: int) -> str:
+    am_pm: str = 'AM'
+    if is_pm:
+        am_pm: str = "PM"
+
+
+    match field_idx:
+        case 0:
+            return f'    [{str(hour)}]: {str(minute)}  {am_pm}'
+        case 1:
+            return f'     {str(hour)} :[{str(minute)}] {am_pm}'
+        case 2:
+            return f'     {str(hour)} : {str(minute)} [{am_pm}]'
+
+    print(f'Error - select_new_clock_field() invalid field index = {field_idx}')
+    return f'ERROR:Bad field index'
+
 
 class ScheduleSunriseStart(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.set_start, prev_menu)
+        # The clock field index indicates which clock field is being set
+        self.clock_field_idx = 0
+        self.num_clock_fields = 3
+        self.is_pm: bool = False
+        self.mil_hour = 12
+        self.hour = 12
+        self.minute = 0
+        #self.menu_line3 = '    [12] : 00  AM'
+        self.menu_line4 = 'Sel   Up   Dn    Save'
 
+    def load_previous_clock(self):
+        menu_name = self.previous_menu.get_menu_name().value
+        if menu_name == MenuName.set_weekday:
+            pass
+        elif menu_name == MenuName.set_weekend:
+            pass
+        elif menu_name == MenuName.set_daily:
+            pass
+        elif menu_name == MenuName.set_date:
+            pass
+        else:
+            print(f'ERROR - ScheduleSunriseStart() - unrecognized parent menu: {menu_name}')
     def reset(self):
         pass
 
     def update_display(self):
-        pass
+        self.controller.disp_thread.update_line3_display(create_12hour_clock_display(self.mil_hour, self.minute, self.clock_field_idx))
+        self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
-                # Select
-                pass
+                # Select - Move to next clock field
+                self.clock_field_idx = (self.clock_field_idx + 1) % self.num_clock_fields
+                self.update_display()
             case 2:
-                # Left
-                pass
+                # Up
+                match self.clock_field_idx:
+                    case 0:
+                        self.mil_hour = (self.mil_hour + 1) % 12
+                        self.update_display()
+                    case 1:
+                        self.minute = (self.minute + 1) % 59
+                        self.update_display()
+                    case 2:
+                        if self.is_pm:
+                            mil_hour = self.hour + 12
+                        # TODO write out the data
+                        #self.controller.data.save_settings()
             case 3:
-                # Right
+                # Down
                 pass
             case 4:
-                # Prev
+                # Save
                 return self.previous_menu
 
         return self
