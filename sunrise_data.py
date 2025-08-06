@@ -3,23 +3,21 @@ import json
 
 class SunriseSettings:
 
-    def __init__(self, sched_enabled, mode, start_time: list[str], minutes: list[int]):
-        self.sched_enabled: bool = sched_enabled
-        self.mode: str = mode
+    def __init__(self, weekday_sched_enabled: bool, weekend_sched_enabled: bool, daily_sched_enabled: bool,
+                 days, start_time: list[str], duration_minutes: list[int]):
+        self.weekday_sched_enabled: bool = weekday_sched_enabled
+        self.weekend_sched_enabled: bool = weekend_sched_enabled
+        self.daily_sched_enabled: bool = daily_sched_enabled
+        self.days: str = days
         self.start_time: list[str] = start_time
-        self.minutes: list[int] = minutes
+        self.duration_minutes: list[int] = duration_minutes
 
-
-    def is_program_running(self) -> bool:
-        if self.mode == "program":
-            return True
-
-        return False
 
 
 def setting_decoder(obj):
     if '__type__' in obj and obj['__type__'] == 'SunriseSettings':
-        return SunriseSettings(obj['sched_enabled'], obj['mode'], obj['start_time'], obj['minutes'])
+        return SunriseSettings(obj['weekday_sched_enabled'], obj['weekend_sched_enabled'], obj['daily_sched_enabled'],
+                               obj['days'], obj['start_time'], obj['duration_minutes'])
 
     return obj
 
@@ -29,8 +27,7 @@ class SunriseData:
         # self.sunrise_duration_minutes: dt.timedelta = dt.timedelta(minutes=0)
         self.sunrise_settings_filename = "settings.json"
         self.settings: SunriseSettings = self.load_settings()
-        self.display_status_line: str = "Idle"
-        self.display_change: bool = False
+
 
     def save_settings(self):
         try:
