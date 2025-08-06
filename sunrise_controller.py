@@ -116,9 +116,9 @@ class DisplayThread(threading.Thread):
         self.at_end = False
         while True:
             while self.view.is_display_on():
-                # self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
 
                 if self.event.is_set():
+                    print('DisplayThread got event, exiting...')
                     return
 
                 max_wait_time = 1
@@ -222,11 +222,12 @@ class SunriseController:
         self.current_menu.update_display()
 
         print("Entering Event loop...")
-
+        # This event loop does not have any events to process but could be added in the future.
+        # Its primary purpose is to block so that a keyboard interrupt can be used to shut everything down.
         while True:
             self.handle_schedule_change()
             print("Event Loop: Waiting for event....")
-            # Block and wait for an event that is sent whenever a sunrise completes or schedule is changed.
+            # Block and wait for an event that right now, will never come
             self.ctrl_event.wait()
             print("GOT EVENT!!!!!!!!!!!!")
             self.ctrl_event.clear()
@@ -350,7 +351,7 @@ class SunriseController:
             self.is_running = False
             self.cancel = False
             self.dimmer.turn_off()
-            self.ctrl_event.set()
+            #self.ctrl_event.set()
             # Queue up the next sunrise event
             self.handle_schedule_change()
 
