@@ -124,6 +124,7 @@ class DisplayThread(threading.Thread):
 
                 max_wait_time = 1
                 if self.scroll:
+                    print('DisplayThread, scroll ON')
                     if self.at_end:
                         incremental_wait_time = 2.0
                     else:
@@ -156,8 +157,8 @@ class DisplayThread(threading.Thread):
     def turn_on_display(self):
         self.msg_q.put(self.wake, False)
 
-    def update_display(self, scroll=True):
-        self.view.scroll = scroll
+    def update_display(self):
+        self.view.scroll = self.scroll
         self.view.set_line1(self.line1)
         self.view.set_line2(self.line2)
         self.view.set_line3(self.line3)
@@ -366,7 +367,6 @@ class SunriseController:
         if self.sunrise_scheduler and self.sunrise_scheduler.queue:
             try:
                 if self.sunrise_event:
-                    print(f'Sunrise event: {self.sunrise_event}')
                     self.sunrise_scheduler.cancel(self.sunrise_event)
                     #scheduler.cancel(self.sunrise_event)
                     self.sunrise_event = None
@@ -498,7 +498,6 @@ class TopMenu(Menu):
         self.menu_line3 = ''
         self.menu_line4 = ''
 
-        self.scroll = True
         self.reset()
 
     def reset(self):
@@ -507,12 +506,12 @@ class TopMenu(Menu):
             self.menu_line4 = 'Menu  Dim-  Dim+  Off'
         else:
             self.menu_line4 = 'Menu  Dim-  Dim+  On'
-        self.scroll = True
 
     def update_display(self):
         self.controller.disp_thread.line2 = None
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.enable_status()
+        self.controller.disp_thread.scroll = True
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
