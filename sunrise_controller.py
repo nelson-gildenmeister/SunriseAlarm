@@ -775,11 +775,11 @@ def create_12hour_clock_display(hour: int, minute: int, is_pm: bool, field_idx: 
 
     match field_idx:
         case 0:
-            return f'    [{hour:02d}]:{minute:02d}  {am_pm}'
+            return f'    [{hour:02d}]:{minute:02d} {am_pm}'
         case 1:
-            return f'     {hour:02d}:[{minute:02d}]  {am_pm}'
+            return f'     {hour:02d}:[{minute:02d}] {am_pm}'
         case 2:
-            return f'     {hour:02d}:{minute:02d}  [{am_pm}]'
+            return f'     {hour:02d}:{minute:02d} [{am_pm}]'
 
     print(f'Error - select_new_clock_field() invalid field index = {field_idx}')
     return f'ERROR:Bad field index'
