@@ -867,7 +867,10 @@ class ScheduleSunriseStart(Menu):
                     case 0:
                         self.hour = (self.hour + increment) % 13
                         if self.hour == 0:
-                            self.hour = self.hour + increment
+                            if increment > 0:
+                                self.hour = 1
+                            else:
+                                self.hour = 12
                     case 1:
                         self.minute = (self.minute + increment) % 60
                     case 2:
