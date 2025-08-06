@@ -814,7 +814,8 @@ class ScheduleSunriseStart(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line3_display(create_12hour_clock_display(self.mil_hour, self.minute, self.clock_field_idx))
+        self.controller.disp_thread.update_line3_display(create_12hour_clock_display(self.hour, self.minute,
+                                                                                     self.is_pm, self.clock_field_idx))
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
