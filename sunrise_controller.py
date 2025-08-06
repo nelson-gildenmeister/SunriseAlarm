@@ -355,8 +355,8 @@ class SunriseController:
             self.handle_schedule_change()
 
     def cancel_pending_schedule(self):
-        # If scheduled event is queued up to run, cancel it
-        if self.sunrise_scheduler.queue:
+        # If queue already created and a scheduled event is queued up to run, cancel it
+        if self.sunrise_scheduler and self.sunrise_scheduler.queue:
             try:
                 if self.sunrise_event:
                     scheduler.cancel(self.sunrise_event)
