@@ -1,8 +1,10 @@
+import calendar
 import datetime as dt
 import queue
 import threading
 import time
 from abc import ABC, abstractmethod
+from calendar import MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
 from dataclasses import dataclass
 from enum import Enum
 from sched import scheduler, Event
@@ -25,16 +27,6 @@ btn4_gpio = 21
 button_map = {btn1_gpio: 1, btn2_gpio: 2, btn3_gpio: 3, btn4_gpio: 4}
 
 
-class DayOfWeek(Enum):
-    Monday = 0
-    Tuesday = 1
-    Wednesday = 2
-    Thursday = 3
-    Friday = 4
-    Saturday = 5
-    Sunday = 6
-
-
 class MenuName(Enum):
     top = "top"
     main = 'Main'
@@ -47,13 +39,13 @@ class MenuName(Enum):
     enable = 'Enable Schedule'
     display_timer = "Display Auto-Off"
     enable_sub = 'Weekday   Weekend   Daily'
-    sunday = 'Sunday'
     monday = 'Monday'
     tuesday = 'Tuesday'
     wednesday = 'Wednesday'
     thursday = 'Thursday'
     friday = 'Friday'
     saturday = 'Saturday'
+    sunday = 'Sunday'
     set_date = 'Date/Time'
     network = 'Network Settings'
 
@@ -270,19 +262,19 @@ class SunriseController:
         # of the week including the day of week that matches today to cover the case where next sunrise is next week
         # on the same day (E.g., It's Tuesday and next sunrise is 7 days from now on next Tuesday).
         have_scheduled_start = False
-        day_index = (today + 1) % (DayOfWeek.Sunday.value + 1)
+        day_index = (today + 1) % (SUNDAY + 1)
         day_increment = 1
-        for day in range(DayOfWeek.Sunday.value):
+        for day in range(SUNDAY):
             if self.settings.start_time[day_index]:
                 have_scheduled_start = True
                 dt_start = calc_start_datetime(self.settings.start_time[day_index], day_increment)
-                print(f'Scheduling future start: {dt_start}, duration: {self.settings.minutes[day_index]} minutes')
-                self.schedule_sunrise_start(dt_start, self.settings.minutes[day_index])
+                print(f'Scheduling future start: {dt_start}, duration: {self.settings.duration_minutes[day_index]} minutes')
+                self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[day_index])
                 # self.disp_thread.update_line3_display(f'Next sunrise: {dt_start.ctime()}')
                 self.disp_thread.update_line3_display(
-                    f'Next sunrise: {DayOfWeek(dt_start.weekday()).name} at {dt_start.hour}:{dt_start.minute}')
+                f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {dt_start.hour}:{dt_start.minute}')
                 break
-            day_index = (day_index + 1) % (DayOfWeek.Sunday.value + 1)
+            day_index = (day_index + 1) % (SUNDAY + 1)
             day_increment = day_increment + 1
 
         if not have_scheduled_start:
@@ -699,9 +691,9 @@ class ScheduleWeekdayMenu(Menu):
     def new_menu_factory(self, menu_type) -> Menu:
         match menu_type:
             case MenuName.set_start:
-                return ScheduleSunriseStart(self.controller, self)
+                return ScheduleSunriseStart(self.controller, self, MONDAY)
             case MenuName.set_duration:
-                return ScheduleSunriseDuration(self.controller, self)
+                return ScheduleSunriseDuration(self.controller, self, MONDAY)
 
         print('ERROR: ScheduleWeekdayMenu Unhandled menu type, returning to top menu')
         return TopMenu(self.controller)
@@ -747,8 +739,16 @@ class ScheduleDailyMenu(Menu):
                       MenuName.saturday, MenuName.sunday]
         self.menu_line4 = 'X     <     >    Prev'
 
+    def get_day_of_week(self) -> int:
+        return self.menu_idx
+
     def reset(self):
         pass
+
+    def update_display(self):
+        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
+        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+        self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
@@ -767,16 +767,11 @@ class ScheduleDailyMenu(Menu):
 
         return self
 
-    def update_display(self):
-        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
 
 def create_12hour_clock_display(hour: int, minute: int, is_pm: bool, field_idx: int) -> str:
     am_pm: str = 'AM'
     if is_pm:
         am_pm: str = "PM"
-
 
     match field_idx:
         case 0:
@@ -791,8 +786,9 @@ def create_12hour_clock_display(hour: int, minute: int, is_pm: bool, field_idx: 
 
 
 class ScheduleSunriseStart(Menu):
-    def __init__(self, controller, prev_menu):
+    def __init__(self, controller, prev_menu, day_of_week: int):
         super().__init__(controller, MenuName.set_start, prev_menu)
+        self.day_of_week: int = day_of_week
         # The clock field index indicates which clock field is being set
         self.clock_field_idx = 0
         self.num_clock_fields = 3
@@ -802,19 +798,18 @@ class ScheduleSunriseStart(Menu):
         self.minute = 0
         #self.menu_line3 = '    [12] : 00  AM'
         self.menu_line4 = 'Sel   Up   Dn    Save'
+        self.load_previous_clock()
 
     def load_previous_clock(self):
-        menu_name = self.previous_menu.get_menu_name().value
-        if menu_name == MenuName.set_weekday:
-            pass
-        elif menu_name == MenuName.set_weekend:
-            pass
-        elif menu_name == MenuName.set_daily:
-            pass
-        elif menu_name == MenuName.set_date:
-            pass
-        else:
-            print(f'ERROR - ScheduleSunriseStart() - unrecognized parent menu: {menu_name}')
+        """
+        Loads the previously clock setting and updates the display with its value
+        :return: None
+        """
+        start_time_str = self.controller.data.settings.start_time[self.day_of_week]
+        start_time = dt.datetime.strptime(start_time_str, '%H:%M')
+        self.mil_hour = start_time.hour
+        self.update_display()
+
     def reset(self):
         pass
 
@@ -828,33 +823,35 @@ class ScheduleSunriseStart(Menu):
                 # Select - Move to next clock field
                 self.clock_field_idx = (self.clock_field_idx + 1) % self.num_clock_fields
                 self.update_display()
-            case 2:
-                # Up
+            case 2 | 3:
+                # Up/Down
+                increment = 1
+                if btn == 3:
+                    increment = -1
+
                 match self.clock_field_idx:
                     case 0:
-                        self.mil_hour = (self.mil_hour + 1) % 12
+                        self.mil_hour = (self.mil_hour + increment) % 12
                         self.update_display()
                     case 1:
-                        self.minute = (self.minute + 1) % 59
+                        self.minute = (self.minute + increment) % 59
                         self.update_display()
                     case 2:
                         if self.is_pm:
                             mil_hour = self.hour + 12
-                        # TODO write out the data
-                        #self.controller.data.save_settings()
-            case 3:
-                # Down
-                pass
             case 4:
                 # Save
+                self.controller.data.settings.start_time[MONDAY] = f'{str(self.mil_hour)}:{str(self.minute)}'
+                self.controller.data.save_settings()
                 return self.previous_menu
 
         return self
 
 
 class ScheduleSunriseDuration(Menu):
-    def __init__(self, controller, prev_menu):
+    def __init__(self, controller, prev_menu, day_of_week: int):
         super().__init__(controller, MenuName.set_duration, prev_menu)
+        self.day_of_week: int = day_of_week
 
     def reset(self):
         pass
