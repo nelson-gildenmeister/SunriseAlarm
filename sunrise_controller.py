@@ -366,6 +366,7 @@ class SunriseController:
         if self.sunrise_scheduler and self.sunrise_scheduler.queue:
             try:
                 if self.sunrise_event:
+                    print(f'Sunrise event: {self.sunrise_event}')
                     scheduler.cancel(self.sunrise_event)
                     self.sunrise_event = None
             except ValueError:
@@ -391,6 +392,7 @@ class SunriseController:
 
         # Schedule the start
         epoch_start_time = start_time.timestamp()
+        print('Creating new sunrise event')
         self.sunrise_event = self.sunrise_scheduler.enterabs(epoch_start_time, 1,
                                                              self.start_schedule, (duration_minutes,))
 
