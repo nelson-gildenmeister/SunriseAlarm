@@ -226,6 +226,7 @@ class OledDisplay:
     def turn_display_on(self):
         self.start_display_time = time.time()
         self.display_on = True
+        self.update_display()
 
     def shutdown(self):
         # Blank display on stop
