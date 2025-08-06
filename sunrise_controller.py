@@ -775,11 +775,11 @@ def create_12hour_clock_display(hour: int, minute: int, is_pm: bool, field_idx: 
 
     match field_idx:
         case 0:
-            return f'    [{str(hour)}]: {str(minute)}  {am_pm}'
+            return f'    [{str(hour):02d}]: {str(minute):02d}  {am_pm}'
         case 1:
-            return f'     {str(hour)} :[{str(minute)}] {am_pm}'
+            return f'     {str(hour):02d} :[{str(minute):02d}] {am_pm}'
         case 2:
-            return f'     {str(hour)} : {str(minute)} [{am_pm}]'
+            return f'     {str(hour):02d} : {str(minute):02d} [{am_pm}]'
 
     print(f'Error - select_new_clock_field() invalid field index = {field_idx}')
     return f'ERROR:Bad field index'
@@ -805,6 +805,7 @@ class ScheduleSunriseStart(Menu):
         Loads the previously clock setting and updates the display with its value
         :return: None
         """
+        print(f'Saved start time: {self.controller.data.settings.start_time[self.day_of_week]}')
         start_time_str = self.controller.data.settings.start_time[self.day_of_week]
         start_time = dt.datetime.strptime(start_time_str, '%H:%M')
         self.mil_hour = start_time.hour
@@ -832,7 +833,8 @@ class ScheduleSunriseStart(Menu):
 
                 match self.clock_field_idx:
                     case 0:
-                        self.mil_hour = (self.mil_hour + increment) % 12
+                        self.hour = (self.hour + increment) % 12
+                        self.mil_hour = (self.mil_hour + increment) % 24
                         self.update_display()
                     case 1:
                         self.minute = (self.minute + increment) % 59
@@ -843,7 +845,7 @@ class ScheduleSunriseStart(Menu):
             case 4:
                 # Save
                 print('Saving new Weekday start time')
-                self.controller.data.settings.start_time[MONDAY] = f'{str(self.mil_hour)}:{str(self.minute)}'
+                self.controller.data.settings.start_time[MONDAY] = f'{str(self.mil_hour)}:{str(self.minute):02d}'
                 self.controller.data.save_settings()
                 return self.previous_menu
 
