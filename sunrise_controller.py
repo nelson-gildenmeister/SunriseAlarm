@@ -367,7 +367,8 @@ class SunriseController:
             try:
                 if self.sunrise_event:
                     print(f'Sunrise event: {self.sunrise_event}')
-                    scheduler.cancel(self.sunrise_event)
+                    self.sunrise_scheduler.cancel(self.sunrise_event)
+                    #scheduler.cancel(self.sunrise_event)
                     self.sunrise_event = None
             except ValueError:
                 # no event in the queue to cancel
