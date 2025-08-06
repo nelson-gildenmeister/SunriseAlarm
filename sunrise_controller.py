@@ -833,11 +833,11 @@ class ScheduleSunriseStart(Menu):
 
                 match self.clock_field_idx:
                     case 0:
-                        self.hour = (self.hour + increment) % 12
-                        self.mil_hour = (self.mil_hour + increment) % 24
+                        self.hour = (self.hour + increment) % 13
+                        self.mil_hour = (self.mil_hour + increment) % 25
                         self.update_display()
                     case 1:
-                        self.minute = (self.minute + increment) % 59
+                        self.minute = (self.minute + increment) % 60
                         self.update_display()
                     case 2:
                         if self.is_pm:
@@ -845,7 +845,7 @@ class ScheduleSunriseStart(Menu):
             case 4:
                 # Save
                 print('Saving new Weekday start time')
-                self.controller.data.settings.start_time[MONDAY] = f'{str(self.mil_hour)}:{str(self.minute):02d}'
+                self.controller.data.settings.start_time[MONDAY] = f'{self.mil_hour:02d}:{self.minute:02d}'
                 self.controller.data.save_settings()
                 return self.previous_menu
 
