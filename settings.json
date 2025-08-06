@@ -1,6 +1,6 @@
 {
 	"__type__": "SunriseSettings",
-	"weekday_sched_enabled": false,
+	"weekday_sched_enabled": true,
 	"weekend_sched_enabled": false,
 	"daily_sched_enabled": false,
 	"days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
