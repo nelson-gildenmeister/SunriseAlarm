@@ -147,6 +147,9 @@ class DisplayThread(threading.Thread):
 
             # Wait for something to wake up the display
             msg = self.msg_q.get(True)
+            if msg == self.wake:
+                print('Waking Display...')
+                self.view.turn_display_on()
 
     # Send a message to unblock the display thread and start display updates again.
     def turn_on_display(self):
@@ -373,6 +376,7 @@ class SunriseController:
         print(f'Button {btn} pressed...')
         # If display is not on, any button press will turn on the display and go back to the top menu
         if not self.view.is_display_on():
+            print('  display OFF, turing on...')
             self.display_on()
             if self.current_menu.get_menu_name() != MenuName.top:
                 self.current_menu = TopMenu(self)
@@ -793,7 +797,6 @@ class ScheduleSunriseStart(Menu):
         self.clock_field_idx = 0
         self.num_clock_fields = 3
         self.is_pm: bool = False
-        self.mil_hour = 12
         self.hour = 12
         self.minute = 0
         #self.menu_line3 = '    [12] : 00  AM'
@@ -808,7 +811,6 @@ class ScheduleSunriseStart(Menu):
         print(f'Saved start time: {self.controller.data.settings.start_time[self.day_of_week]}')
         start_time_str = self.controller.data.settings.start_time[self.day_of_week]
         start_time = dt.datetime.strptime(start_time_str, '%H:%M')
-        self.mil_hour = start_time.hour
         self.update_display()
 
     def reset(self):
@@ -834,18 +836,19 @@ class ScheduleSunriseStart(Menu):
                 match self.clock_field_idx:
                     case 0:
                         self.hour = (self.hour + increment) % 13
-                        self.mil_hour = (self.mil_hour + increment) % 25
                         self.update_display()
                     case 1:
                         self.minute = (self.minute + increment) % 60
                         self.update_display()
                     case 2:
-                        if self.is_pm:
-                            mil_hour = self.hour + 12
+                        self.is_pm = not self.is_pm
             case 4:
                 # Save
                 print('Saving new Weekday start time')
-                self.controller.data.settings.start_time[MONDAY] = f'{self.mil_hour:02d}:{self.minute:02d}'
+                mil_hour = self.hour
+                if self.is_pm:
+                    mil_hour = self.hour + 12
+                self.controller.data.settings.start_time[MONDAY] = f'{mil_hour:02d}:{self.minute:02d}'
                 self.controller.data.save_settings()
                 return self.previous_menu
 
