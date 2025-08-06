@@ -34,7 +34,7 @@ class OledDisplay:
         self.scroll: bool = True
         self.debug = False
         self.is_status_display = True
-        self.status_display_line3 = ''
+        self.status_display_line = ''
 
         # Create the I2C interface.
         self.i2c = busio.I2C(SCL, SDA)
@@ -87,11 +87,21 @@ class OledDisplay:
     def set_line4(self, line4):
         self.line4 = line4
 
+    def set_status_display_line(self, status):
+        self.status_display_line = status
+
+    def enable_status_display(self):
+        self.is_status_display = True
+
+    def disable_status_display(self):
+        self.is_status_display = False
+
     def update_display(self):
         # See if auto-power off
         if not self.is_display_on():
             return
 
+        third_line: str
         top = self.padding
         # Draw a black filled box to clear the image.
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
@@ -109,7 +119,10 @@ class OledDisplay:
         else:
             second_line = self.line2
 
-        third_line = self.line3
+        if self.is_status_display:
+            third_line = self.status_display_line
+        else:
+            third_line = self.line3
         fourth_line = self.line4
 
         # Write four lines of text.
@@ -139,6 +152,8 @@ class OledDisplay:
 
     def scroll_line3(self) -> bool:
         at_end = False
+        third_line: str
+
         # See if auto-power off
         if not self.is_display_on():
             return at_end
@@ -162,8 +177,8 @@ class OledDisplay:
             second_line = date
         else:
             second_line = self.line2
-        if not self.line3:
-            third_line = 'Idle - No sunrise scheduled'
+        if self.is_status_display:
+            third_line = self.status_display_line
         else:
             third_line = self.line3
         fourth_line = self.line4

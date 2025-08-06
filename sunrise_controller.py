@@ -180,6 +180,16 @@ class DisplayThread(threading.Thread):
         self.view.set_line4(line4)
         self.msg_q.put(self.update, False)
 
+    def update_status_line(self, status):
+        self.view.set_status_display_line(status)
+        self.msg_q.put(self.update, False)
+
+    def enable_status(self):
+        self.view.enable_status_display()
+
+    def disable_status(self):
+        self.view.disable_status_display()
+
 
 class SunriseController:
     sunrise_event: Event | None
@@ -204,7 +214,6 @@ class SunriseController:
         self.running_duration_minutes: int = 0
         self.ctrl_event: threading.Event = threading.Event()
         self.current_menu: Menu = TopMenu(self)
-        self.current_status: str = 'No sunrise program set'
         self.hookup_buttons(self.pi, [btn1_gpio, btn2_gpio, btn3_gpio, btn4_gpio])
 
     def hookup_buttons(self, pi, gpio_list: List[int]):
@@ -227,7 +236,7 @@ class SunriseController:
         while True:
             self.handle_schedule_change()
             print("Event Loop: Waiting for event....")
-            # Block and wait for an event that right now, will never come
+            # Block and wait for an event that, right now, will never come
             self.ctrl_event.wait()
             print("GOT EVENT!!!!!!!!!!!!")
             self.ctrl_event.clear()
@@ -283,6 +292,7 @@ class SunriseController:
                 # Sunrise start is today but in the future - set up an event to start
                 print(f'Scheduling start today at: {self.settings.start_time[today]}')
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[today])
+                self.disp_thread.update_status_line(f'Next sunrise: today at: {self.settings.start_time[today]}')
                 return
 
         # No sunrise scheduled for today so look for the next scheduled sunrise and set up an event for it.
@@ -300,16 +310,14 @@ class SunriseController:
                     f'Scheduling future start: {dt_start}, duration: {self.settings.duration_minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[day_index])
                 # self.disp_thread.update_line3_display(f'Next sunrise: {dt_start.ctime()}')
-                self.disp_thread.update_line3_display(
-                    f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {dt_start.hour}:{dt_start.minute}')
+                self.disp_thread.update_status_line(
+                    f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {dt_start.hour:02d}:{dt_start.minute:02d}')
                 break
             day_index = (day_index + 1) % (SUNDAY + 1)
             day_increment = day_increment + 1
 
         if not have_scheduled_start:
-            # TODO - Need to set a flag so that line3 Knows to display idle - don't change the line here since
-            # we might be in the middle of a menu that is displaying something else for line3
-            self.disp_thread.update_line3_display('Idle, no sunrise scheduled')
+            self.disp_thread.update_status_line('Idle, no sunrise scheduled')
 
     def start_schedule(self, duration_minutes: int, starting_percentage: int = 0):
         """
@@ -501,17 +509,16 @@ class TopMenu(Menu):
         self.scroll = True
 
     def update_display(self):
-        # TODO - Update line 3 with status
         self.controller.disp_thread.update_line2_display(None)
-        self.controller.disp_thread.update_line3_display(self.controller.current_status)
+        self.controller.disp_thread.enable_status()
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
     def button_handler(self, btn: int) -> Menu:
 
         self.controller.view.turn_display_on()
 
-        # TODO - Menu button changes to main menu
         if btn == 1:
+            self.controller.disp_thread.disable_status()
             return MainMenu(self.controller, self)
 
         # Other buttons cancel a running schedule
@@ -854,6 +861,26 @@ class ScheduleSunriseStart(Menu):
                                                                                      self.is_pm, self.clock_field_idx))
         self.controller.disp_thread.update_line4_display(self.menu_line4)
 
+    def save_schedule(self):
+        mil_hour = self.hour
+        if self.is_pm:
+            mil_hour = self.hour + 12
+        parent_menu = self.previous_menu.get_menu_name()
+        match parent_menu:
+            case MenuName.set_weekday:
+                print('Saving new Weekday start time')
+                for day in range(MONDAY, FRIDAY):
+                    self.controller.data.settings.start_time[day] = f'{mil_hour:02d}:{self.minute:02d}'
+               # self.controller.data.settings.start_time[MONDAY] = f'{mil_hour:02d}:{self.minute:02d}'
+            case MenuName.set_weekend:
+                for day in range(SATURDAY, SUNDAY):
+                    self.controller.data.settings.start_time[day] = f'{mil_hour:02d}:{self.minute:02d}'
+            case MenuName.set_daily:
+                self.controller.data.settings.start_time[self.day_of_week] = f'{mil_hour:02d}:{self.minute:02d}'
+
+        self.controller.data.save_settings()
+        self.controller.handle_schedule_change()
+
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
@@ -881,13 +908,7 @@ class ScheduleSunriseStart(Menu):
                 self.update_display()
             case 4:
                 # Save
-                print('Saving new Weekday start time')
-                mil_hour = self.hour
-                if self.is_pm:
-                    mil_hour = self.hour + 12
-                self.controller.data.settings.start_time[MONDAY] = f'{mil_hour:02d}:{self.minute:02d}'
-                self.controller.data.save_settings()
-                self.controller.handle_schedule_change()
+                self.save_schedule()
                 return self.previous_menu
 
         return self
