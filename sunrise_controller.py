@@ -134,7 +134,6 @@ class DisplayThread(threading.Thread):
                             self.view.update_display()
                     except queue.Empty:
                         # Okay for no display changes
-                        print('DisplayThread, scrolling...')
                         self.at_end = self.view.scroll_line3()
                         pass
                 else:
@@ -292,7 +291,7 @@ class SunriseController:
                 # Sunrise start is today but in the future - set up an event to start
                 print(f'Scheduling start today at: {self.settings.start_time[today]}')
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[today])
-                self.disp_thread.update_status_line(f'Next sunrise: today at: {self.settings.start_time[today]}')
+                self.disp_thread.update_status_line(f'Next sunrise: today at {self.settings.start_time[today]}')
                 return
 
         # No sunrise scheduled for today so look for the next scheduled sunrise and set up an event for it.
@@ -350,13 +349,18 @@ class SunriseController:
 
     def check_schedule(self):
         if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
+            minutes_remain = (
+                    self.sec_per_step * ((self.dimmer.get_max_level() - self.dimmer.get_level())/self.dimmer_step_size))
+            self.disp_thread.update_status_line(f'Sunrise in progress, {minutes_remain} minutes remaining')
             self.time_increment_sched = Timer(self.sec_per_step, self.check_schedule)
             self.time_increment_sched.start()
         else:
             # Either we are done or were cancelled
             print("Sunrise complete")
+            self.disp_thread.update_status_line('Sunrise complete')
             self.is_running = False
             self.cancel = False
+            # TODO - Do we turn off lamp at end or leave on?  Perhaps this is a setting?
             self.dimmer.turn_off()
             #self.ctrl_event.set()
             # Queue up the next sunrise event
