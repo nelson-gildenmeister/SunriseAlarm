@@ -4,7 +4,7 @@ import queue
 import threading
 import time
 from abc import ABC, abstractmethod
-from calendar import MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
+from calendar import MONDAY, FRIDAY, SATURDAY, SUNDAY
 from dataclasses import dataclass
 from enum import Enum
 from sched import scheduler, Event
@@ -12,7 +12,6 @@ from threading import Timer
 from typing import List, Dict, Any, Self
 
 import pigpio
-from mypy.typeops import false_only
 
 from dimmer import Dimmer
 from sunrise_data import SunriseData, SunriseSettings
@@ -296,11 +295,12 @@ class SunriseController:
             if self.is_schedule_enabled_for_day(day_index):
                 have_scheduled_start = True
                 dt_start = calc_start_datetime(self.settings.start_time[day_index], day_increment)
-                print(f'Scheduling future start: {dt_start}, duration: {self.settings.duration_minutes[day_index]} minutes')
+                print(
+                    f'Scheduling future start: {dt_start}, duration: {self.settings.duration_minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[day_index])
                 # self.disp_thread.update_line3_display(f'Next sunrise: {dt_start.ctime()}')
                 self.disp_thread.update_line3_display(
-                f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {dt_start.hour}:{dt_start.minute}')
+                    f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {dt_start.hour}:{dt_start.minute}')
                 break
             day_index = (day_index + 1) % (SUNDAY + 1)
             day_increment = day_increment + 1
@@ -428,7 +428,7 @@ class SunriseController:
         status_str = "No sunrise scheduled"
         if self.is_running:
             now = dt.datetime.now()
-            elapsed_minutes = (now - self.running_start_time).total_seconds()/60
+            elapsed_minutes = (now - self.running_start_time).total_seconds() / 60
             remain_minutes = self.running_duration_minutes - elapsed_minutes
             if elapsed_minutes == 0:
                 status_str = f"Sunrise just started...less than {remain_minutes} minutes remaining"
@@ -438,8 +438,6 @@ class SunriseController:
             # idle - see if there is a sunrise scheduled
             if self.sunrise_event:
                 pass
-
-
 
 
 class Menu(ABC):
@@ -463,6 +461,7 @@ class Menu(ABC):
     def button_handler(self, btn: int) -> Self:
         pass
 
+
 def get_hierarchical_menu_string(current_menu: Menu) -> str | None:
     """
     Returns back a string representing the current menu and its hierarchy.
@@ -482,6 +481,7 @@ def get_hierarchical_menu_string(current_menu: Menu) -> str | None:
         menu_string = menu.get_menu_name().value + '->' + menu_string
         menu = menu.previous_menu
     return menu_string
+
 
 class TopMenu(Menu):
     def __init__(self, controller):
@@ -728,6 +728,7 @@ class ScheduleWeekdayMenu(Menu):
 
         print('ERROR: ScheduleWeekdayMenu Unhandled menu type, returning to top menu')
         return TopMenu(self.controller)
+
 
 class ScheduleWeekendMenu(Menu):
     def __init__(self, controller, prev_menu):

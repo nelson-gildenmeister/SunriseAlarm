@@ -1,4 +1,7 @@
+import datetime as dt
 import json
+
+DEFAULT_START_TIME = '05:00'
 
 
 class SunriseSettings:
@@ -11,7 +14,6 @@ class SunriseSettings:
         self.days: str = days
         self.start_time: list[str] = start_time
         self.duration_minutes: list[int] = duration_minutes
-
 
 
 def setting_decoder(obj):
@@ -30,19 +32,29 @@ class SunriseData:
         self.consistency_checks()
 
     def consistency_checks(self):
+        need_to_save_settings = False
         # Daily schedule can't be enabled with any other schedule type:
         if self.settings.daily_sched_enabled:
             if self.settings.weekday_sched_enabled or self.settings.weekend_sched_enabled:
                 print(f'ERROR: Daily schedule type enabled along with another: weekday:'
                       f' {self.settings.weekday_sched_enabled}, weekend: {self.settings.weekend_sched_enabled}')
-                print('Disabling daily schedule')
+                print('   Disabling daily schedule')
                 self.settings.daily_sched_enabled = False
-                self.save_settings()
+                need_to_save_settings = True
 
         # Start times must be within range
         for idx in range(len(self.settings.start_time)):
+            start_time_str = self.settings.start_time[idx]
+            try:
+                _ = dt.datetime.strptime(start_time_str, '%H:%M')
+            except ValueError:
+                print(f'ERROR - invalid time format setting for entry {idx}: {start_time_str}')
+                print('   Setting to default time')
+                need_to_save_settings = True
+                self.settings.start_time[idx] = DEFAULT_START_TIME
 
-
+        if need_to_save_settings:
+            self.save_settings()
 
     def save_settings(self):
         try:
@@ -58,6 +70,3 @@ class SunriseData:
         with open(self.sunrise_settings_filename, 'r') as in_file:
             j = json.load(in_file, object_hook=setting_decoder)
             return j
-
-
-
