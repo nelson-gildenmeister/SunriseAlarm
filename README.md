@@ -54,7 +54,7 @@ pip install pigpio
 
 ### Stuff needed for Adafruit PiOLED:
 
-1. First install Circuit Python and Blinka:
+1. Install Circuit Python and Blinka:
 ```
 > sudo apt-get update
 > sudo apt-get -y upgrade
