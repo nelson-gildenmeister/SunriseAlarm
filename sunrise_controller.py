@@ -841,6 +841,7 @@ class ScheduleSunriseStart(Menu):
                             mil_hour = self.hour + 12
             case 4:
                 # Save
+                print('Saving new Weekday start time')
                 self.controller.data.settings.start_time[MONDAY] = f'{str(self.mil_hour)}:{str(self.minute)}'
                 self.controller.data.save_settings()
                 return self.previous_menu
