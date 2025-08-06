@@ -18,7 +18,7 @@ from sunrise_data import SunriseData, SunriseSettings
 from sunrise_view import OledDisplay
 
 BRIGHTNESS_CHANGE_PERCENT: int = 5
-DISPLAY_MSG_Q_SIZE: int = 4
+DISPLAY_MSG_Q_SIZE: int = 12
 
 btn1_gpio = 12
 btn2_gpio = 16
