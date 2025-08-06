@@ -27,6 +27,21 @@ class SunriseData:
         # self.sunrise_duration_minutes: dt.timedelta = dt.timedelta(minutes=0)
         self.sunrise_settings_filename = "settings.json"
         self.settings: SunriseSettings = self.load_settings()
+        self.consistency_checks()
+
+    def consistency_checks(self):
+        # Daily schedule can't be enabled with any other schedule type:
+        if self.settings.daily_sched_enabled:
+            if self.settings.weekday_sched_enabled or self.settings.weekend_sched_enabled:
+                print(f'ERROR: Daily schedule type enabled along with another: weekday:'
+                      f' {self.settings.weekday_sched_enabled}, weekend: {self.settings.weekend_sched_enabled}')
+                print('Disabling daily schedule')
+                self.settings.daily_sched_enabled = False
+                self.save_settings()
+
+        # Start times must be within range
+        for idx in range(len(self.settings.start_time)):
+
 
 
     def save_settings(self):
