@@ -403,7 +403,6 @@ class SunriseController:
         print(f'Button {btn} pressed...')
         # If display is not on, any button press will turn on the display and go back to the top menu
         if not self.view.is_display_on():
-            print('  display OFF, turing on...')
             self.display_on()
             if self.current_menu.get_menu_name() != MenuName.top:
                 self.current_menu = TopMenu(self)
@@ -866,7 +865,9 @@ class ScheduleSunriseStart(Menu):
 
                 match self.clock_field_idx:
                     case 0:
-                        self.hour = min(((self.hour + increment) % 13), 1)
+                        self.hour = (self.hour + increment) % 13
+                        if self.hour == 0:
+                            self.hour = self.hour + increment
                     case 1:
                         self.minute = (self.minute + increment) % 60
                     case 2:
