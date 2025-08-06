@@ -548,11 +548,12 @@ class TopMenu(Menu):
             case 4:
                 line4 = 'Menu  Dim-  Dim+  On'
                 if self.controller.dimmer.get_level():
+                    print('Lamp OFF')
                     self.controller.dimmer.turn_off()
                 else:
+                    print('Lamp ON')
                     line4 = 'Menu  Dim-  Dim+  Off'
                     self.controller.dimmer.turn_on()
-                print("Updating display...")
                 self.controller.disp_thread.update_line4_display(line4)
             case _:
                 print("Invalid button number")
