@@ -16,6 +16,15 @@ import busio
 from PIL import Image, ImageDraw, ImageFont
 from board import SCL, SDA
 
+# LINE_1_SPACE = 0
+# LINE_2_SPACE = 8
+# LINE_3_SPACE = 16
+# LINE_4_SPACE = 25
+
+LINE_1_SPACE = 0
+LINE_2_SPACE = 7
+LINE_3_SPACE = 15
+LINE_4_SPACE = 24
 
 class OledDisplay:
     __max_line_len__ = 21
@@ -126,10 +135,10 @@ class OledDisplay:
         fourth_line = self.line4
 
         # Write four lines of text.
-        self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
-        self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
-        self.draw.text((0, top + 16), third_line[self.x_pos:], font=self.font, fill=255)
-        self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
+        self.draw.text((0, top + LINE_1_SPACE), first_line, font=self.font, fill=255)
+        self.draw.text((0, top + LINE_2_SPACE), second_line, font=self.font, fill=255)
+        self.draw.text((0, top + LINE_3_SPACE), third_line[self.x_pos:], font=self.font, fill=255)
+        self.draw.text((0, top + LINE_4_SPACE), fourth_line, font=self.font, fill=255)
 
         # Display image.
         self.disp.image(self.image)
@@ -193,10 +202,10 @@ class OledDisplay:
         # Wrap back around to zero index
         idx = self.scroll_idx % len(third_line)
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
-        self.draw.text((0, top + 0), first_line, font=self.font, fill=255)
-        self.draw.text((0, top + 8), second_line, font=self.font, fill=255)
-        self.draw.text((0, top + 16), third_line[idx:], font=self.font, fill=255)
-        self.draw.text((0, top + 25), fourth_line, font=self.font, fill=255)
+        self.draw.text((0, top + LINE_1_SPACE), first_line, font=self.font, fill=255)
+        self.draw.text((0, top + LINE_2_SPACE), second_line, font=self.font, fill=255)
+        self.draw.text((0, top + LINE_3_SPACE), third_line[idx:], font=self.font, fill=255)
+        self.draw.text((0, top + LINE_4_SPACE), fourth_line, font=self.font, fill=255)
 
         # Display image.
         self.disp.image(self.image)
