@@ -157,7 +157,7 @@ class DisplayThread(threading.Thread):
         self.msg_q.put(self.wake, False)
 
     def update_display(self, scroll=True):
-        self.view.scroll_line3 = scroll
+        self.view.scroll = scroll
         self.view.set_line1(self.line1)
         self.view.set_line2(self.line2)
         self.view.set_line3(self.line3)
