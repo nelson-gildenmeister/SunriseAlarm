@@ -866,7 +866,7 @@ class ScheduleSunriseStart(Menu):
 
                 match self.clock_field_idx:
                     case 0:
-                        self.hour = (self.hour + increment) % 13
+                        self.hour = min(((self.hour + increment) % 13), 1)
                     case 1:
                         self.minute = (self.minute + increment) % 60
                     case 2:
