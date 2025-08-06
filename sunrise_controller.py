@@ -881,11 +881,11 @@ class ScheduleSunriseStart(Menu):
         match parent_menu:
             case MenuName.set_weekday:
                 print('Saving new Weekday start time')
-                for day in range(MONDAY, FRIDAY):
+                for day in range(MONDAY, FRIDAY + 1):
                     self.controller.data.settings.start_time[day] = f'{mil_hour:02d}:{self.minute:02d}'
                # self.controller.data.settings.start_time[MONDAY] = f'{mil_hour:02d}:{self.minute:02d}'
             case MenuName.set_weekend:
-                for day in range(SATURDAY, SUNDAY):
+                for day in range(SATURDAY, SUNDAY + 1):
                     self.controller.data.settings.start_time[day] = f'{mil_hour:02d}:{self.minute:02d}'
             case MenuName.set_daily:
                 self.controller.data.settings.start_time[self.day_of_week] = f'{mil_hour:02d}:{self.minute:02d}'
