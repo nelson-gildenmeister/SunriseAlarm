@@ -867,12 +867,11 @@ class ScheduleSunriseStart(Menu):
                 match self.clock_field_idx:
                     case 0:
                         self.hour = (self.hour + increment) % 13
-                        self.update_display()
                     case 1:
                         self.minute = (self.minute + increment) % 60
-                        self.update_display()
                     case 2:
                         self.is_pm = not self.is_pm
+                self.update_display()
             case 4:
                 # Save
                 print('Saving new Weekday start time')
