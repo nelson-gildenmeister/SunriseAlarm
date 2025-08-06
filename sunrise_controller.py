@@ -115,7 +115,7 @@ class DisplayThread(threading.Thread):
         self.view.update_display()
         self.at_end = False
         while True:
-            while self.data.is_display_on():
+            while self.view.is_display_on():
                 # self.view.update_display(self.line1, self.line2, self.line3, self.line4, self.scroll)
 
                 if self.event.is_set():
