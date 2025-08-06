@@ -26,13 +26,15 @@ class OledDisplay:
         self.display_auto_power_off_minutes: float = display_auto_power_off_minutes
         self.start_display_time: float = time.time()
         self.x_pos: int = 0
-        self.line1: str = ""
-        self.line2: str = ""
-        self.line3: str = ""
-        self.line4 : str= ""
+        self.line1: str = ''
+        self.line2: str = ''
+        self.line3: str = ''
+        self.line4 : str= ''
         self.scroll_idx = 0
         self.scroll: bool = True
         self.debug = False
+        self.is_status_display = True
+        self.status_display_line3 = ''
 
         # Create the I2C interface.
         self.i2c = busio.I2C(SCL, SDA)
