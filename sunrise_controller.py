@@ -242,19 +242,19 @@ class SunriseController:
             dt_start = calc_start_datetime(self.settings.start_time[today], 0)
 
             # Sunrise resolution is 1 minute so don't include last minute duration in check to prevent race conditions.
-            if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.minutes[today] - 1)):
+            if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.duration_minutes[today] - 1)):
                 # In the middle of sunrise, set to proper level
                 print('In the middle of sunrise...')
                 self.is_running = True
                 self.running_start_time = now
-                minutes_remaining = (now - dt.timedelta(minutes=self.settings.minutes[today])).minute
-                percent_brightness = int(minutes_remaining / self.settings.minutes[today])
+                minutes_remaining = (now - dt.timedelta(minutes=self.settings.duration_minutes[today])).minute
+                percent_brightness = int(minutes_remaining / self.settings.duration_minutes[today])
                 self.start_schedule(minutes_remaining, percent_brightness)
                 return
             elif dt_start > now:
                 # Sunrise start is today but in the future - set up an event to start
                 print(f'Scheduling start today at: {self.settings.start_time[today]}')
-                self.schedule_sunrise_start(dt_start, self.settings.minutes[today])
+                self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[today])
                 return
 
         # No sunrise scheduled for today so look for the next scheduled sunrise and set up an event for it.
