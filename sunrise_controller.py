@@ -124,7 +124,6 @@ class DisplayThread(threading.Thread):
 
                 max_wait_time = 1
                 if self.scroll:
-                    print('DisplayThread, scroll ON')
                     if self.at_end:
                         incremental_wait_time = 2.0
                     else:
@@ -135,6 +134,7 @@ class DisplayThread(threading.Thread):
                             self.view.update_display()
                     except queue.Empty:
                         # Okay for no display changes
+                        print('DisplayThread, scrolling...')
                         self.at_end = self.view.scroll_line3()
                         pass
                 else:
