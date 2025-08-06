@@ -826,7 +826,7 @@ class ScheduleSunriseStart(Menu):
         self.is_pm: bool = False
         self.hour = 12
         self.minute = 0
-        self.menu_line4 = 'Select   Up   Dn   Save'
+        self.menu_line4 = 'Select  Up  Dn  Save'
         self.load_previous_clock()
 
     def load_previous_clock(self):
@@ -840,6 +840,8 @@ class ScheduleSunriseStart(Menu):
         if start_time.hour > 12:
             self.is_pm = True
             self.hour = start_time.hour - 12
+        else:
+            self.hour = start_time.hour
         self.minute = start_time.minute
         self.update_display()
 
