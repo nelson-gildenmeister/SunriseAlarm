@@ -153,12 +153,16 @@ class OledDisplay:
     def scroll_line3(self) -> bool:
         at_end = False
         third_line: str
+        if self.is_status_display:
+            third_line = self.status_display_line
+        else:
+            third_line = self.line3
 
         # See if auto-power off
         if not self.is_display_on():
             return at_end
 
-        if not self.scroll or len(self.line3) < self.__max_line_len__:
+        if not self.scroll or len(third_line) < self.__max_line_len__:
             return at_end
 
         top = self.padding
@@ -177,10 +181,7 @@ class OledDisplay:
             second_line = date
         else:
             second_line = self.line2
-        if self.is_status_display:
-            third_line = self.status_display_line
-        else:
-            third_line = self.line3
+
         fourth_line = self.line4
 
 
