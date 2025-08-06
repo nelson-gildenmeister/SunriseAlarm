@@ -19,6 +19,7 @@ from sunrise_view import OledDisplay
 
 BRIGHTNESS_CHANGE_PERCENT: int = 5
 DISPLAY_MSG_Q_SIZE: int = 12
+SWITCH_DEBOUNCE_MICROSEC: int = 400
 
 btn1_gpio = 12
 btn2_gpio = 16
@@ -155,14 +156,12 @@ class DisplayThread(threading.Thread):
     def turn_on_display(self):
         self.msg_q.put(self.wake, False)
 
-    def update_display(self, line1, line2, line3, line4, scroll=True):
-        print("Enter update_display()")
-        self.line1 = line1
-        self.line2 = line2
-        self.line3 = line3
-        self.line4 = line4
-        self.scroll = scroll
-        self.view.set_display_lines(line1, line2, line3, line4)
+    def update_display(self, scroll=True):
+        self.view.scroll_line3 = scroll
+        self.view.set_line1(self.line1)
+        self.view.set_line2(self.line2)
+        self.view.set_line3(self.line3)
+        self.view.set_line4(self.line4)
         self.msg_q.put(self.update, False)
 
     def update_line2_display(self, line2):
@@ -220,7 +219,7 @@ class SunriseController:
         for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
             # Debounce the switches
-            pi.set_glitch_filter(gpio, 300)
+            pi.set_glitch_filter(gpio, SWITCH_DEBOUNCE_MICROSEC)
             pi.callback(gpio, pigpio.FALLING_EDGE, self.button_press)
 
     def startup(self):
@@ -309,7 +308,6 @@ class SunriseController:
                 print(
                     f'Scheduling future start: {dt_start}, duration: {self.settings.duration_minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[day_index])
-                # self.disp_thread.update_line3_display(f'Next sunrise: {dt_start.ctime()}')
                 self.disp_thread.update_status_line(
                     f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {dt_start.hour:02d}:{dt_start.minute:02d}')
                 break
@@ -509,9 +507,10 @@ class TopMenu(Menu):
         self.scroll = True
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(None)
+        self.controller.disp_thread.line2 = None
+        self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.enable_status()
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
 
@@ -576,9 +575,10 @@ class MainMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
+        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line4_display = self.menu_line4
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
@@ -657,9 +657,10 @@ class ScheduleMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
+        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line4 = self.menu_line4
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
@@ -703,9 +704,10 @@ class ScheduleWeekdayMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
+        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line4 = self.menu_line4
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
@@ -748,9 +750,10 @@ class ScheduleWeekendMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
+        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line4 = self.menu_line4
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
@@ -785,9 +788,10 @@ class ScheduleDailyMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line2_display(get_hierarchical_menu_string(self))
-        self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
+        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.ine4 = self.menu_line4
+        self.controller.disp_thread.isplay()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
@@ -857,9 +861,10 @@ class ScheduleSunriseStart(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line3_display(create_12hour_clock_display(self.hour, self.minute,
-                                                                                     self.is_pm, self.clock_field_idx))
+        self.controller.disp_thread.line3 = (
+            create_12hour_clock_display(self.hour, self.minute, self.is_pm, self.clock_field_idx))
         self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.update_display()
 
     def save_schedule(self):
         mil_hour = self.hour
@@ -952,8 +957,9 @@ class EnableMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line3_display('Weekday  Weekend  Daily  Prev')
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.line3 = 'Weekday  Weekend  Daily  Prev'
+        self.controller.disp_thread.line4 = self.menu_line4
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
