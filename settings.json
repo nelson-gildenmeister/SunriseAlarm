@@ -4,6 +4,6 @@
 	"weekend_sched_enabled": false,
 	"daily_sched_enabled": false,
 	"days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-	"start_time": ["16:25", "06:02", "06:03", "06:04", "10:54"," 20:39", "11:54"],
+	"start_time": ["16:25", "06:02", "06:03", "06:04", "10:54","20:39", "11:54"],
 	"duration_minutes": [1, 5, 5, 5, 5, 5, 5]
 }
