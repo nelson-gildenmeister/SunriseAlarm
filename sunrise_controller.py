@@ -12,6 +12,7 @@ from threading import Timer
 from typing import List, Dict, Any, Self
 
 import pigpio
+from mypy.typeops import false_only
 
 from dimmer import Dimmer
 from sunrise_data import SunriseData, SunriseSettings
@@ -231,6 +232,22 @@ class SunriseController:
             print("GOT EVENT!!!!!!!!!!!!")
             self.ctrl_event.clear()
 
+    def is_schedule_enabled(self) -> bool:
+        if self.settings.weekday_sched_enabled or self.settings.weekend_sched_enabled or self.settings.daily_sched_enabled:
+            return True
+
+        return False
+
+    def is_schedule_enabled_for_day(self, day: int) -> bool:
+        # See if enabled for this day of the week
+        if not self.settings.daily_sched_enabled:
+            if not (self.settings.weekday_sched_enabled and day < SATURDAY):
+                if not (self.settings.weekend_sched_enabled and day > FRIDAY):
+                    # Not enabled for today
+                    return False
+
+        return True
+
     def handle_schedule_change(self):
         """ Called upon startup and whenever a change is made to the saved schedule. Sends an"""
         # Default to idle
@@ -238,7 +255,15 @@ class SunriseController:
         now = dt.datetime.now()
         today = now.weekday()
 
-        if self.settings.start_time[today]:
+        # Since a change might have affected a scheduled sunrise, go ahead and cancel.  It will get re-scheduled
+        # below if no change was made.
+        self.cancel_pending_schedule()
+
+        # No need for any checks if not enabled for sunrise
+        if not self.is_schedule_enabled():
+            return
+
+        if self.is_schedule_enabled_for_day(today):
             # There is a sunrise scheduled for today.
             # Handle 2 cases: 1) In the middle of a sunrise , 2) scheduled for later today.
             # No need to do anything if already missed today's schedule sunrise.
@@ -268,7 +293,7 @@ class SunriseController:
         day_index = (today + 1) % (SUNDAY + 1)
         day_increment = 1
         for day in range(SUNDAY):
-            if self.settings.start_time[day_index]:
+            if self.is_schedule_enabled_for_day(day_index):
                 have_scheduled_start = True
                 dt_start = calc_start_datetime(self.settings.start_time[day_index], day_increment)
                 print(f'Scheduling future start: {dt_start}, duration: {self.settings.duration_minutes[day_index]} minutes')
@@ -281,6 +306,8 @@ class SunriseController:
             day_increment = day_increment + 1
 
         if not have_scheduled_start:
+            # TODO - Need to set a flag so that line3 Knows to display idle - don't change the line here since
+            # we might be in the middle of a menu that is displaying something else for line3
             self.disp_thread.update_line3_display('Idle, no sunrise scheduled')
 
     def start_schedule(self, duration_minutes: int, starting_percentage: int = 0):
@@ -799,18 +826,21 @@ class ScheduleSunriseStart(Menu):
         self.is_pm: bool = False
         self.hour = 12
         self.minute = 0
-        #self.menu_line3 = '    [12] : 00  AM'
-        self.menu_line4 = 'Sel   Up   Dn    Save'
+        self.menu_line4 = 'Select   Up   Dn   Save'
         self.load_previous_clock()
 
     def load_previous_clock(self):
         """
-        Loads the previously clock setting and updates the display with its value
+        Loads the previous clock setting and updates the display with its value
         :return: None
         """
-        print(f'Saved start time: {self.controller.data.settings.start_time[self.day_of_week]}')
-        start_time_str = self.controller.data.settings.start_time[self.day_of_week]
+        print(f'Saved start time: {self.controller.settings.start_time[self.day_of_week]}')
+        start_time_str = self.controller.settings.start_time[self.day_of_week]
         start_time = dt.datetime.strptime(start_time_str, '%H:%M')
+        if start_time.hour > 12:
+            self.is_pm = True
+            self.hour = start_time.hour - 12
+        self.minute = start_time.minute
         self.update_display()
 
     def reset(self):
@@ -850,6 +880,7 @@ class ScheduleSunriseStart(Menu):
                     mil_hour = self.hour + 12
                 self.controller.data.settings.start_time[MONDAY] = f'{mil_hour:02d}:{self.minute:02d}'
                 self.controller.data.save_settings()
+                self.controller.handle_schedule_change()
                 return self.previous_menu
 
         return self

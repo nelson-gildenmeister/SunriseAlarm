@@ -149,8 +149,9 @@ sudo kill pigpiod
 ```
 source ~/SunriseAlarm/sunrise_venv/bin/activate
 ```
-2. Update the code from the repository:
+2. Update the code from the repository after first discarding any local changes:
 ```
+git checkout .
 git fetch -p origin
 git merge origin/master
 ```
