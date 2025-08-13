@@ -20,7 +20,7 @@ from sunrise_view import OledDisplay
 BRIGHTNESS_CHANGE_PERCENT: int = 5
 DISPLAY_MSG_Q_SIZE: int = 12
 SWITCH_DEBOUNCE_MICROSEC: int = 400
-DEFAULT_BUTTON_LABEL = 'X     <     >    Prev'
+DEFAULT_BUTTON_LABEL = ' X     <     >    Prev'
 
 btn1_gpio = 12
 btn2_gpio = 16
@@ -531,6 +531,7 @@ class TopMenu(Menu):
             self.menu_line4 = 'Menu  Dim-  Dim+  On'
 
     def update_display(self):
+        print('TopMenu:update_display()')
         self.controller.disp_thread.line2 = None
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.enable_status()
@@ -592,12 +593,13 @@ class MainMenu(Menu):
         self.menu_idx: int = 0
         self.menus = [MenuName.schedule, MenuName.enable, MenuName.display_timer,
                       MenuName.set_date, MenuName.network]
-        self.menu_line4 = ' X    <     >    Prev'
+        self.menu_line4 = DEFAULT_BUTTON_LABEL
 
     def reset(self) -> Dict[Any, Any]:
         pass
 
     def update_display(self):
+        print('MainMenu:update_display()')
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
         self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
         self.controller.disp_thread.line4_display = self.menu_line4
