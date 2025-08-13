@@ -854,7 +854,7 @@ class DayOfWeek(Menu):
         match btn:
             case 1:
                 # Select button pressed, go to new menu
-                return self.start_duration_menu_factory(self.menus[self.menu_idx], self.menu_idx)
+                return self.start_duration_menu_factory(self.menus[self.menu_idx], self.day)
             case 2:
                 # Left
                 self.menu_idx = (self.menu_idx - 1) % len(self.menus)
