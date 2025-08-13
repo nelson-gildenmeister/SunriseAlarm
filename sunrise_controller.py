@@ -371,15 +371,13 @@ class SunriseController:
         else:
             # Either we are done or were cancelled
             print("Sunrise complete")
+            # TODO - this status gets wiped immediatly - either remove or figure out how to keep up for a bit
             self.disp_thread.update_status_line('Sunrise complete')
 
             self.is_running = False
             self.cancel = False
             # TODO - Do we turn off lamp at end or leave on?  Perhaps this is a setting?
             self.dimmer.turn_off()
-            # self.ctrl_event.set()
-            # Pause before queuing up next schedule
-            time.sleep(3)
             # Queue up the next sunrise event
             self.handle_schedule_change()
 
