@@ -353,9 +353,11 @@ class SunriseController:
 
     def check_schedule(self):
         if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
-            minutes_remain = 60 / (
-                    self.sec_per_step * ((self.dimmer.get_max_level() - self.dimmer.get_level())/self.dimmer_step_size))
-            self.disp_thread.update_status_line(f'Sunrise in progress, {minutes_remain} minutes remaining')
+            minutes_remain = int ((self.sec_per_step * ((self.dimmer.get_max_level() - self.dimmer.get_level())/self.dimmer_step_size)) / 60)
+            if minutes_remain > 0:
+                self.disp_thread.update_status_line(f'Sunrise in progress, {minutes_remain} minutes remaining')
+            else:
+                self.disp_thread.update_status_line(f'Sunrise in progress, less than 1 minute remaining')
             self.time_increment_sched = Timer(self.sec_per_step, self.check_schedule)
             self.time_increment_sched.start()
         else:
