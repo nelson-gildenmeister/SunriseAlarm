@@ -20,7 +20,8 @@ from sunrise_view import OledDisplay
 BRIGHTNESS_CHANGE_PERCENT: int = 5
 DISPLAY_MSG_Q_SIZE: int = 12
 SWITCH_DEBOUNCE_MICROSEC: int = 400
-DEFAULT_BUTTON_LABEL = ' X     <     >    Prev'
+DEFAULT_BUTTON_LABEL = ' X    <    >   Prev'
+TIME_SET_BUTTON_LABEL = 'Select   -   +   Save'
 
 btn1_gpio = 12
 btn2_gpio = 16
@@ -899,7 +900,7 @@ class ScheduleSunriseStart(Menu):
         self.is_pm: bool = False
         self.hour = 12
         self.minute = 0
-        self.menu_line4 = 'Select  Up  Dn  Save'
+        self.menu_line4 = 'Select   -   +   Save'
         self.load_previous_clock()
 
     def load_previous_clock(self):
