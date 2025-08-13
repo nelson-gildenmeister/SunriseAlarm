@@ -922,7 +922,7 @@ class ScheduleSunriseStart(Menu):
     def update_display(self):
         self.controller.disp_thread.line3 = (
             create_12hour_clock_display(self.hour, self.minute, self.is_pm, self.clock_field_idx))
-        self.controller.disp_thread.update_line4(self.menu_line4)
+        self.controller.disp_thread.line4(self.menu_line4)
         self.controller.disp_thread.update_display()
 
     def save_schedule(self):
@@ -1085,8 +1085,9 @@ class SetDisplayOffTimeMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.update_line3_display(self.menu_line3)
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.line3(self.menu_line3)
+        self.controller.disp_thread.line4(self.menu_line4)
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
@@ -1117,8 +1118,9 @@ class SetDateMenu(Menu):
         self.current_sub_menu = ''
 
     def update_display(self):
-        self.controller.disp_thread.update_line3_display(self.menu_line3)
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.line3(self.menu_line3)
+        self.controller.disp_thread.line4(self.menu_line4)
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
@@ -1149,8 +1151,9 @@ class NetworkMenu(Menu):
         self.current_sub_menu = ''
 
     def update_display(self):
-        self.controller.disp_thread.update_line3_display(self.menu_line3)
-        self.controller.disp_thread.update_line4_display(self.menu_line4)
+        self.controller.disp_thread.line3(self.menu_line3)
+        self.controller.disp_thread.line4(self.menu_line4)
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
