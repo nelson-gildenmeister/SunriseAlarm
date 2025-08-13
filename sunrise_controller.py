@@ -465,12 +465,12 @@ class Menu(ABC):
     def get_menu_name(self) -> MenuName:
         return self.menu_name
 
-    def start_duration_menu_factory(self, menu_type) -> Self:
+    def start_duration_menu_factory(self, menu_type, day = MONDAY) -> Self:
         match menu_type:
             case MenuName.set_start:
-                return ScheduleSunriseStart(self.controller, self, MONDAY)
+                return ScheduleSunriseStart(self.controller, self, day)
             case MenuName.set_duration:
-                return ScheduleSunriseDuration(self.controller, self, MONDAY)
+                return ScheduleSunriseDuration(self.controller, self, day)
 
         print(f'ERROR: {self.__class__.__name__} Unhandled menu type={menu_type}, returning to top menu')
         return TopMenu(self.controller)
@@ -848,7 +848,7 @@ class DayOfWeek(Menu):
         match btn:
             case 1:
                 # Select button pressed, go to new menu
-                return self.start_duration_menu_factory(self.menus[self.menu_idx])
+                return self.start_duration_menu_factory(self.menus[self.menu_idx], self.menu_idx)
             case 2:
                 # Left
                 self.menu_idx = (self.menu_idx - 1) % len(self.menus)
