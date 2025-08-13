@@ -213,24 +213,28 @@ class OledDisplay:
 
         return at_end
 
-    # Determine whether display has been on past the maximum on time.
-    def is_display_on(self):
+    def check_display_idle_off(self):
+        # Nothing to do if display already off
         if not self.display_on:
-            return False
+            return
+
         # Display is currently on, check if it should be off
         end_display_time = time.time()
         display_time_minutes = int((end_display_time - self.start_display_time) / 60)
 
         if display_time_minutes < self.display_auto_power_off_minutes:
-            return True
+            return
 
         # Display needs to be turned off
         print('Auto off display')
         self.display_on = False
         self.clear_display()
 
-        return False
-
+    def is_display_on(self):
+        if self.display_on:
+            return True
+        else:
+            return False
 
     # Public method to turn display on
     def turn_display_on(self):
