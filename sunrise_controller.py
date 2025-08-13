@@ -922,7 +922,7 @@ class ScheduleSunriseStart(Menu):
     def update_display(self):
         self.controller.disp_thread.line3 = (
             create_12hour_clock_display(self.hour, self.minute, self.is_pm, self.clock_field_idx))
-        self.controller.disp_thread.line4(self.menu_line4)
+        self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
     def save_schedule(self):
