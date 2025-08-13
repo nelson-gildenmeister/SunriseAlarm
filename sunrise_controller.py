@@ -934,6 +934,7 @@ class ScheduleSunriseStart(Menu):
                 for day in range(SATURDAY, SUNDAY + 1):
                     self.controller.data.settings.start_time[day] = f'{mil_hour:02d}:{self.minute:02d}'
             case MenuName.set_daily:
+                print(f'ScheduleSunriseStart: set_daily = {self.day_of_week}')
                 self.controller.data.settings.start_time[self.day_of_week] = f'{mil_hour:02d}:{self.minute:02d}'
 
         self.controller.data.save_settings()
@@ -967,7 +968,8 @@ class ScheduleSunriseStart(Menu):
             case 4:
                 # Save
                 self.save_schedule()
-                return self.previous_menu
+                # Go back 2 menus to get to the schedule menu
+                return self.previous_menu.previous_menu
 
         return self
 
