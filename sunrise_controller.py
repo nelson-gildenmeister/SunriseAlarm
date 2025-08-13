@@ -745,20 +745,10 @@ class ScheduleWeekdayMenu(Menu):
 
         return self
 
-    # def new_menu_factory(self, menu_type) -> Menu:
-    #     match menu_type:
-    #         case MenuName.set_start:
-    #             return ScheduleSunriseStart(self.controller, self, MONDAY)
-    #         case MenuName.set_duration:
-    #             return ScheduleSunriseDuration(self.controller, self, MONDAY)
-    #
-    #     print('ERROR: ScheduleWeekdayMenu Unhandled menu type, returning to top menu')
-    #     return TopMenu(self.controller)
-
 
 class ScheduleWeekendMenu(Menu):
     def __init__(self, controller, prev_menu):
-        super().__init__(controller, MenuName.set_weekday, prev_menu)
+        super().__init__(controller, MenuName.set_weekend, prev_menu)
         self.menu_idx = 0
         self.menus = [MenuName.set_start, MenuName.set_duration]
         self.menu_line4 = DEFAULT_BUTTON_LABEL
@@ -775,14 +765,16 @@ class ScheduleWeekendMenu(Menu):
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
-                # Select
-                pass
+                # Select button pressed, go to new menu
+                return self.start_duration_menu_factory(self.menus[self.menu_idx])
             case 2:
                 # Left
-                pass
+                self.menu_idx = (self.menu_idx - 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
             case 3:
                 # Right
-                pass
+                self.menu_idx = (self.menu_idx + 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
             case 4:
                 # Prev
                 return self.previous_menu
@@ -792,7 +784,7 @@ class ScheduleWeekendMenu(Menu):
 
 class ScheduleDailyMenu(Menu):
     def __init__(self, controller, prev_menu):
-        super().__init__(controller, MenuName.set_weekday, prev_menu)
+        super().__init__(controller, MenuName.set_daily, prev_menu)
         self.menu_idx = 0
         self.menus = [MenuName.monday, MenuName.tuesday, MenuName.wednesday, MenuName.thursday, MenuName.friday,
                       MenuName.saturday, MenuName.sunday]
@@ -813,14 +805,16 @@ class ScheduleDailyMenu(Menu):
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
-                # Select
-                pass
+                # Select button pressed, go to new menu
+                return self.start_duration_menu_factory(self.menus[self.menu_idx])
             case 2:
                 # Left
-                pass
+                self.menu_idx = (self.menu_idx - 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
             case 3:
                 # Right
-                pass
+                self.menu_idx = (self.menu_idx + 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
             case 4:
                 # Prev
                 return self.previous_menu
