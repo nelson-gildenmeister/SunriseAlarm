@@ -20,6 +20,7 @@ from sunrise_view import OledDisplay
 BRIGHTNESS_CHANGE_PERCENT: int = 5
 DISPLAY_MSG_Q_SIZE: int = 12
 SWITCH_DEBOUNCE_MICROSEC: int = 400
+DEFAULT_BUTTON_LABEL = 'X     <     >    Prev'
 
 btn1_gpio = 12
 btn2_gpio = 16
@@ -464,6 +465,16 @@ class Menu(ABC):
     def get_menu_name(self) -> MenuName:
         return self.menu_name
 
+    def start_duration_menu_factory(self, menu_type) -> Self:
+        match menu_type:
+            case MenuName.set_start:
+                return ScheduleSunriseStart(self.controller, self, MONDAY)
+            case MenuName.set_duration:
+                return ScheduleSunriseDuration(self.controller, self, MONDAY)
+
+        print(f'ERROR: {self.__class__.__name__} Unhandled menu type, returning to top menu')
+        return TopMenu(self.controller)
+
     @abstractmethod
     def reset(self):
         pass
@@ -652,7 +663,7 @@ class ScheduleMenu(Menu):
         super().__init__(controller, MenuName.schedule, prev_menu)
         self.menu_idx = 0
         self.menus = [MenuName.set_weekday, MenuName.set_weekend, MenuName.set_daily]
-        self.menu_line4 = 'X     <     >    Prev'
+        self.menu_line4 = DEFAULT_BUTTON_LABEL
 
         self.set_start_time = False
         self.start_time: dt = dt.datetime.now()
@@ -704,7 +715,7 @@ class ScheduleWeekdayMenu(Menu):
         super().__init__(controller, MenuName.set_weekday, prev_menu)
         self.menu_idx = 0
         self.menus = [MenuName.set_start, MenuName.set_duration]
-        self.menu_line4 = 'X     <     >    Prev'
+        self.menu_line4 = DEFAULT_BUTTON_LABEL
 
     def reset(self):
         pass
@@ -719,7 +730,7 @@ class ScheduleWeekdayMenu(Menu):
         match btn:
             case 1:
                 # Select button pressed, go to new menu
-                return self.new_menu_factory(self.menus[self.menu_idx])
+                return self.start_duration_menu_factory(self.menus[self.menu_idx])
             case 2:
                 # Left
                 self.menu_idx = (self.menu_idx - 1) % len(self.menus)
@@ -734,15 +745,15 @@ class ScheduleWeekdayMenu(Menu):
 
         return self
 
-    def new_menu_factory(self, menu_type) -> Menu:
-        match menu_type:
-            case MenuName.set_start:
-                return ScheduleSunriseStart(self.controller, self, MONDAY)
-            case MenuName.set_duration:
-                return ScheduleSunriseDuration(self.controller, self, MONDAY)
-
-        print('ERROR: ScheduleWeekdayMenu Unhandled menu type, returning to top menu')
-        return TopMenu(self.controller)
+    # def new_menu_factory(self, menu_type) -> Menu:
+    #     match menu_type:
+    #         case MenuName.set_start:
+    #             return ScheduleSunriseStart(self.controller, self, MONDAY)
+    #         case MenuName.set_duration:
+    #             return ScheduleSunriseDuration(self.controller, self, MONDAY)
+    #
+    #     print('ERROR: ScheduleWeekdayMenu Unhandled menu type, returning to top menu')
+    #     return TopMenu(self.controller)
 
 
 class ScheduleWeekendMenu(Menu):
@@ -750,7 +761,7 @@ class ScheduleWeekendMenu(Menu):
         super().__init__(controller, MenuName.set_weekday, prev_menu)
         self.menu_idx = 0
         self.menus = [MenuName.set_start, MenuName.set_duration]
-        self.menu_line4 = 'X     <     >    Prev'
+        self.menu_line4 = DEFAULT_BUTTON_LABEL
 
     def reset(self):
         pass
@@ -785,7 +796,7 @@ class ScheduleDailyMenu(Menu):
         self.menu_idx = 0
         self.menus = [MenuName.monday, MenuName.tuesday, MenuName.wednesday, MenuName.thursday, MenuName.friday,
                       MenuName.saturday, MenuName.sunday]
-        self.menu_line4 = 'X     <     >    Prev'
+        self.menu_line4 = DEFAULT_BUTTON_LABEL
 
     def get_day_of_week(self) -> int:
         return self.menu_idx
