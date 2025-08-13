@@ -90,7 +90,7 @@ class SchedulingThread(threading.Thread):
 class DisplayThread(threading.Thread):
     def __init__(self, view, data, event):
         threading.Thread.__init__(self)
-        self.view = view
+        self._view = view
         self.data = data
         self.event = event
         self.line1 = ''
@@ -111,12 +111,12 @@ class DisplayThread(threading.Thread):
     def run(self):
         print("ENTER DisplayThread run()")
         # Display event loop - updates display while it is on
-        self.view.turn_display_on()
-        self.view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
-        self.view.update_display()
+        self._view.turn_display_on()
+        self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
+        self._view.update_display()
         self.at_end = False
         while True:
-            while self.view.is_display_on():
+            while self._view.is_display_on():
 
                 if self.event.is_set():
                     print('DisplayThread got event, exiting...')
@@ -131,63 +131,62 @@ class DisplayThread(threading.Thread):
                     try:
                         msg = self.msg_q.get(True, incremental_wait_time)
                         if msg == self.update:
-                            self.view.update_display()
+                            self._view.update_display()
                     except queue.Empty:
                         # Okay for no display changes
-                        self.at_end = self.view.scroll_line3()
+                        self.at_end = self._view.scroll_line3()
                         pass
                 else:
                     # Delay display update unless someone gives us a new update
                     try:
                         msg = self.msg_q.get(True, max_wait_time)
                         if msg == self.update:
-                            self.view.update_display()
+                            self._view.update_display()
                     except queue.Empty:
                         # Okay for no display changes
                         pass
+
+                self._view.check_display_idle_off()
 
             # Wait for something to wake up the display
             msg = self.msg_q.get(True)
             if msg == self.wake:
                 print('Waking Display...')
-                self.view.turn_display_on()
+                self._view.turn_display_on()
 
     # Send a message to unblock the display thread and start display updates again.
     def turn_on_display(self):
         self.msg_q.put(self.wake, False)
 
     def update_display(self):
-        self.view.scroll = self.scroll
-        self.view.set_line1(self.line1)
-        self.view.set_line2(self.line2)
-        self.view.set_line3(self.line3)
-        self.view.set_line4(self.line4)
+        self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
+        self._view.scroll = self.scroll
         self.msg_q.put(self.update, False)
 
     def update_line2_display(self, line2):
         self.line2 = line2
-        self.view.set_line2(line2)
+        self._view.set_line2(line2)
         self.msg_q.put(self.update, False)
 
     def update_line3_display(self, line3):
         self.line3 = line3
-        self.view.set_line3(line3)
+        self._view.set_line3(line3)
         self.msg_q.put(self.update, False)
 
     def update_line4_display(self, line4):
         self.line4 = line4
-        self.view.set_line4(line4)
+        self._view.set_line4(line4)
         self.msg_q.put(self.update, False)
 
     def update_status_line(self, status):
-        self.view.set_status_display_line(status)
+        self._view.set_status_display_line(status)
         self.msg_q.put(self.update, False)
 
     def enable_status(self):
-        self.view.enable_status_display()
+        self._view.enable_status_display()
 
     def disable_status(self):
-        self.view.disable_status_display()
+        self._view.disable_status_display()
 
 
 class SunriseController:
@@ -202,7 +201,8 @@ class SunriseController:
         self.pi = pigpio.pi()
         self.sunrise_scheduler = None
         self.time_increment_sched = None
-        self.view = view
+        # All view control should be through the Display thread
+        self._view = view
         self.data: SunriseData = data
         self.settings: SunriseSettings = data.settings
         self.dimmer: Dimmer = dimmer
@@ -224,7 +224,7 @@ class SunriseController:
 
     def startup(self):
         # Start display thread
-        self.disp_thread = DisplayThread(self.view, self.data, self.ctrl_event)
+        self.disp_thread = DisplayThread(self._view, self.data, self.ctrl_event)
         self.disp_thread.start()
         print(f'current_menu_name: {self.current_menu.get_menu_name().value}')
         self.current_menu.update_display()
@@ -418,7 +418,7 @@ class SunriseController:
         btn = button_map[gpio]
         print(f'Button {btn} pressed...')
         # If display is not on, any button press will turn on the display and go back to the top menu
-        if not self.view.is_display_on():
+        if not self._view.is_display_on():
             self.display_on()
             if self.current_menu.get_menu_name() != MenuName.top:
                 self.current_menu = TopMenu(self)
@@ -521,9 +521,6 @@ class TopMenu(Menu):
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
-
-        self.controller.view.turn_display_on()
-
         if btn == 1:
             self.controller.disp_thread.disable_status()
             return MainMenu(self.controller, self)
