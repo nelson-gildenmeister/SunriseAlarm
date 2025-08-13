@@ -804,7 +804,8 @@ class ScheduleDailyMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
-        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        # self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line3 = calendar.day_name[self.menu_idx]
         self.controller.disp_thread.ine4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
@@ -815,12 +816,12 @@ class ScheduleDailyMenu(Menu):
                 return DayOfWeek(self.controller, self, self.menu_idx)
             case 2:
                 # Left
-                self.menu_idx = (self.menu_idx - 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.menu_idx = (self.menu_idx - 1) % len(calendar.day_name)
+                self.controller.disp_thread.update_line3_display(calendar.day_name[self.menu_idx])
             case 3:
                 # Right
-                self.menu_idx = (self.menu_idx + 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.menu_idx = (self.menu_idx + 1) % len(calendar.day_name)
+                self.controller.disp_thread.update_line3_display(calendar.day_name[self.menu_idx])
             case 4:
                 # Prev
                 return self.previous_menu
@@ -829,7 +830,7 @@ class ScheduleDailyMenu(Menu):
 
 class DayOfWeek(Menu):
     def __init__(self, controller, prev_menu, day):
-        super().__init__(controller, MenuName.set_weekend, prev_menu)
+        super().__init__(controller, MenuName.set_daily, prev_menu)
         self.day = day
         self.menu_idx = 0
         self.menus = [MenuName.set_start, MenuName.set_duration]
