@@ -839,7 +839,7 @@ class DayOfWeek(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self, calendar.day_name[self.day])
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self, calendar.day_abbr[self.day])
         self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
         self.controller.disp_thread.ine4 = self.menu_line4
         self.controller.disp_thread.update_display()
