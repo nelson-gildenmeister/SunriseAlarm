@@ -359,7 +359,9 @@ class SunriseController:
         if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
             minutes_remain = int((self.sec_per_step * (
                         (self.dimmer.get_max_level() - self.dimmer.get_level()) / self.dimmer_step_size)) / 60)
-            if minutes_remain > 0:
+            if minutes_remain == 1:
+                self.disp_thread.status = 'Sunrise in progress, 1 minute remaining'
+            elif minutes_remain > 1:
                 self.disp_thread.status = f'Sunrise in progress, {minutes_remain} minutes remaining'
             else:
                 self.disp_thread.status = 'Sunrise in progress, less than 1 minute remaining'
@@ -370,11 +372,14 @@ class SunriseController:
             # Either we are done or were cancelled
             print("Sunrise complete")
             self.disp_thread.update_status_line('Sunrise complete')
+
             self.is_running = False
             self.cancel = False
             # TODO - Do we turn off lamp at end or leave on?  Perhaps this is a setting?
             self.dimmer.turn_off()
             # self.ctrl_event.set()
+            # Pause before queuing up next schedule
+            time.sleep(3)
             # Queue up the next sunrise event
             self.handle_schedule_change()
 
