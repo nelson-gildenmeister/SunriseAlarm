@@ -949,7 +949,6 @@ class ScheduleSunriseStart(Menu):
                 print('Saving new Weekday start time')
                 for day in range(MONDAY, FRIDAY + 1):
                     self.controller.data.settings.start_time[day] = f'{mil_hour:02d}:{self.minute:02d}'
-            # self.controller.data.settings.start_time[MONDAY] = f'{mil_hour:02d}:{self.minute:02d}'
             case MenuName.set_weekend:
                 print('Saving new Weekend start time')
                 for day in range(SATURDAY, SUNDAY + 1):
@@ -1001,6 +1000,12 @@ class ScheduleSunriseDuration(Menu):
     def __init__(self, controller, prev_menu, day_of_week: int):
         super().__init__(controller, MenuName.set_duration, prev_menu)
         self.day_of_week: int = day_of_week
+        self.is_pre_select: bool = True
+        self.pre_select_idx = 1
+        self.pre_select_menu = [30, 60, 90]
+        self.duration_minutes = 60
+        self.menu_line4 = 'Select   -   +   Save'
+        self.load_previous_duration()
 
     def reset(self):
         pass
@@ -1011,20 +1016,61 @@ class ScheduleSunriseDuration(Menu):
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
-                # Select
-                pass
-            case 2:
-                # Left
-                pass
-            case 3:
-                # Right
-                pass
+                # Pre-select
+                if self.is_pre_select:
+                    self.pre_select_idx = self.pre_select_idx % 3
+
+                self.is_pre_select = True
+                self.duration_minutes = self.pre_select_menu[self.pre_select_idx]
+                self.update_display()
+            case 2 | 3:
+                # Down/Up
+                self.is_pre_select = False
+                increment = 1
+                if btn == 2:
+                    increment = -1
+                self.duration_minutes = self.duration_minutes
+                if self.duration_minutes < 0:
+                    self.duration_minutes = 0
+                if self.duration_minutes > 90:
+                    self.duration_minutes = 90
+                self.update_display()
             case 4:
-                # Prev
-                return self.previous_menu
+                # Save
+                self.save_duration()
+                # Go back 2 menus to get to the schedule menu
+                return self.previous_menu.previous_menu
 
         return self
 
+    def load_previous_duration(self):
+        """
+        Loads the previous duration setting and updates the display with its value
+        :return: None
+        """
+        print(f'Saved duration: {self.controller.settings.duration_minutes[self.day_of_week]} minutes')
+        self.duration_minutes = self.controller.settings.duration_minutes[self.day_of_week]
+        self.update_display()
+
+    def save_duration(self):
+        parent_menu = self.previous_menu.get_menu_name()
+        match parent_menu:
+            case MenuName.set_weekday:
+                print('Saving new Weekday start time')
+                for day in range(MONDAY, FRIDAY + 1):
+                    self.controller.data.settings.duration_minutes[day] = self.duration_minutes
+            case MenuName.set_weekend:
+                print('Saving new Weekend start time')
+                for day in range(SATURDAY, SUNDAY + 1):
+                    self.controller.data.settings.duration_minutes[day] = self.duration_minutes
+            case MenuName.day_of_week:
+                print(f'Saving new Daily start time for {calendar.day_name[self.day_of_week]}')
+                self.controller.data.settings.duration_minutes[self.day_of_week] = self.duration_minutes
+            case _:
+                print(f'ERROR: ScheduleSunriseDuration:save_duration() - invalid parent menu: {parent_menu}')
+
+        self.controller.data.save_settings()
+        self.controller.handle_schedule_change()
 
 class EnableMenu(Menu):
     def __init__(self, controller, prev_menu):
