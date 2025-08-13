@@ -472,7 +472,7 @@ class Menu(ABC):
             case MenuName.set_duration:
                 return ScheduleSunriseDuration(self.controller, self, MONDAY)
 
-        print(f'ERROR: {self.__class__.__name__} Unhandled menu type, returning to top menu')
+        print(f'ERROR: {self.__class__.__name__} Unhandled menu type={menu_type}, returning to top menu')
         return TopMenu(self.controller)
 
     @abstractmethod
@@ -488,12 +488,14 @@ class Menu(ABC):
         pass
 
 
-def get_hierarchical_menu_string(current_menu: Menu) -> str | None:
+def get_hierarchical_menu_string(current_menu: Menu, current_menu_name: str = None) -> str | None:
     """
-    Returns back a string representing the current menu and its hierarchy.
+    Returns back a string representing the current menu and its hierarchy. If current_menu_name is provided, it
+    will be used instead of pulling the name from the current_menu subclass.
     E.g., Schedule->Weekday
-    :param current_menu:
-    :return: string with hierarchy up to and including the current menu
+    :param current_menu: The current Menu subclass.
+    :param current_menu_name: If provided, use this name for the current menu
+    :return: string with hierarchy up to and including the current menu.
     """
 
     # Don't put in anything for the main menu
@@ -501,7 +503,11 @@ def get_hierarchical_menu_string(current_menu: Menu) -> str | None:
         return None
 
     # Recurse back to root item to get all the previous menus except Top and Main
-    menu_string = current_menu.get_menu_name().value
+    # If a current_menu_name is provided, use it instead of the name from the menu class
+    if current_menu_name:
+        menu_string = current_menu_name
+    else:
+        menu_string = current_menu.get_menu_name().value
     menu = current_menu.previous_menu
     while menu and (menu.menu_name != MenuName.top) and (menu.menu_name != MenuName.main):
         menu_string = menu.get_menu_name().value + '->' + menu_string
@@ -803,6 +809,42 @@ class ScheduleDailyMenu(Menu):
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
+        match btn:
+            case 1:
+                # Select button pressed, go to new menu
+                return DayOfWeek(self.controller, self, self.menu_idx)
+            case 2:
+                # Left
+                self.menu_idx = (self.menu_idx - 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+            case 3:
+                # Right
+                self.menu_idx = (self.menu_idx + 1) % len(self.menus)
+                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+            case 4:
+                # Prev
+                return self.previous_menu
+
+        return self
+
+class DayOfWeek(Menu):
+    def __init__(self, controller, prev_menu, day):
+        super().__init__(controller, MenuName.set_weekend, prev_menu)
+        self.day = day
+        self.menu_idx = 0
+        self.menus = [MenuName.set_start, MenuName.set_duration]
+        self.menu_line4 = DEFAULT_BUTTON_LABEL
+
+    def reset(self):
+        pass
+
+    def update_display(self):
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self, calendar.day_name[self.day])
+        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.ine4 = self.menu_line4
+        self.controller.disp_thread.update_display()
+
+    def button_handler(self, btn: int) -> Self:
         match btn:
             case 1:
                 # Select button pressed, go to new menu
