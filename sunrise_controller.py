@@ -967,7 +967,7 @@ class ScheduleSunriseStart(Menu):
             case 2 | 3:
                 # Up/Down
                 increment = 1
-                if btn == 3:
+                if btn == 2:
                     increment = -1
 
                 match self.clock_field_idx:
