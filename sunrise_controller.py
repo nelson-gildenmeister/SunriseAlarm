@@ -990,8 +990,7 @@ class ScheduleSunriseStart(Menu):
             case 4:
                 # Save
                 self.save_schedule()
-                # Go back 2 menus to get to the schedule menu
-                return self.previous_menu.previous_menu
+                return self.previous_menu
 
         return self
 
@@ -1011,7 +1010,9 @@ class ScheduleSunriseDuration(Menu):
         pass
 
     def update_display(self):
-        pass
+        self.controller.disp_thread.line3 = str(self.duration_minutes)
+        self.controller.disp_thread.line4 = self.menu_line4
+        self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
@@ -1038,8 +1039,7 @@ class ScheduleSunriseDuration(Menu):
             case 4:
                 # Save
                 self.save_duration()
-                # Go back 2 menus to get to the schedule menu
-                return self.previous_menu.previous_menu
+                return self.previous_menu
 
         return self
 

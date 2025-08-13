@@ -82,7 +82,7 @@ class Dimmer:
             return False
 
         self.duty_cycle = new_duty_cycle
-        print(f'Changing duty cycle to {self.duty_cycle}')
+        #print(f'Changing duty cycle to {self.duty_cycle}')
         self.pi.set_PWM_dutycycle(self.pwm_gpio, self.duty_cycle)
         return True
 
