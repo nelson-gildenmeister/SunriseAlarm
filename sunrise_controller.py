@@ -100,6 +100,7 @@ class DisplayThread(threading.Thread):
         self.line2 = ''
         self.line3 = ''
         self.line4 = ''
+        self.status = ''
         self.scroll = True
         self.at_end = False
         self.msg_q = queue.Queue(DISPLAY_MSG_Q_SIZE)
@@ -149,6 +150,9 @@ class DisplayThread(threading.Thread):
                         # Okay for no display changes
                         pass
 
+                # If a non-urgent display update was make, pick it up before starting next scroll
+                self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
+                self._view.set_status_display_line(self.status)
                 self._view.check_display_idle_off()
 
             # Wait for something to wake up the display
@@ -296,7 +300,7 @@ class SunriseController:
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[today])
                 t = dt.datetime.strptime(self.settings.start_time[today], "%H:%M")
                 t2 = t.strftime("%I:%M %p")
-                self.disp_thread.update_status_line(f'Next sunrise: today at {t2}')
+                self.disp_thread.status = f'Next sunrise: today at {t2}'
                 return
 
         # No sunrise scheduled for today so look for the next scheduled sunrise and set up an event for it.
@@ -313,14 +317,13 @@ class SunriseController:
                 print(
                     f'Scheduling future start: {dt_start}, duration: {self.settings.duration_minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[day_index])
-                self.disp_thread.update_status_line(
-                    f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {dt_start.hour:02d}:{dt_start.minute:02d}')
+                self.disp_thread.status = f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {dt_start.hour:02d}:{dt_start.minute:02d}'
                 break
             day_index = (day_index + 1) % (SUNDAY + 1)
             day_increment = day_increment + 1
 
         if not have_scheduled_start:
-            self.disp_thread.update_status_line('Idle, no sunrise scheduled')
+            self.disp_thread.status = 'Idle, no sunrise scheduled'
 
     def start_schedule(self, duration_minutes: int, starting_percentage: int = 0):
         """
@@ -354,11 +357,13 @@ class SunriseController:
 
     def check_schedule(self):
         if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
-            minutes_remain = int ((self.sec_per_step * ((self.dimmer.get_max_level() - self.dimmer.get_level())/self.dimmer_step_size)) / 60)
+            minutes_remain = int((self.sec_per_step * (
+                        (self.dimmer.get_max_level() - self.dimmer.get_level()) / self.dimmer_step_size)) / 60)
             if minutes_remain > 0:
-                self.disp_thread.update_status_line(f'Sunrise in progress, {minutes_remain} minutes remaining')
+                self.disp_thread.status = f'Sunrise in progress, {minutes_remain} minutes remaining'
             else:
-                self.disp_thread.update_status_line(f'Sunrise in progress, less than 1 minute remaining')
+                self.disp_thread.status = 'Sunrise in progress, less than 1 minute remaining'
+
             self.time_increment_sched = Timer(self.sec_per_step, self.check_schedule)
             self.time_increment_sched.start()
         else:
@@ -369,7 +374,7 @@ class SunriseController:
             self.cancel = False
             # TODO - Do we turn off lamp at end or leave on?  Perhaps this is a setting?
             self.dimmer.turn_off()
-            #self.ctrl_event.set()
+            # self.ctrl_event.set()
             # Queue up the next sunrise event
             self.handle_schedule_change()
 
@@ -379,7 +384,7 @@ class SunriseController:
             try:
                 if self.sunrise_event:
                     self.sunrise_scheduler.cancel(self.sunrise_event)
-                    #scheduler.cancel(self.sunrise_event)
+                    # scheduler.cancel(self.sunrise_event)
                     self.sunrise_event = None
             except ValueError:
                 # no event in the queue to cancel
@@ -469,7 +474,7 @@ class Menu(ABC):
     def get_menu_name(self) -> MenuName:
         return self.menu_name
 
-    def start_duration_menu_factory(self, menu_type, day = MONDAY) -> Self:
+    def start_duration_menu_factory(self, menu_type, day=MONDAY) -> Self:
         match menu_type:
             case MenuName.set_start:
                 return ScheduleSunriseStart(self.controller, self, day)
@@ -835,6 +840,7 @@ class ScheduleDailyMenu(Menu):
 
         return self
 
+
 class DayOfWeek(Menu):
     def __init__(self, controller, prev_menu, day):
         super().__init__(controller, MenuName.day_of_week, prev_menu)
@@ -938,7 +944,7 @@ class ScheduleSunriseStart(Menu):
                 print('Saving new Weekday start time')
                 for day in range(MONDAY, FRIDAY + 1):
                     self.controller.data.settings.start_time[day] = f'{mil_hour:02d}:{self.minute:02d}'
-               # self.controller.data.settings.start_time[MONDAY] = f'{mil_hour:02d}:{self.minute:02d}'
+            # self.controller.data.settings.start_time[MONDAY] = f'{mil_hour:02d}:{self.minute:02d}'
             case MenuName.set_weekend:
                 print('Saving new Weekend start time')
                 for day in range(SATURDAY, SUNDAY + 1):
