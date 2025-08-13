@@ -937,11 +937,14 @@ class ScheduleSunriseStart(Menu):
                     self.controller.data.settings.start_time[day] = f'{mil_hour:02d}:{self.minute:02d}'
                # self.controller.data.settings.start_time[MONDAY] = f'{mil_hour:02d}:{self.minute:02d}'
             case MenuName.set_weekend:
+                print('Saving new Weekend start time')
                 for day in range(SATURDAY, SUNDAY + 1):
                     self.controller.data.settings.start_time[day] = f'{mil_hour:02d}:{self.minute:02d}'
-            case MenuName.set_daily:
-                print(f'ScheduleSunriseStart: set_daily = {self.day_of_week}')
+            case MenuName.day_of_week:
+                print(f'Saving new Daily start time for {calendar.day_name[self.day_of_week]}')
                 self.controller.data.settings.start_time[self.day_of_week] = f'{mil_hour:02d}:{self.minute:02d}'
+            case _:
+                print(f'ERROR: ScheduleSunriseStart:save_schedule() - invalid parent menu: {parent_menu}')
 
         self.controller.data.save_settings()
         self.controller.handle_schedule_change()
