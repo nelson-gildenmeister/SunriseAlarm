@@ -36,6 +36,7 @@ class MenuName(Enum):
     set_weekday = 'Weekday'
     set_weekend = 'Weekend'
     set_daily = 'Daily'
+    day_of_week = "Day of Week"
     set_start = 'Start Time'
     set_duration = 'Duration'
     enable = 'Enable Schedule'
@@ -805,6 +806,7 @@ class ScheduleDailyMenu(Menu):
         pass
 
     def update_display(self):
+        print('ScheduleDailyMenu:update_display()')
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
         # self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
         self.controller.disp_thread.line3 = calendar.day_name[self.menu_idx]
@@ -832,7 +834,7 @@ class ScheduleDailyMenu(Menu):
 
 class DayOfWeek(Menu):
     def __init__(self, controller, prev_menu, day):
-        super().__init__(controller, MenuName.set_daily, prev_menu)
+        super().__init__(controller, MenuName.day_of_week, prev_menu)
         self.day = day
         self.menu_idx = 0
         self.menus = [MenuName.set_start, MenuName.set_duration]
