@@ -355,6 +355,11 @@ class SunriseController:
         if not self._view.is_display_on():
             self.current_menu = TopMenu(self)
             self.display_on()
+        else:
+            # Display is on. If at top menu, update it so current On/Off button label correct.
+            if self.current_menu.get_menu_name() == MenuName.top:
+                self.current_menu.update_display()
+
         self.check_schedule()
 
     def check_schedule(self):
@@ -538,13 +543,11 @@ class TopMenu(Menu):
     def reset(self):
         self.menu_line4 = ''
         print(f'TopMenu: dimmer level = {self.controller.dimmer.get_level()}')
-        if self.controller.dimmer.get_level():
-            self.menu_line4 = 'Menu  Dim-  Dim+  Off'
-        else:
-            self.menu_line4 = 'Menu  Dim-  Dim+  On'
+        self.set_menu_line4()
 
     def update_display(self):
         print('TopMenu:update_display()')
+        self.set_menu_line4()
         self.controller.disp_thread.line2 = None
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.enable_status()
@@ -590,6 +593,11 @@ class TopMenu(Menu):
 
         return self
 
+    def set_menu_line4(self):
+        if self.controller.dimmer.get_level():
+            self.menu_line4 = 'Menu  Dim-  Dim+  Off'
+        else:
+            self.menu_line4 = 'Menu  Dim-  Dim+  On'
 
 class MainSubMenus(Enum):
     program = 0
