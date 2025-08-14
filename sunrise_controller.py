@@ -400,6 +400,7 @@ class SunriseController:
             pass
 
         if self.is_running:
+            print('Cancelling running schedule')
             self.cancel = True
             # No need to clear out the event we track since it is cleared when start running
             self.dimmer.set_level(self.dimmer.get_min_level())
@@ -536,6 +537,7 @@ class TopMenu(Menu):
 
     def reset(self):
         self.menu_line4 = ''
+        print(f'TopMenu: dimmer level = {self.controller.dimmer.get_level()}')
         if self.controller.dimmer.get_level():
             self.menu_line4 = 'Menu  Dim-  Dim+  Off'
         else:
@@ -576,10 +578,10 @@ class TopMenu(Menu):
             case 4:
                 line4 = 'Menu  Dim-  Dim+  On'
                 if self.controller.dimmer.get_level():
-                    print('Lamp OFF')
+                    print('Turning Lamp OFF')
                     self.controller.dimmer.turn_off()
                 else:
-                    print('Lamp ON')
+                    print('Turning Lamp ON')
                     line4 = 'Menu  Dim-  Dim+  Off'
                     self.controller.dimmer.turn_on()
                 self.controller.disp_thread.update_line4_display(line4)
@@ -996,9 +998,9 @@ class ScheduleSunriseDuration(Menu):
     def __init__(self, controller, prev_menu, day_of_week: int):
         super().__init__(controller, MenuName.set_duration, prev_menu)
         self.day_of_week: int = day_of_week
-        self.is_pre_select: bool = True
+        self.is_pre_select: bool = False
         self.pre_select_idx = 1
-        self.pre_select_menu = [30, 60, 90]
+        self.pre_select_menu = [15, 30, 60, 90]
         self.duration_minutes = 60
         self.menu_line4 = 'Select   -   +   Save'
         self.load_previous_duration()
@@ -1016,7 +1018,9 @@ class ScheduleSunriseDuration(Menu):
             case 1:
                 # Pre-select
                 if self.is_pre_select:
-                    self.pre_select_idx = (self.pre_select_idx + 1) % 3
+                    self.pre_select_idx = (self.pre_select_idx + 1) % len(self.pre_select_menu)
+                else:
+                    self.pre_select_idx = 0
 
                 self.is_pre_select = True
                 self.duration_minutes = self.pre_select_menu[self.pre_select_idx]
