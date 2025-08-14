@@ -1090,6 +1090,11 @@ class ScheduleSunriseDuration(Menu):
 class EnableMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.enable, prev_menu)
+        self.weekend_enable_str_idx = 1
+        self.weekday_enable_str_idx = 13
+        self.daily_enable_str_idx = 25
+        self.ec = ['-', '-', '-']
+        self.el = ['Enable', 'Enable', 'Enable']
         self.menu_line3 = '[-]Weekday  [-]Weekend  [-]Daily'
         self.menu_line4 = 'Enable    Enable    Enable    Prev'
 
@@ -1097,21 +1102,48 @@ class EnableMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.line3 = self.menu_line3
-        self.controller.disp_thread.line4 = self.menu_line4
+        self.controller.disp_thread.line3 = f'[{self.ec[0]}]Weekday  [{self.ec[1]}]Weekend  [{self.ec[2]}]Daily'
+        self.controller.disp_thread.line4 = f'{self.el[0]}   {self.el[1]}   {self.el[2]}   Prev'
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
                 # Enable/Disable Weekday
-                pass
+                if self.ec[0] == '-':
+                    self.ec[0] = 'X'
+                    self.el[0] = 'Disable'
+                    if self.ec[2] == 'X':
+                        self.ec[2] = '-'
+                        self.el[2] = 'Enable '
+                else:
+                    self.ec[0] = '-'
+                self.update_display()
             case 2:
                 # Enable/Disable Weekend
-                pass
+                if self.ec[1] == '-':
+                    self.ec[1] = 'X'
+                    self.el[1] = 'Disable '
+                    if self.ec[2] == 'X':
+                        self.ec[2] = '-'
+                        self.el[2] = 'Enable '
+                else:
+                    self.ec[1] = '-'
+                self.update_display()
             case 3:
                 # Enable/Disable Daily
-                pass
+                if self.ec[2] == '-':
+                    self.ec[2] = 'X'
+                    self.el[2] = 'Disable '
+                    if self.ec[0] == 'X':
+                        self.ec[0] = '-'
+                        self.el[0] = 'Enable '
+                    if self.ec[1] == 'X':
+                        self.ec[1] = '-'
+                        self.el[1] = 'Enable '
+                else:
+                    self.ec[3] = '-'
+                self.update_display()
             case 4:
                 # Prev
                 return self.previous_menu
