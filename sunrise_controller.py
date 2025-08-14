@@ -359,6 +359,8 @@ class SunriseController:
 
     def check_schedule(self):
         if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
+            # TODO - Need to make sure top menu On/Off label is correct but should only have to do once after
+            # we start dimming up.  How to implement though?  Hate to have a separate flag to track but maybe?
             if self.current_menu.get_menu_name() == MenuName.top:
                 self.current_menu.update_display()
             minutes_remain = int((self.sec_per_step * (
