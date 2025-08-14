@@ -153,6 +153,8 @@ class DisplayThread(threading.Thread):
                 # If a non-urgent display update was make, pick it up before starting next scroll
                 self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
                 self._view.set_status_display_line(self.status)
+                # Do a display update to ensure any changes, including clock time are shown
+                self._view.update_display()
                 self._view.check_display_idle_off()
 
             # Wait for something to wake up the display
