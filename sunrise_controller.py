@@ -19,7 +19,7 @@ from sunrise_view import OledDisplay
 
 BRIGHTNESS_CHANGE_PERCENT: int = 5
 DISPLAY_MSG_Q_SIZE: int = 12
-SWITCH_DEBOUNCE_MICROSEC: int = 400
+SWITCH_DEBOUNCE_MS: int = 500
 DEFAULT_BUTTON_LABEL = ' X    <    >   Prev'
 TIME_SET_BUTTON_LABEL = 'Select   -   +   Save'
 
@@ -226,7 +226,7 @@ class SunriseController:
         for gpio in gpio_list:
             pi.set_pull_up_down(gpio, pigpio.PUD_UP)
             # Debounce the switches
-            pi.set_glitch_filter(gpio, SWITCH_DEBOUNCE_MICROSEC)
+            pi.set_glitch_filter(gpio, SWITCH_DEBOUNCE_MS)
             pi.callback(gpio, pigpio.FALLING_EDGE, self.button_press)
 
     def startup(self):
@@ -351,19 +351,16 @@ class SunriseController:
         if starting_percentage > 0:
             start_level = int(self.dimmer.get_max_level() * (starting_percentage * 0.01))
         self.dimmer.set_level(start_level)
-        # If display is off, set to Top menu and turn on.
+        # If display is off, turn on.
         if not self._view.is_display_on():
-            self.current_menu = TopMenu(self)
             self.display_on()
-        else:
-            # Display is on. If at top menu, update it so current On/Off button label correct.
-            if self.current_menu.get_menu_name() == MenuName.top:
-                self.current_menu.update_display()
 
         self.check_schedule()
 
     def check_schedule(self):
         if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
+            if self.current_menu.get_menu_name() == MenuName.top:
+                self.current_menu.update_display()
             minutes_remain = int((self.sec_per_step * (
                         (self.dimmer.get_max_level() - self.dimmer.get_level()) / self.dimmer_step_size)) / 60)
             if minutes_remain == 1:
@@ -382,6 +379,8 @@ class SunriseController:
             self.cancel = False
             # TODO - Do we turn off lamp at end or leave on?  Perhaps this is a setting?
             self.dimmer.turn_off()
+            if self.current_menu.get_menu_name() == MenuName.top:
+                self.current_menu.update_display()
             # Queue up the next sunrise event
             self.handle_schedule_change()
 
@@ -429,6 +428,7 @@ class SunriseController:
         pass
 
     def display_on(self):
+        self.current_menu = TopMenu(self)
         self.disp_thread.turn_on_display()
 
     def button_press(self, gpio, level, tick):
