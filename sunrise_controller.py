@@ -1090,26 +1090,27 @@ class ScheduleSunriseDuration(Menu):
 class EnableMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.enable, prev_menu)
-        self.menu_line4 = 'Enable  Enable  Enable  Prev'
+        self.menu_line3 = '[-]Weekday  [-]Weekend  [-]Daily'
+        self.menu_line4 = 'Enable    Enable    Enable    Prev'
 
     def reset(self):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.line3 = 'Weekday  Weekend  Daily  Prev'
+        self.controller.disp_thread.line3 = self.menu_line3
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
-                # Select
+                # Enable/Disable Weekday
                 pass
             case 2:
-                # Left
+                # Enable/Disable Weekend
                 pass
             case 3:
-                # Right
+                # Enable/Disable Daily
                 pass
             case 4:
                 # Prev
