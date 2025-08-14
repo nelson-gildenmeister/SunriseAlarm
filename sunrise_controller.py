@@ -351,8 +351,10 @@ class SunriseController:
         if starting_percentage > 0:
             start_level = int(self.dimmer.get_max_level() * (starting_percentage * 0.01))
         self.dimmer.set_level(start_level)
-        # Turn on the display
-        self.display_on()
+        # If display is off, set to Top menu and turn on.
+        if not self._view.is_display_on():
+            self.current_menu = TopMenu(self)
+            self.display_on()
         self.check_schedule()
 
     def check_schedule(self):
@@ -371,9 +373,6 @@ class SunriseController:
         else:
             # Either we are done or were cancelled
             print("Sunrise complete")
-            # TODO - this status gets wiped immediatly - either remove or figure out how to keep up for a bit
-            self.disp_thread.update_status_line('Sunrise complete')
-
             self.is_running = False
             self.cancel = False
             # TODO - Do we turn off lamp at end or leave on?  Perhaps this is a setting?
@@ -1017,7 +1016,7 @@ class ScheduleSunriseDuration(Menu):
             case 1:
                 # Pre-select
                 if self.is_pre_select:
-                    self.pre_select_idx = self.pre_select_idx % 3
+                    self.pre_select_idx = (self.pre_select_idx + 1) % 3
 
                 self.is_pre_select = True
                 self.duration_minutes = self.pre_select_menu[self.pre_select_idx]
@@ -1028,7 +1027,9 @@ class ScheduleSunriseDuration(Menu):
                 increment = 1
                 if btn == 2:
                     increment = -1
-                self.duration_minutes = self.duration_minutes
+
+                self.duration_minutes = self.duration_minutes + increment
+
                 if self.duration_minutes < 0:
                     self.duration_minutes = 0
                 if self.duration_minutes > 90:
