@@ -139,7 +139,6 @@ class DisplayThread(threading.Thread):
                     except queue.Empty:
                         # Okay for no display changes
                         self.at_end = self._view.scroll_line3()
-                        print(f'Queue Empty, at_end = {self.at_end}')
                         pass
                 else:
                     # Delay display update unless someone gives us a new update
