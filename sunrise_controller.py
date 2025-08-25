@@ -139,6 +139,7 @@ class DisplayThread(threading.Thread):
                     except queue.Empty:
                         # Okay for no display changes
                         self.at_end = self._view.scroll_line3()
+                        print(f'Queue Empty, at_end = {self.at_end}')
                         pass
                 else:
                     # Delay display update unless someone gives us a new update
@@ -150,7 +151,7 @@ class DisplayThread(threading.Thread):
                         # Okay for no display changes
                         pass
 
-                # If a non-urgent display update was make, pick it up before starting next scroll
+                # If a non-urgent display update was made, pick it up before starting next scroll
                 self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
                 self._view.set_status_display_line(self.status)
                 # Do a display update to ensure any changes, including clock time are shown
