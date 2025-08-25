@@ -171,8 +171,6 @@ class OledDisplay:
         if not self.is_display_on():
             return at_end
 
-        print(f'third_line={third_line}')
-        print(f'scroll: (self.scroll, length={len(third_line)}, max_len={self.__max_line_len__}')
         if not self.scroll or len(third_line) < self.__max_line_len__:
             return at_end
 
@@ -203,6 +201,7 @@ class OledDisplay:
 
         # Wrap back around to zero index
         idx = self.scroll_idx % len(third_line)
+        print(f'idx={idx}')
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
         self.draw.text((0, top + LINE_1_SPACE), first_line, font=self.font, fill=255)
         self.draw.text((0, top + LINE_2_SPACE), second_line, font=self.font, fill=255)
