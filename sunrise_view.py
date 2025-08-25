@@ -116,8 +116,6 @@ class OledDisplay:
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
         # Set display lines using defaults for empty lines
-        print('Setting scroll_idx to 0')
-        self.scroll_idx = 0
         if not self.line1:
             first_line = 'Sunrise Alarm'
         else:
