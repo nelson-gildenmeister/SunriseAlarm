@@ -200,6 +200,7 @@ class OledDisplay:
         # Wrap back around to zero index
         print(f'scroll_idx={self.scroll_idx}')
         idx = self.scroll_idx % len(third_line)
+        print(f'idx={idx}: {third_line[idx:]}')
         self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
         self.draw.text((0, top + LINE_1_SPACE), first_line, font=self.font, fill=255)
         self.draw.text((0, top + LINE_2_SPACE), second_line, font=self.font, fill=255)
