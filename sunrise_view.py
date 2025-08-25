@@ -171,6 +171,8 @@ class OledDisplay:
         if not self.is_display_on():
             return at_end
 
+        print(f'third_line={third_line}')
+        print(f'scroll: (self.scroll', length={len(third_line)}, max_len={self.__max_line_len__})
         if not self.scroll or len(third_line) < self.__max_line_len__:
             return at_end
 
