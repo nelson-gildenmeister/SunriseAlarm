@@ -1095,15 +1095,15 @@ class EnableMenu(Menu):
         self.daily_enable_str_idx = 25
         self.ec = ['-', '-', '-']
         self.el = ['Enable', 'Enable', 'Enable']
-        self.menu_line3 = '[-]Weekday  [-]Weekend  [-]Daily'
+        self.menu_line3 = '[-]Wkdy  [-]Wknd  [-]Day'
         self.menu_line4 = 'Enable    Enable    Enable    Prev'
 
     def reset(self):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.line3 = f'[{self.ec[0]}]Wkdy [{self.ec[1]}]Wknd [{self.ec[2]}]Daily'
-        self.controller.disp_thread.line4 = f'{self.el[0]}   {self.el[1]}   {self.el[2]}   Prev'
+        self.controller.disp_thread.line3 = f'[{self.ec[0]}]Wkdy [{self.ec[1]}]Wknd [{self.ec[2]}]Day'
+        self.controller.disp_thread.line4 = f'{self.el[0]} {self.el[1]} {self.el[2]} Prev'
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
