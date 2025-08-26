@@ -32,7 +32,6 @@ class SunriseData:
         self.consistency_checks()
 
     def consistency_checks(self):
-        print(f'weekday={self.settings.weekday_sched_enabled}, weekend={self.settings.weekend_sched_enabled}, daily={self.settings.daily_sched_enabled}')
         need_to_save_settings = False
         # Daily schedule can't be enabled with any other schedule type:
         if self.settings.daily_sched_enabled:
