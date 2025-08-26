@@ -365,11 +365,6 @@ class SunriseController:
         # If display is off, go to the top menu and turn on the display.
         if not self._view.is_display_on():
             self.display_on()
-            print(f'Display is off, current menu: {self.current_menu.get_menu_name()}')
-            if self.current_menu.get_menu_name() != MenuName.top:
-                print('    setting to Top Menu...')
-                self.current_menu = TopMenu(self)
-                self.current_menu.update_display()
         elif self.current_menu.get_menu_name() == MenuName.top:
             # update top menu on/off labels as needed
             self.current_menu.update_display()
@@ -447,6 +442,7 @@ class SunriseController:
     def display_on(self):
         self.current_menu = TopMenu(self)
         self.disp_thread.turn_on_display()
+        self.current_menu.update_display()
 
     def button_press(self, gpio, level, tick):
         global button_map
@@ -562,11 +558,11 @@ class TopMenu(Menu):
 
     def reset(self):
         self.menu_line4 = ''
-        self.set_menu_line4()
+        self.update_menu_line4()
 
     def update_display(self):
         print('TopMenu:update_display()')
-        self.set_menu_line4()
+        self.update_menu_line4()
         self.controller.disp_thread.line2 = None
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.enable_status()
@@ -612,7 +608,7 @@ class TopMenu(Menu):
 
         return self
 
-    def set_menu_line4(self):
+    def update_menu_line4(self):
         if self.controller.dimmer.get_level():
             self.menu_line4 = 'Menu  Dim-  Dim+  Off'
         else:
