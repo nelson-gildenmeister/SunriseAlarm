@@ -962,7 +962,7 @@ class ScheduleSunriseStart(Menu):
     def save_schedule(self):
         mil_hour = self.hour
         if self.is_pm:
-            mil_hour = (self.hour + 12) % 24
+            mil_hour = (self.hour + 12) % 23
         parent_menu = self.previous_menu.get_menu_name()
         match parent_menu:
             case MenuName.set_weekday:
