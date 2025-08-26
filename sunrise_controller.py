@@ -1104,6 +1104,7 @@ class EnableMenu(Menu):
         #self.menu_line3 = 'Weekday  Weekend  Day'
         self.menu_line3 = '[Run] [Off] [Off]'
         self.menu_line4 = 'Wkdy  Wknd  Day  Save'
+        self.load_previous_enable()
 
 
 
@@ -1171,6 +1172,11 @@ class EnableMenu(Menu):
                 return self.previous_menu
 
         return self
+
+    def load_previous_enable(self):
+        self.ec[0] = self.controller.data.settings.weekday_sched_enabled
+        self.ec[1] = self.controller.data.settings.weekend_sched_enabled
+        self.ec[2] = self.controller.data.settings.daily_sched_enabled
 
     def save_enable(self):
         self.controller.data.settings.weekday_sched_enabled = self.ec[0]
