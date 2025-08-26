@@ -946,7 +946,6 @@ class ScheduleSunriseStart(Menu):
         else:
             self.hour = start_time.hour
         self.minute = start_time.minute
-        self.update_display()
 
     def reset(self):
         pass
@@ -1070,9 +1069,7 @@ class ScheduleSunriseDuration(Menu):
         Loads the previous duration setting and updates the display with its value
         :return: None
         """
-        print(f'Saved duration: {self.controller.settings.duration_minutes[self.day_of_week]} minutes')
         self.duration_minutes = self.controller.settings.duration_minutes[self.day_of_week]
-        self.update_display()
 
     def save_duration(self):
         parent_menu = self.previous_menu.get_menu_name()
@@ -1108,15 +1105,10 @@ class EnableMenu(Menu):
         self.menu_line4 = 'Wkdy  Wknd  Day  Save'
         self.load_previous_enable()
 
-
-
     def reset(self):
         pass
 
     def update_display(self):
-        #self.controller.disp_thread.line3 = f'[{self.ec[0]}]Wkdy [{self.ec[1]}]Wknd [{self.ec[2]}]Dly'
-        # self.controller.disp_thread.line3 = self.menu_line3
-        # self.controller.disp_thread.line4 = f'{self.el[0]}  {self.el[1]}  {self.el[2]}  Prev'
         self.controller.disp_thread.line3 = f'{self.el[0]}   {self.el[1]}   {self.el[2]}'
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
@@ -1176,6 +1168,9 @@ class EnableMenu(Menu):
         return self
 
     def load_previous_enable(self):
+        print(
+            f'weekday={self.controller.settings.weekday_sched_enabled}, weekend={self.controller.settings.weekend_sched_enabled}, daily={self.controller.settings.daily_sched_enabled}')
+
         self.ec[0] = self.controller.data.settings.weekday_sched_enabled
         self.ec[1] = self.controller.data.settings.weekend_sched_enabled
         self.ec[2] = self.controller.data.settings.daily_sched_enabled
