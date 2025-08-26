@@ -1101,7 +1101,7 @@ class EnableMenu(Menu):
         self.daily_enable_str_idx = 25
         self.ec = ['-', '-', '-']
         self.el = ['Off', 'Off', 'Off']
-        self.menu_line3 = 'Weekday  Weekend  Daily'
+        self.menu_line3 = 'Weekday  Weekend  Day'
         self.menu_line4 = 'Off  Off  Off  Prev'
 
     def reset(self):
