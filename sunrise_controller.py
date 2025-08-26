@@ -357,11 +357,12 @@ class SunriseController:
             self.sec_per_step = 1
             self.dimmer_step_size = int(self.dimmer.get_num_steps() / (duration_minutes * 60))
 
-        start_level = self.dimmer.get_min_level()
+        start_level = self.dimmer.get_min_level() + 1
         if starting_percentage > 0:
             start_level = int(self.dimmer.get_max_level() * (starting_percentage * 0.01))
         self.dimmer.set_level(start_level)
 
+        print(f'start_schedule() - start_level={start_level}, level={self.dimmer.get_level()}')
         # If display is off, go to the top menu and turn on the display.
         if not self._view.is_display_on():
             self.display_on()
@@ -609,6 +610,7 @@ class TopMenu(Menu):
         return self
 
     def update_menu_line4(self):
+        print(f'TopMenu:update_menu_line4() - level={self.controller.dimmer.get_level()}')
         if self.controller.dimmer.get_level():
             self.menu_line4 = 'Menu  Dim-  Dim+  Off'
         else:
