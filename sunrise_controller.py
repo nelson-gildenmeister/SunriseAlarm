@@ -1168,12 +1168,15 @@ class EnableMenu(Menu):
         return self
 
     def load_previous_enable(self):
-        print(
-            f'weekday={self.controller.settings.weekday_sched_enabled}, weekend={self.controller.settings.weekend_sched_enabled}, daily={self.controller.settings.daily_sched_enabled}')
-
         self.ec[0] = self.controller.data.settings.weekday_sched_enabled
+        if self.ec[0]:
+            self.el[0] = "Run"
         self.ec[1] = self.controller.data.settings.weekend_sched_enabled
+        if self.ec[1]:
+            self.el[1] = "Run"
         self.ec[2] = self.controller.data.settings.daily_sched_enabled
+        if self.ec[2]:
+            self.el[2] = "Run"
 
     def save_enable(self):
         self.controller.data.settings.weekday_sched_enabled = self.ec[0]
