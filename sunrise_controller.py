@@ -1094,6 +1094,7 @@ class ScheduleSunriseDuration(Menu):
         self.controller.data.save_settings()
         self.controller.handle_schedule_change()
 
+
 class EnableMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.enable, prev_menu)
