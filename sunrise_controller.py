@@ -1099,64 +1099,85 @@ class EnableMenu(Menu):
         self.weekend_enable_str_idx = 1
         self.weekday_enable_str_idx = 13
         self.daily_enable_str_idx = 25
-        self.ec = ['-', '-', '-']
+        self.ec = [False, False, False]
         self.el = ['Off', 'Off', 'Off']
-        self.menu_line3 = 'Weekday  Weekend  Day'
-        self.menu_line4 = 'Off  Off  Off  Prev'
+        #self.menu_line3 = 'Weekday  Weekend  Day'
+        self.menu_line3 = '[Run] [Off] [Off]'
+        self.menu_line4 = 'Wkdy  Wknd  Day  Save'
+
+
 
     def reset(self):
         pass
 
     def update_display(self):
         #self.controller.disp_thread.line3 = f'[{self.ec[0]}]Wkdy [{self.ec[1]}]Wknd [{self.ec[2]}]Dly'
-        self.controller.disp_thread.line3 = self.menu_line3
-        self.controller.disp_thread.line4 = f'{self.el[0]}  {self.el[1]}  {self.el[2]}  Prev'
+        # self.controller.disp_thread.line3 = self.menu_line3
+        # self.controller.disp_thread.line4 = f'{self.el[0]}  {self.el[1]}  {self.el[2]}  Prev'
+        self.controller.disp_thread.line3 = f'{self.el[0]}  {self.el[1]}  {self.el[2]}'
+        self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
                 # Enable/Disable Weekday
-                if self.ec[0] == '-':
-                    self.ec[0] = 'X'
-                    self.el[0] = 'On '
-                    if self.ec[2] == 'X':
-                        self.ec[2] = '-'
-                        self.el[2] = 'Off'
+                if self.ec[0]:
+                    # Running, toggle to off
+                    self.ec[0] = False
+                    self.el[0] = 'Off'
                 else:
-                    self.ec[0] = '-'
+                    # Off, toggle to running
+                    self.ec[0] = True
+                    self.el[0] = 'Run'
+                    if self.ec[2]:
+                        self.ec[2] = False
+                        self.el[2] = 'Off'
                 self.update_display()
             case 2:
                 # Enable/Disable Weekend
-                if self.ec[1] == '-':
-                    self.ec[1] = 'X'
-                    self.el[1] = 'On '
-                    if self.ec[2] == 'X':
-                        self.ec[2] = '-'
-                        self.el[2] = 'Off'
+                if self.ec[1]:
+                    # Running, toggle to off
+                    self.ec[1] = False
+                    self.el[1] = 'Off'
                 else:
-                    self.ec[1] = '-'
+                    # Off, toggle to running
+                    self.ec[1] = True
+                    self.el[1] = 'Run'
+                    if self.ec[2]:
+                        self.ec[2] = False
+                        self.el[2] = 'Off'
                 self.update_display()
             case 3:
                 # Enable/Disable Daily
-                if self.ec[2] == '-':
-                    self.ec[2] = 'X'
-                    self.el[2] = 'On '
-                    if self.ec[0] == 'X':
-                        self.ec[0] = '-'
-                        self.el[0] = 'Off'
-                    if self.ec[1] == 'X':
-                        self.ec[1] = '-'
-                        self.el[1] = 'Off'
+                if self.ec[2]:
+                    # Running, toggle to off
+                    self.ec[2] = False
+                    self.el[2] = 'Off'
                 else:
-                    self.ec[3] = '-'
+                    # Off, toggle to running
+                    self.ec[2] = True
+                    self.el[2] = 'Run'
+                    if self.ec[0]:
+                        self.ec[0] = False
+                        self.el[0] = 'Off'
+                    if self.ec[1]:
+                        self.ec[1] = False
+                        self.el[1] = 'Off'
                 self.update_display()
             case 4:
-                # Prev
+                # Save
+                self.save_enable()
                 return self.previous_menu
 
         return self
 
+    def save_enable(self):
+        self.controller.data.settings.weekday_sched_enabled = self.ec[0]
+        self.controller.data.settings.weekend_sched_enabled = self.ec[1]
+        self.controller.data.settings.daily_sched_enabled = self.ec[2]
+        self.controller.data.save_settings()
+        self.controller.handle_schedule_change()
 
 class TimeMenu(Menu):
     def reset(self):
