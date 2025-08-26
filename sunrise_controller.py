@@ -159,7 +159,7 @@ class DisplayThread(threading.Thread):
                 self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
                 self._view.set_status_display_line(self.status)
                 # If no recent display update, update now to ensure any changes, including clock time are shown
-                if self.update_made:
+                if not self.update_made:
                     print('do display update')
                     self._view.update_display()
 
