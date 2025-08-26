@@ -135,6 +135,7 @@ class DisplayThread(threading.Thread):
                     try:
                         msg = self.msg_q.get(True, incremental_wait_time)
                         if msg == self.update:
+                            print('scroll: Got Update msg')
                             self._view.update_display()
                     except queue.Empty:
                         # Okay for no display changes
@@ -145,6 +146,7 @@ class DisplayThread(threading.Thread):
                     try:
                         msg = self.msg_q.get(True, max_wait_time)
                         if msg == self.update:
+                            print('else: Got Update msg')
                             self._view.update_display()
                     except queue.Empty:
                         # Okay for no display changes
@@ -154,6 +156,7 @@ class DisplayThread(threading.Thread):
                 self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
                 self._view.set_status_display_line(self.status)
                 # Do a display update to ensure any changes, including clock time are shown
+                print('do display update')
                 self._view.update_display()
                 self._view.check_display_idle_off()
 
