@@ -136,7 +136,6 @@ class DisplayThread(threading.Thread):
                     try:
                         msg = self.msg_q.get(True, incremental_wait_time)
                         if msg == self.update:
-                            print('scroll: Got Update msg')
                             self._view.update_display()
                             self.update_made = True
                     except queue.Empty:
@@ -149,8 +148,8 @@ class DisplayThread(threading.Thread):
                     try:
                         msg = self.msg_q.get(True, max_wait_time)
                         if msg == self.update:
-                            print('else: Got Update msg')
                             self._view.update_display()
+                            self.update_made = True
                     except queue.Empty:
                         # Okay for no display changes
                         pass
@@ -160,7 +159,6 @@ class DisplayThread(threading.Thread):
                 self._view.set_status_display_line(self.status)
                 # If no recent display update, update now to ensure any changes, including clock time are shown
                 if not self.update_made:
-                    print('do display update')
                     self._view.update_display()
 
                 self._view.check_display_idle_off()
@@ -1111,7 +1109,7 @@ class EnableMenu(Menu):
 
     def update_display(self):
         #self.controller.disp_thread.line3 = f'[{self.ec[0]}]Wkdy [{self.ec[1]}]Wknd [{self.ec[2]}]Dly'
-        self.controller.disp_thread.line3 = f''
+        self.controller.disp_thread.line3 = self.menu_line3
         self.controller.disp_thread.line4 = f'{self.el[0]}  {self.el[1]}  {self.el[2]}  Prev'
         self.controller.disp_thread.update_display()
 
@@ -1121,10 +1119,10 @@ class EnableMenu(Menu):
                 # Enable/Disable Weekday
                 if self.ec[0] == '-':
                     self.ec[0] = 'X'
-                    self.el[0] = 'Disable'
+                    self.el[0] = 'On '
                     if self.ec[2] == 'X':
                         self.ec[2] = '-'
-                        self.el[2] = 'Enable '
+                        self.el[2] = 'Off'
                 else:
                     self.ec[0] = '-'
                 self.update_display()
@@ -1132,10 +1130,10 @@ class EnableMenu(Menu):
                 # Enable/Disable Weekend
                 if self.ec[1] == '-':
                     self.ec[1] = 'X'
-                    self.el[1] = 'Disable '
+                    self.el[1] = 'On '
                     if self.ec[2] == 'X':
                         self.ec[2] = '-'
-                        self.el[2] = 'Enable '
+                        self.el[2] = 'Off'
                 else:
                     self.ec[1] = '-'
                 self.update_display()
@@ -1143,13 +1141,13 @@ class EnableMenu(Menu):
                 # Enable/Disable Daily
                 if self.ec[2] == '-':
                     self.ec[2] = 'X'
-                    self.el[2] = 'Disable '
+                    self.el[2] = 'On '
                     if self.ec[0] == 'X':
                         self.ec[0] = '-'
-                        self.el[0] = 'Enable '
+                        self.el[0] = 'Off'
                     if self.ec[1] == 'X':
                         self.ec[1] = '-'
-                        self.el[1] = 'Enable '
+                        self.el[1] = 'Off'
                 else:
                     self.ec[3] = '-'
                 self.update_display()
