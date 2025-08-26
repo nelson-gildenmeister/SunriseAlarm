@@ -121,7 +121,7 @@ class OledDisplay:
         else:
             first_line = self.line1
         if not self.line2:
-            cmd = "date \"+%a, %b %d %I:%M %P\""
+            cmd = "date \"+%a, %b %d %I:%M %p\""
             date = subprocess.check_output(cmd, shell=True).decode("utf-8")
             second_line = date
         else:
@@ -185,7 +185,7 @@ class OledDisplay:
         else:
             first_line = self.line1
         if not self.line2:
-            cmd = "date \"+%a, %b %d %I:%M %P\""
+            cmd = "date \"+%a, %b %d %I:%M %p\""
             date = subprocess.check_output(cmd, shell=True).decode("utf-8")
             second_line = date
         else:
