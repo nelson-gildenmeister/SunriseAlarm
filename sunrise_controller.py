@@ -454,6 +454,8 @@ class SunriseController:
                 self.current_menu.update_display()
             return
 
+        # Display was already on, reset the idle timer
+        self._view.display_idle_time_reset()
         # Call the handler for the current menu
         new_menu = self.current_menu.button_handler(btn)
         # if button action changed the menu, update the display with new menu
