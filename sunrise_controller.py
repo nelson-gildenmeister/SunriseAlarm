@@ -322,10 +322,11 @@ class SunriseController:
             if self.is_schedule_enabled_for_day(day_index):
                 have_scheduled_start = True
                 dt_start = calc_start_datetime(self.settings.start_time[day_index], day_increment)
+                t = dt.datetime.strftime(dt_start, "%I:%M %p")
                 print(
                     f'Scheduling future start: {dt_start}, duration: {self.settings.duration_minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[day_index])
-                self.disp_thread.status = f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {dt_start.hour:02d}:{dt_start.minute:02d}'
+                self.disp_thread.status = f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {t}'
                 break
             day_index = (day_index + 1) % (SUNDAY + 1)
             day_increment = day_increment + 1
