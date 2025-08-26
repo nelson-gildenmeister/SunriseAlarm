@@ -365,7 +365,9 @@ class SunriseController:
         # If display is off, go to the top menu and turn on the display.
         if not self._view.is_display_on():
             self.display_on()
+            print(f'Display is off, current menu: {self.current_menu.get_menu_name()}')
             if self.current_menu.get_menu_name() != MenuName.top:
+                print('    setting to Top Menu...')
                 self.current_menu = TopMenu(self)
                 self.current_menu.update_display()
         elif self.current_menu.get_menu_name() == MenuName.top:
