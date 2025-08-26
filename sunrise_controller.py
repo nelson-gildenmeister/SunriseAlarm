@@ -103,6 +103,7 @@ class DisplayThread(threading.Thread):
         self.status = ''
         self.scroll = True
         self.at_end = False
+        self.update_made = False
         self.msg_q = queue.Queue(DISPLAY_MSG_Q_SIZE)
 
     class DisplayThreadMessages(Enum):
@@ -121,7 +122,7 @@ class DisplayThread(threading.Thread):
         self.at_end = False
         while True:
             while self._view.is_display_on():
-
+                self.update_made = False
                 if self.event.is_set():
                     print('DisplayThread got event, exiting...')
                     return
@@ -137,9 +138,11 @@ class DisplayThread(threading.Thread):
                         if msg == self.update:
                             print('scroll: Got Update msg')
                             self._view.update_display()
+                            self.update_made = True
                     except queue.Empty:
                         # Okay for no display changes
                         self.at_end = self._view.scroll_line3()
+                        self.update_made = True
                         pass
                 else:
                     # Delay display update unless someone gives us a new update
@@ -155,9 +158,11 @@ class DisplayThread(threading.Thread):
                 # If a non-urgent display update was made, pick it up before starting next scroll
                 self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
                 self._view.set_status_display_line(self.status)
-                # Do a display update to ensure any changes, including clock time are shown
-                print('do display update')
-                self._view.update_display()
+                # If no recent display update, update now to ensure any changes, including clock time are shown
+                if self.update_made:
+                    print('do display update')
+                    self._view.update_display()
+
                 self._view.check_display_idle_off()
 
             # Wait for something to wake up the display
