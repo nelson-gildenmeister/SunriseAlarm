@@ -304,10 +304,11 @@ class SunriseController:
                 return
             elif dt_start > now:
                 # Sunrise start is today but in the future - set up an event to start
-                print(f'Scheduling start today at: {self.settings.start_time[today]}')
+                #print(f'Scheduling start today at: {self.settings.start_time[today]}')
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[today])
                 t = dt.datetime.strptime(self.settings.start_time[today], "%H:%M")
                 t2 = t.strftime("%I:%M %p")
+                print(f'Scheduling start today at: {t2}')
                 self.disp_thread.status = f'Next sunrise: today at {t2}'
                 return
 
@@ -360,18 +361,21 @@ class SunriseController:
         if starting_percentage > 0:
             start_level = int(self.dimmer.get_max_level() * (starting_percentage * 0.01))
         self.dimmer.set_level(start_level)
-        # If display is off, turn on.
+
+        # If display is off, go to the top menu and turn on the display.
         if not self._view.is_display_on():
             self.display_on()
+            if self.current_menu.get_menu_name() != MenuName.top:
+                self.current_menu = TopMenu(self)
+                self.current_menu.update_display()
+        elif self.current_menu.get_menu_name() == MenuName.top:
+            # update top menu on/off labels as needed
+            self.current_menu.update_display()
 
         self.check_schedule()
 
     def check_schedule(self):
         if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
-            # TODO - Need to make sure top menu On/Off label is correct but should only have to do once after
-            # we start dimming up.  How to implement though?  Hate to have a separate flag to track but maybe?
-            if self.current_menu.get_menu_name() == MenuName.top:
-                self.current_menu.update_display()
             minutes_remain = int((self.sec_per_step * (
                         (self.dimmer.get_max_level() - self.dimmer.get_level()) / self.dimmer_step_size)) / 60)
             if minutes_remain == 1:
@@ -446,7 +450,7 @@ class SunriseController:
         global button_map
         btn = button_map[gpio]
         print(f'Button {btn} pressed...')
-        # If display is not on, any button press will go back to the top menu and turn on the display
+        # If display is off, any button press will go back to the top menu and turn on the display
         if not self._view.is_display_on():
             self.display_on()
             if self.current_menu.get_menu_name() != MenuName.top:
@@ -556,7 +560,6 @@ class TopMenu(Menu):
 
     def reset(self):
         self.menu_line4 = ''
-        print(f'TopMenu: dimmer level = {self.controller.dimmer.get_level()}')
         self.set_menu_line4()
 
     def update_display(self):
