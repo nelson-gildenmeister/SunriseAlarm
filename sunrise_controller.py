@@ -325,7 +325,7 @@ class SunriseController:
                 dt_start = calc_start_datetime(self.settings.start_time[day_index], day_increment)
                 t = dt.datetime.strftime(dt_start, "%I:%M %p")
                 print(
-                    f'Scheduling future start: {dt_start}, duration: {self.settings.duration_minutes[day_index]} minutes')
+                    f'Scheduling future start: {t}, duration: {self.settings.duration_minutes[day_index]} minutes')
                 self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[day_index])
                 self.disp_thread.status = f'Next sunrise: {calendar.day_name[dt_start.weekday()]} at {t}'
                 break
@@ -964,7 +964,7 @@ class ScheduleSunriseStart(Menu):
 
     def save_schedule(self):
         mil_hour = self.hour
-        if self.is_pm and (self.hour > 12):
+        if self.is_pm and (self.hour < 12):
             mil_hour = self.hour + 12
         parent_menu = self.previous_menu.get_menu_name()
         match parent_menu:
