@@ -159,6 +159,7 @@ class OledDisplay:
         #         self.disp.show()
 
     def scroll_line3(self) -> bool:
+
         at_end = False
         third_line: str
         if self.is_status_display:
@@ -170,7 +171,7 @@ class OledDisplay:
         if not self.is_display_on():
             return at_end
 
-        if not self.scroll or len(third_line) < self.__max_line_len__:
+        if not self.scroll or len(third_line) <= self.__max_line_len__:
             return at_end
 
         top = self.padding
