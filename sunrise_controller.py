@@ -321,11 +321,14 @@ class SunriseController:
             return
 
         if self.is_schedule_enabled_for_day(today):
-            # There is a sunrise scheduled for today.
-            # No need to do anything if already missed today's schedule sunrise.
+            # There is a sunrise scheduled for today but need to see if we already missed it.
+            # Tack on seconds to setting for unusual case where cancel happens seconds after start - we don't want
+            # to reschedule the cancelled sunrise
+            start_time = f'{self.settings.start_time[today]}:00'
             dt_start = calc_start_datetime(self.settings.start_time[today], 0)
-
+            # See if already missed today's schedule sunrise.
             if dt_start > now:
+                print(f'Start today.  now = {now}, dt_start = {dt_start}')
                 # Sunrise start is for later today - set up an event to start it
                 self.schedule_today_sunrise_event(dt_start)
                 return
