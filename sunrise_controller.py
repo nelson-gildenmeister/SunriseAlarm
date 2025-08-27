@@ -215,7 +215,7 @@ class SunriseController:
         self.dimmer_step_size: int = 1
         self.pi = pigpio.pi()
         self.sunrise_scheduler = None
-        self.time_increment_sched = None
+        self.running_sunrise_timer = None
         # All view control should be through the Display thread
         self._view = view
         self.data: SunriseData = data
@@ -370,9 +370,15 @@ class SunriseController:
             # update top menu on/off labels as needed
             self.current_menu.update_display()
 
-        self.check_schedule()
+        self.periodic_run_sunrise()
 
-    def check_schedule(self):
+    def periodic_run_sunrise(self):
+        """
+        Increments the dimmer level during a sunrise.  Also checks for cancel and end of sunrise.
+        At the end of the sunrise, runs the check for scheduling the next sunrise.
+        Called initially from start_schedule() then schedules itself to be called periodically.
+        :return: None
+        """
         if self.cancel:
             print('check_schedule(): CANCELLED!!!')
 
@@ -386,19 +392,17 @@ class SunriseController:
             else:
                 self.disp_thread.status = 'Sunrise in progress, less than 1 minute remaining'
 
-            self.time_increment_sched = Timer(self.sec_per_step, self.check_schedule)
-            self.time_increment_sched.start()
+            self.running_sunrise_timer = Timer(self.sec_per_step, self.periodic_run_sunrise)
+            self.running_sunrise_timer.start()
         else:
             # Either we are done or were cancelled
-            print("Sunrise complete")
-            self.is_running = False
-            self.cancel = False
-            # TODO - Do we turn off lamp at end or leave on?  Perhaps this is a setting?
-            self.dimmer.turn_off()
-            if self.current_menu.get_menu_name() == MenuName.top:
-                self.current_menu.update_display()
-            # Queue up the next sunrise event
-            self.handle_schedule_change()
+            if self.cancel:
+                print("Sunrise cancelled")
+                self.cancel = False
+            else:
+                print("Sunrise complete")
+
+            self.handle_sunsrise_end()
 
     def cancel_pending_schedule(self):
         # If queue already created and a scheduled event is queued up to run, cancel it
@@ -413,19 +417,31 @@ class SunriseController:
                 pass
 
     def cancel_running_schedule(self):
-        # If scheduled event is running, stop it
+        if not self.is_running:
+            return
+
+        # Scheduled event is running, stop it
+        print('Cancelling running schedule')
         try:
-            self.time_increment_sched.cancel()
+            result = self.running_sunrise_timer.cancel()
+            print(f'cancel result = {result}')
+            self.handle_sunsrise_end()
         except Exception as e:
             print('ERROR trying to cancel dimming schedule:')
             print(e)
-
-        if self.is_running:
-            print('Cancelling running schedule')
+            # Unable to cancel, set the cancel flag so that the periodic routine cancels itself when it runs
             self.cancel = True
             # No need to clear out the event we track since it is cleared when start running
             self.dimmer.set_level(self.dimmer.get_min_level())
             self.update_status()
+
+    def handle_sunsrise_end(self):
+        self.is_running = False
+        self.dimmer.turn_off()
+        if self.current_menu.get_menu_name() == MenuName.top:
+            self.current_menu.update_display()
+        # Queue up the next sunrise event
+        self.handle_schedule_change()
 
     def schedule_sunrise_start(self, start_time: dt.datetime, duration_minutes: int):
         # Create a new scheduler
