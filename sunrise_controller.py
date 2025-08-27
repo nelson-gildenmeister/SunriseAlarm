@@ -422,6 +422,7 @@ class SunriseController:
                 self.disp_thread.status = 'Sunrise in progress, less than 1 minute remaining'
 
             self.running_sunrise_timer = Timer(self.sec_per_step, self.periodic_run_sunrise)
+            self.running_sunrise_timer.daemon = True  # required so that cancel works
             self.running_sunrise_timer.start()
         else:
             # Either we are done or were cancelled
@@ -454,7 +455,7 @@ class SunriseController:
         try:
             self.running_sunrise_timer.cancel()
             self.running_sunrise_timer.join()
-            if self.running_sunrise_timer.isAlive():
+            if self.running_sunrise_timer.is_alive():
                 print('ERROR, unable to cancel sunrise timer!')
             else:
                 print('Sunrise timer successfully cancelled')
