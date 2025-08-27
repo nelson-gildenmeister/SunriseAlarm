@@ -203,6 +203,9 @@ class DisplayThread(threading.Thread):
     def disable_status(self):
         self._view.disable_status_display()
 
+    def center_line(self, line: str) -> str:
+        return self._view.center_line(line)
+
 
 class SunriseController:
     sunrise_event: Event | None
@@ -328,7 +331,6 @@ class SunriseController:
             dt_start = calc_start_datetime(self.settings.start_time[today], 0)
             # See if already missed today's schedule sunrise.
             if dt_start > now:
-                print(f'Start today.  now = {now}, dt_start = {dt_start}')
                 # Sunrise start is for later today - set up an event to start it
                 self.schedule_today_sunrise_event(dt_start)
                 return
@@ -417,7 +419,7 @@ class SunriseController:
 
         if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
             minutes_remain = int((self.sec_per_step * (
-                        (self.dimmer.get_max_level() - self.dimmer.get_level()) / self.dimmer_step_size)) / 60)
+                    (self.dimmer.get_max_level() - self.dimmer.get_level()) / self.dimmer_step_size)) / 60)
             if minutes_remain == 1:
                 self.disp_thread.status = 'Sunrise in progress, 1 minute remaining'
             elif minutes_remain > 1:
@@ -684,13 +686,6 @@ class TopMenu(Menu):
         else:
             self.menu_line4 = 'Menu  Dim-  Dim+  On'
 
-class MainSubMenus(Enum):
-    program = 0
-    enable = 1
-    display = 2
-    set_date = 3
-    network = 4
-
 
 class MainMenu(Menu):
     def __init__(self, controller, prev_menu):
@@ -707,7 +702,7 @@ class MainMenu(Menu):
     def update_display(self):
         print('MainMenu:update_display()')
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
-        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.menus[self.menu_idx].value)
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
@@ -741,35 +736,11 @@ class MainMenu(Menu):
                 return SetDisplayOffTimeMenu(self.controller, self)
             case MenuName.set_date:
                 return SetDateMenu(self.controller, self)
-            case MainSubMenus.network:
+            case MenuName.network:
                 return NetworkMenu(self.controller, self)
 
         print('ERROR: MainMenu Unhandled menu type, returning to top menu')
         return TopMenu(self.controller)
-
-
-class ScheduleTopMenu(Enum):
-    invalid = -1
-    weekday = 0
-    weekend = 1
-    daily = 2
-
-
-class DailyMenu(Enum):
-    invalid = -1
-    sunday = 0
-    monday = 1
-    tuesday = 2
-    wednesday = 3
-    thursday = 4
-    friday = 5
-    saturday = 6
-
-
-class TimeMenuState(Enum):
-    invalid = -1
-    start = 0
-    duration = 1
 
 
 class ScheduleMenu(Menu):
@@ -789,7 +760,7 @@ class ScheduleMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
-        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.menus[self.menu_idx].value)
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
@@ -836,7 +807,7 @@ class ScheduleWeekdayMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
-        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.menus[self.menu_idx].value)
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
@@ -872,7 +843,7 @@ class ScheduleWeekendMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
-        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.menus[self.menu_idx].value)
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
@@ -952,7 +923,7 @@ class DayOfWeek(Menu):
     def update_display(self):
         print('DayOfWeek:update_display()')
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self, calendar.day_abbr[self.day])
-        self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.menus[self.menu_idx].value)
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
@@ -1101,7 +1072,7 @@ class ScheduleSunriseDuration(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.line3 = str(self.duration_minutes)
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.duration_minutes)
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
@@ -1174,7 +1145,7 @@ class EnableMenu(Menu):
         self.daily_enable_str_idx = 25
         self.ec = [False, False, False]
         self.el = ['Off', 'Off', 'Off']
-        #self.menu_line3 = 'Weekday  Weekend  Day'
+        # self.menu_line3 = 'Weekday  Weekend  Day'
         self.menu_line3 = '[Run] [Off] [Off]'
         self.menu_line4 = 'Wkdy  Wknd  Day  Save'
         self.load_previous_enable()
@@ -1258,6 +1229,7 @@ class EnableMenu(Menu):
         self.controller.data.settings.daily_sched_enabled = self.ec[2]
         self.controller.data.save_settings()
         self.controller.handle_schedule_change()
+
 
 class TimeMenu(Menu):
     def reset(self):

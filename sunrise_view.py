@@ -16,11 +16,6 @@ import busio
 from PIL import Image, ImageDraw, ImageFont
 from board import SCL, SDA
 
-# LINE_1_SPACE = 0
-# LINE_2_SPACE = 8
-# LINE_3_SPACE = 16
-# LINE_4_SPACE = 25
-
 LINE_1_SPACE = 0
 LINE_2_SPACE = 7
 LINE_3_SPACE = 15
@@ -104,6 +99,10 @@ class OledDisplay:
 
     def disable_status_display(self):
         self.is_status_display = False
+
+    def center_line(self, line) -> str:
+        pad = int((self.__max_line_len__ - len(line)) /  2)
+        return f'{" " * pad}line'
 
     def update_display(self):
         # See if auto-power off
