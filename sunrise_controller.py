@@ -248,7 +248,7 @@ class SunriseController:
         # This event loop does not have any events to process but could be added in the future.
         # Its primary purpose is to block so that a keyboard interrupt can be used to shut everything down.
         while True:
-            self.handle_schedule_change()
+            self.startup_check_schedule()
             print("Event Loop: Waiting for event....")
             # Block and wait for an event that, right now, will never come
             self.ctrl_event.wait()
@@ -256,10 +256,7 @@ class SunriseController:
             self.ctrl_event.clear()
 
     def is_schedule_enabled(self) -> bool:
-        if self.settings.weekday_sched_enabled or self.settings.weekend_sched_enabled or self.settings.daily_sched_enabled:
-            return True
-
-        return False
+        return self.settings.weekday_sched_enabled or self.settings.weekend_sched_enabled or self.settings.daily_sched_enabled
 
     def is_schedule_enabled_for_day(self, day: int) -> bool:
         # See if enabled for this day of the week
@@ -271,16 +268,13 @@ class SunriseController:
 
         return True
 
-    def handle_schedule_change(self):
-        """ Called upon startup and whenever a change is made to the saved schedule. Sends an"""
+    def startup_check_schedule(self):
         # Default to idle
         self.is_running = False
         now = dt.datetime.now()
         today = now.weekday()
 
-        # Since a change might have affected a scheduled sunrise, go ahead and cancel.  It will get re-scheduled
-        # below if no change was made.
-        self.cancel_pending_schedule()
+        # No need to check for pending schedule during startup
 
         # No need for any checks if not enabled for sunrise
         if not self.is_schedule_enabled():
@@ -294,7 +288,7 @@ class SunriseController:
 
             # Sunrise resolution is 1 minute so don't include last minute duration in check to prevent race conditions.
             if dt_start < now < (dt_start + dt.timedelta(minutes=self.settings.duration_minutes[today] - 1)):
-                # In the middle of sunrise, set to proper level
+                # In the middle of a sunrise, set to proper level
                 print('In the middle of sunrise...')
                 self.is_running = True
                 self.running_start_time = now
@@ -303,19 +297,54 @@ class SunriseController:
                 self.start_schedule(minutes_remaining, percent_brightness)
                 return
             elif dt_start > now:
-                # Sunrise start is today but in the future - set up an event to start
-                #print(f'Scheduling start today at: {self.settings.start_time[today]}')
-                self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[today])
-                t = dt.datetime.strptime(self.settings.start_time[today], "%H:%M")
-                t2 = t.strftime("%I:%M %p")
-                print(f'Scheduling start today at: {t2}')
-                self.disp_thread.status = f'Next sunrise: today at {t2}'
+                # Sunrise start is for later today - set up an event to start it
+                self.schedule_today_sunrise_event(dt_start)
                 return
 
         # No sunrise scheduled for today so look for the next scheduled sunrise and set up an event for it.
+        self.schedule_future_sunrise_event()
+
+    def handle_schedule_change(self):
+        """ Called whenever a change is made to the saved schedule. """
+
+        print('Checking for schedule change...')
+        now = dt.datetime.now()
+        today = now.weekday()
+
+        # Since a change might have affected a scheduled sunrise, go ahead and cancel.  It will get re-scheduled
+        # below if no change was made.
+        self.cancel_pending_schedule()
+
+        # No need for any checks if not enabled for sunrise
+        if not self.is_schedule_enabled():
+            return
+
+        if self.is_schedule_enabled_for_day(today):
+            # There is a sunrise scheduled for today.
+            # No need to do anything if already missed today's schedule sunrise.
+            dt_start = calc_start_datetime(self.settings.start_time[today], 0)
+
+            if dt_start > now:
+                # Sunrise start is for later today - set up an event to start it
+                self.schedule_today_sunrise_event(dt_start)
+                return
+
+        # No sunrise scheduled for later today so look for the next scheduled sunrise and set up an event for it.
+        self.schedule_future_sunrise_event()
+
+    def schedule_today_sunrise_event(self, dt_start: dt.datetime):
+        today = dt.datetime.now().weekday()
+        self.schedule_sunrise_start(dt_start, self.settings.duration_minutes[today])
+        t = dt.datetime.strptime(self.settings.start_time[today], "%H:%M")
+        t2 = t.strftime("%I:%M %p")
+        print(f'Scheduling start today at: {t2}, duration: {self.settings.duration_minutes[today]} minutes')
+        self.disp_thread.status = f'Next sunrise: today at {t2}'
+
+    def schedule_future_sunrise_event(self):
         # Go through every day of the week starting tomorrow and wrap around to hit every day
         # of the week including the day of week that matches today to cover the case where next sunrise is next week
         # on the same day (E.g., It's Tuesday and next sunrise is 7 days from now on next Tuesday).
+        today = dt.datetime.now().weekday()
         have_scheduled_start = False
         day_index = (today + 1) % (SUNDAY + 1)
         day_increment = 1
@@ -402,7 +431,7 @@ class SunriseController:
             else:
                 print("Sunrise complete")
 
-            self.handle_sunsrise_end()
+            self.handle_sunrise_end()
 
     def cancel_pending_schedule(self):
         # If queue already created and a scheduled event is queued up to run, cancel it
@@ -423,19 +452,28 @@ class SunriseController:
         # Scheduled event is running, stop it
         print('Cancelling running schedule')
         try:
-            result = self.running_sunrise_timer.cancel()
-            print(f'cancel result = {result}')
-            self.handle_sunsrise_end()
+            self.running_sunrise_timer.cancel()
+            self.running_sunrise_timer.join()
+            if self.running_sunrise_timer.isAlive():
+                print('ERROR, unable to cancel sunrise timer!')
+            else:
+                print('Sunrise timer successfully cancelled')
+                self.handle_sunrise_end()
+                return
         except Exception as e:
             print('ERROR trying to cancel dimming schedule:')
             print(e)
-            # Unable to cancel, set the cancel flag so that the periodic routine cancels itself when it runs
-            self.cancel = True
-            # No need to clear out the event we track since it is cleared when start running
-            self.dimmer.set_level(self.dimmer.get_min_level())
-            self.update_status()
 
-    def handle_sunsrise_end(self):
+        # If we made it here, we were unable to cancel.
+        # Set the cancel flag so that the periodic routine cancels itself when it runs but turn off the dimmer now.
+        self.cancel = True
+        self.dimmer.turn_off()
+
+        # If at top menu, update it so that On/Off label reflects that the dimmer is off.
+        if self.current_menu.get_menu_name() == MenuName.top:
+            self.current_menu.update_display()
+
+    def handle_sunrise_end(self):
         self.is_running = False
         self.dimmer.turn_off()
         if self.current_menu.get_menu_name() == MenuName.top:
@@ -506,6 +544,7 @@ class SunriseController:
                 status_str = f"Sunrise started {elapsed_minutes} minutes ago...{remain_minutes} minutes remaining"
         else:
             # idle - see if there is a sunrise scheduled
+            # TODO - de we need to do anything here?  We should update status when a new sunrise is scheduled.
             if self.sunrise_event:
                 pass
 
