@@ -714,11 +714,13 @@ class MainMenu(Menu):
             case 2:
                 # Left arrow
                 self.menu_idx = (self.menu_idx - 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(self.menus[self.menu_idx].value))
             case 3:
                 # Right arrow
                 self.menu_idx = (self.menu_idx + 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(self.menus[self.menu_idx].value))
                 pass
             case 4:
                 # Previous
