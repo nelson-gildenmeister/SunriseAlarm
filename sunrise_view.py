@@ -102,7 +102,7 @@ class OledDisplay:
 
     def center_line(self, line) -> str:
         pad = int((self.__max_line_len__ - len(line)) /  2)
-        return f'{" " * pad}line'
+        return f'{" " * pad}{line}'
 
     def update_display(self):
         # See if auto-power off
