@@ -892,8 +892,8 @@ class ScheduleDailyMenu(Menu):
     def update_display(self):
         print('ScheduleDailyMenu:update_display()')
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
-        self.controller.disp_thread.line3 = calendar.day_name[self.menu_idx]
-        self.controller.disp_thread.line4 = self.controller.disp_thread.center_line(self.menu_line4)
+        self.controller.disp_thread.line3 = cself.controller.disp_thread.center_line(alendar.day_name[self.menu_idx])
+        self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
@@ -1275,9 +1275,8 @@ class TimeMenu(Menu):
 
 
 class SetDisplayOffTimeMenu(Menu):
-    def __init__(self, controller, prev_menu, day_of_week: int):
-        super().__init__(controller, MenuName.set_duration, prev_menu)
-        self.day_of_week: int = day_of_week
+    def __init__(self, controller, prev_menu):
+        super().__init__(controller, MenuName.display_timer, prev_menu)
         self.is_pre_select: bool = False
         self.pre_select_idx = 1
         self.pre_select_menu = [1, 3, 5, 7]
