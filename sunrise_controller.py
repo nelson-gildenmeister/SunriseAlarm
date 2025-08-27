@@ -293,9 +293,10 @@ class SunriseController:
                 self.is_running = True
                 self.running_start_time = now
                 minutes_remaining = (now - dt.timedelta(minutes=self.settings.duration_minutes[today])).minute
-                percent_brightness = int(minutes_remaining / self.settings.duration_minutes[today])
-                self.start_schedule(minutes_remaining, percent_brightness)
-                return
+                if minutes_remaining > 0:
+                    percent_brightness = int(minutes_remaining / self.settings.duration_minutes[today])
+                    self.start_schedule(minutes_remaining, percent_brightness)
+                    return
             elif dt_start > now:
                 # Sunrise start is for later today - set up an event to start it
                 self.schedule_today_sunrise_event(dt_start)
