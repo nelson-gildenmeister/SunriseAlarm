@@ -324,6 +324,7 @@ class SunriseController:
             # No need to do anything if already missed today's schedule sunrise.
             dt_start = calc_start_datetime(self.settings.start_time[today], 0)
 
+            print(f'now: {now}, dt_start: {dt_start}')
             if dt_start > now:
                 # Sunrise start is for later today - set up an event to start it
                 self.schedule_today_sunrise_event(dt_start)
