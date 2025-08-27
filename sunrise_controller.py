@@ -373,6 +373,9 @@ class SunriseController:
         self.check_schedule()
 
     def check_schedule(self):
+        if self.cancel:
+            print('check_schedule(): CANCELLED!!!')
+
         if self.dimmer.increment_level(self.dimmer_step_size) and not self.cancel:
             minutes_remain = int((self.sec_per_step * (
                         (self.dimmer.get_max_level() - self.dimmer.get_level()) / self.dimmer_step_size)) / 60)
@@ -413,8 +416,9 @@ class SunriseController:
         # If scheduled event is running, stop it
         try:
             self.time_increment_sched.cancel()
-        except:
-            pass
+        except Exception as e:
+            print('ERROR trying to cancel dimming schedule:')
+            print(e)
 
         if self.is_running:
             print('Cancelling running schedule')

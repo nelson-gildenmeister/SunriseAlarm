@@ -2,6 +2,8 @@
 
 
 import pigpio
+from mypyc.primitives.set_ops import new_set_op
+
 
 class Dimmer:
     __frequency__: int = 1000
@@ -99,11 +101,11 @@ class Dimmer:
             new_duty_cycle = self.__max_duty_cycle__
 
         self.duty_cycle = new_duty_cycle
-        current_percent_brightness = 100 * (new_duty_cycle / self.__duty_cycle_range__)
-        print(f'Increasing duty cycle to {self.duty_cycle}, brightness to {current_percent_brightness}%')
+        new_percent_brightness = 100 * (new_duty_cycle / self.__duty_cycle_range__)
+        print(f'Increasing duty cycle to {self.duty_cycle}, brightness to {new_percent_brightness}%')
         self.pi.set_PWM_dutycycle(self.pwm_gpio, self.duty_cycle)
 
-        return int(current_percent_brightness)
+        return int(new_percent_brightness)
 
     # Decrease the brightness level, if possible, by the percentage specified.  Returns the new
     # brightness level as a percentage of the maximum range of brightness levels.
