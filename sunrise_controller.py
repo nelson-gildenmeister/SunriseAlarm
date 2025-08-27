@@ -20,7 +20,7 @@ from sunrise_view import OledDisplay
 BRIGHTNESS_CHANGE_PERCENT: int = 5
 DISPLAY_MSG_Q_SIZE: int = 12
 SWITCH_DEBOUNCE_MS: int = 600
-DEFAULT_BUTTON_LABEL = ' X    <    >   Prev'
+DEFAULT_BUTTON_LABEL = 'X     <     >    Prev'
 TIME_SET_BUTTON_LABEL = 'Select   -   +   Save'
 
 btn1_gpio = 12
