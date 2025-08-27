@@ -1091,7 +1091,7 @@ class ScheduleSunriseDuration(Menu):
         self.pre_select_idx = 1
         self.pre_select_menu = [15, 30, 60, 90]
         self.duration_minutes = 60
-        self.menu_line4 = 'Select   -   +   Save'
+        self.menu_line4 = 'Preset   -   +   Save'
         self.load_previous_duration()
 
     def reset(self):
