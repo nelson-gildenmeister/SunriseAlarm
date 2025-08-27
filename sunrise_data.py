@@ -7,19 +7,20 @@ DEFAULT_START_TIME = '05:00'
 class SunriseSettings:
 
     def __init__(self, weekday_sched_enabled: bool, weekend_sched_enabled: bool, daily_sched_enabled: bool,
-                 days, start_time: list[str], duration_minutes: list[int]):
+                 days, start_time: list[str], duration_minutes: list[int], auto_off_minutes):
         self.weekday_sched_enabled: bool = weekday_sched_enabled
         self.weekend_sched_enabled: bool = weekend_sched_enabled
         self.daily_sched_enabled: bool = daily_sched_enabled
         self.days: str = days
         self.start_time: list[str] = start_time
         self.duration_minutes: list[int] = duration_minutes
+        self.auto_off_minutes = auto_off_minutes
 
 
 def setting_decoder(obj):
     if '__type__' in obj and obj['__type__'] == 'SunriseSettings':
         return SunriseSettings(obj['weekday_sched_enabled'], obj['weekend_sched_enabled'], obj['daily_sched_enabled'],
-                               obj['days'], obj['start_time'], obj['duration_minutes'])
+                               obj['days'], obj['start_time'], obj['duration_minutes'], obj['auto_off_minutes'])
 
     return obj
 

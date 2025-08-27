@@ -892,7 +892,6 @@ class ScheduleDailyMenu(Menu):
     def update_display(self):
         print('ScheduleDailyMenu:update_display()')
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
-        # self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
         self.controller.disp_thread.line3 = calendar.day_name[self.menu_idx]
         self.controller.disp_thread.line4 = self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
@@ -1276,36 +1275,68 @@ class TimeMenu(Menu):
 
 
 class SetDisplayOffTimeMenu(Menu):
-    def __init__(self, controller, prev_menu):
-        super().__init__(controller, MenuName.display_timer, prev_menu)
-        self.menu_line3 = ''
-        self.menu_line4 = ''
-        self.current_sub_menu = ''
+    def __init__(self, controller, prev_menu, day_of_week: int):
+        super().__init__(controller, MenuName.set_duration, prev_menu)
+        self.day_of_week: int = day_of_week
+        self.is_pre_select: bool = False
+        self.pre_select_idx = 1
+        self.pre_select_menu = [1, 3, 5, 7]
+        self.auto_off_minutes = 3
+        self.menu_line4 = 'Preset   -   +   Save'
+        self.load_auto_off()
 
     def reset(self):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.line3(self.menu_line3)
-        self.controller.disp_thread.line4(self.menu_line4)
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.auto_off_minutes)
+        self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
         match btn:
             case 1:
-                # Select
-                pass
-            case 2:
-                # Left
-                pass
-            case 3:
-                # Right
-                pass
+                # Pre-select
+                if self.is_pre_select:
+                    self.pre_select_idx = (self.pre_select_idx + 1) % len(self.pre_select_menu)
+                else:
+                    self.pre_select_idx = 0
+
+                self.is_pre_select = True
+                self.auto_off_minutes = self.pre_select_menu[self.pre_select_idx]
+                self.update_display()
+            case 2 | 3:
+                # Down/Up
+                self.is_pre_select = False
+                increment = 1
+                if btn == 2:
+                    increment = -1
+
+                self.auto_off_minutes = self.auto_off_minutes + increment
+
+                if self.auto_off_minutes < 0:
+                    self.auto_off_minutes = 1
+                if self.auto_off_minutes > 10:
+                    self.auto_off_minutes = 10
+                self.update_display()
             case 4:
-                # Prev
+                # Save
+                self.save_auto_off()
                 return self.previous_menu
 
         return self
+
+    def load_auto_off(self):
+        """
+        Loads the previous duration setting and updates the display with its value
+        :return: None
+        """
+        self.auto_off_minutes = self.controller.settings.auto_off_minutes
+
+    def save_auto_off(self):
+        print('Saving new auto-off minutes')
+        self.controller.data.settings.auto_off_minutes = self.auto_off_minutes
+        self.controller.data.save_settings()
 
 
 class SetDateMenu(Menu):
