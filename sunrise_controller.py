@@ -639,6 +639,10 @@ class TopMenu(Menu):
         # Other buttons cancel a running schedule
         if self.controller.is_running:
             self.controller.cancel_running_schedule()
+            # Display should now be off so don't take action if On/Off button pushed
+            if btn == 4:
+                self.update_display()
+                return self
 
         dimmer_prev_on: bool = self.controller.dimmer.is_on()
 
