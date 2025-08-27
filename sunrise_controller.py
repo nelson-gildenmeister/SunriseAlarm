@@ -774,11 +774,13 @@ class ScheduleMenu(Menu):
             case 2:
                 # Left
                 self.menu_idx = (self.menu_idx - 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(self.menus[self.menu_idx].value))
             case 3:
                 # Right
                 self.menu_idx = (self.menu_idx + 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(self.menus[self.menu_idx].value))
             case 4:
                 # Prev
                 return self.previous_menu
@@ -821,11 +823,13 @@ class ScheduleWeekdayMenu(Menu):
             case 2:
                 # Left
                 self.menu_idx = (self.menu_idx - 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(self.menus[self.menu_idx].value))
             case 3:
                 # Right
                 self.menu_idx = (self.menu_idx + 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(self.menus[self.menu_idx].value))
             case 4:
                 # Prev
                 return self.previous_menu
@@ -857,11 +861,13 @@ class ScheduleWeekendMenu(Menu):
             case 2:
                 # Left
                 self.menu_idx = (self.menu_idx - 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(self.menus[self.menu_idx].value))
             case 3:
                 # Right
                 self.menu_idx = (self.menu_idx + 1) % len(self.menus)
-                self.controller.disp_thread.update_line3_display(self.menus[self.menu_idx].value)
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(self.menus[self.menu_idx].value))
             case 4:
                 # Prev
                 return self.previous_menu
@@ -899,11 +905,13 @@ class ScheduleDailyMenu(Menu):
             case 2:
                 # Left
                 self.menu_idx = (self.menu_idx - 1) % len(calendar.day_name)
-                self.controller.disp_thread.update_line3_display(calendar.day_name[self.menu_idx])
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(calendar.day_name[self.menu_idx]))
             case 3:
                 # Right
                 self.menu_idx = (self.menu_idx + 1) % len(calendar.day_name)
-                self.controller.disp_thread.update_line3_display(calendar.day_name[self.menu_idx])
+                self.controller.disp_thread.update_line3_display(
+                    self.controller.disp_thread.center_line(calendar.day_name[self.menu_idx]))
             case 4:
                 # Prev
                 return self.previous_menu
