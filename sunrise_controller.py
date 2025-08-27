@@ -894,7 +894,7 @@ class ScheduleDailyMenu(Menu):
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
         # self.controller.disp_thread.line3 = self.menus[self.menu_idx].value
         self.controller.disp_thread.line3 = calendar.day_name[self.menu_idx]
-        self.controller.disp_thread.line4 = self.menu_line4
+        self.controller.disp_thread.line4 = self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
