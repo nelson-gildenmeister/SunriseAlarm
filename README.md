@@ -1,3 +1,7 @@
+## Introduction
+This project implements a sunrise alarm clock that allows a user to wake up gradually via slow dimming up of a plugged in lamp.
+The code is used in conjunction with the following hardware: raspberrypi, dimmer module, oled display, 4-button module, 120V socket.  A descriptive parts list appears at the bottom of this README.
+
 ## Host Ubuntu VM install on VmWare:
 Don't install VMware Tools (to get copy/paste, etc.). Use open-vm-tools-desktop if using a GUI or for command line use open-vm-tools and then restart:
 sudo apt update && sudo apt -y install open-vm-tools-desktop
@@ -160,3 +164,10 @@ git merge origin/master
 python sunrise_main.py
 ```
 
+## Hardware List
+Note that the dimmer module used is NOT a zero-crossing detect type.  Instead, it is controlled by connecting its Pulse Width Modulated (PWM) input to a GPIO pin on the RaspberryPi and varying the duty cycle to control the brightness level.
+1. Raspberry Pi Zero 2 or Zero 2 W
+2. Adafruit PiOLED - 128X32 Monochrome OLED: [Adafruit PiOled](https://www.adafruit.com/product/3527)
+3. PWM AC Voltage Dimmer - available from Amazon: [PWM dimmer](https://www.amazon.com/Light-Dimmer-Module-Arduino-Raspberry/dp/B06Y1DT1WP?pd_rd_w=vvctp&content-id=amzn1.sym.4af096b2-fb5d-43d2-a23c-ac48118349a2&pf_rd_p=4af096b2-fb5d-43d2-a23c-ac48118349a2&pf_rd_r=SND5D1CAYWRCNDGEEBTS&pd_rd_wg=tn9Gn&pd_rd_r=c463b44b-bfe3-47ac-ab67-65d962170773&pd_rd_i=B06Y1DT1WP&psc=1&ref_=pd_basp_d_rpt_ba_s_1_t) or direct from www.IOTMUG.com
+4. 4-key Keyboard module push button switch: [pushbutton module](https://www.amazon.com/gp/product/B09WB1VD97/ref=ox_sc_act_title_1?smid=A1U1S78HE02JLU&psc=1)
+5. AC 120V USA standard 2 prong power socket
