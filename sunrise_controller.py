@@ -54,14 +54,6 @@ class MenuName(Enum):
     network = 'Network Settings'
 
 
-@dataclass
-class DisplayState:
-    status = {'idle_no_prog': ['No sunrise program set'],
-              'idle_prog_set': ['Next sunrise starts in: %1'],
-              'in_progress': ['Sunrise started %1 minutes ago...%2 minutes remaining'],
-              'main_menu': ['Set Schedule', 'Set Clock']}
-
-
 def calc_start_datetime(start_time: str, increment_from_today: int) -> dt.datetime:
     """ Settings for start are day of week and hour:minute. To figure out actual date/time of start, need to
         add in the number of days from today's date.  E.g., if it is Tuesday and next sunrise is next Tuesday, the
