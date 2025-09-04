@@ -166,6 +166,7 @@ class DisplayThread(threading.Thread):
         self.msg_q.put(self.wake, False)
 
     def update_display(self):
+        print(f'DisplayThread:update_display() - line3={self.line3}, line4={self.line4}')
         self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
         self._view.scroll = self.scroll
         self.msg_q.put(self.update, False)
