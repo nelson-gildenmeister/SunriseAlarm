@@ -166,7 +166,6 @@ class DisplayThread(threading.Thread):
         self.msg_q.put(self.wake, False)
 
     def update_display(self):
-        print(f'DisplayThread:update_display() - line3={self.line3}, line4={self.line4}')
         self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
         self._view.scroll = self.scroll
         self.msg_q.put(self.update, False)
@@ -1311,8 +1310,8 @@ class SetDateMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
-        self.controller.disp_thread.center_line(self.menu_line3)
-        self.controller.disp_thread.center_line(self.menu_line4)
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.menu_line3)
+        self.controller.disp_thread.line4 = self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
@@ -1345,9 +1344,8 @@ class NetworkMenu(Menu):
 
     def update_display(self):
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
-        self.controller.disp_thread.center_line(self.menu_line3)
-        self.controller.disp_thread.center_line('JUNK')
-        self.controller.disp_thread.center_line(self.menu_line4)
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.menu_line3)
+        self.controller.disp_thread.line4 = self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
