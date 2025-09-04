@@ -1346,6 +1346,7 @@ class NetworkMenu(Menu):
     def update_display(self):
         self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
         self.controller.disp_thread.center_line(self.menu_line3)
+        self.controller.disp_thread.center_line('JUNK')
         self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
 
