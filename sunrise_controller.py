@@ -1246,7 +1246,7 @@ class SetDisplayOffTimeMenu(Menu):
         pass
 
     def update_display(self):
-        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(self.auto_off_minutes)
+        self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(str(self.auto_off_minutes))
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
 
