@@ -1340,7 +1340,7 @@ class NetworkMenu(Menu):
         self.current_sub_menu = ''
 
     def update_display(self):
-        elf.controller.disp_thread.center_line(self.menu_line3)
+        self.controller.disp_thread.center_line(self.menu_line3)
         self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
 
