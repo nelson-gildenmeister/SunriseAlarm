@@ -1232,40 +1232,6 @@ class EnableMenu(Menu):
         self.controller.handle_schedule_change()
 
 
-class TimeMenu(Menu):
-    def reset(self):
-        pass
-
-    def update_display(self):
-        pass
-
-    def button_handler(self, btn: int) -> Menu:
-        match btn:
-            case 1:
-                # Select
-                pass
-            case 2:
-                # Left
-                pass
-            case 3:
-                # Right
-                pass
-            case 4:
-                # Prev
-                return self.previous_menu
-
-        return self
-
-    def __init__(self, controller: SunriseController, menu_state_name: MenuName, prev_menu):
-        super().__init__(controller, menu_state_name, prev_menu)
-        self.time_disp_list = ['Start', 'Duration']
-        self.day = None
-
-    def set_day(self, day) -> Self:
-        self.day = day
-        return self
-
-
 class SetDisplayOffTimeMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.display_timer, prev_menu)
@@ -1333,16 +1299,16 @@ class SetDisplayOffTimeMenu(Menu):
 class SetDateMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.set_date, prev_menu)
-        self.menu_line3 = ''
-        self.menu_line4 = ''
+        self.menu_line3 = 'Not Implemented'
+        self.menu_line4 = DEFAULT_BUTTON_LABEL
         self.current_sub_menu = ''
 
     def reset(self):
         self.current_sub_menu = ''
 
     def update_display(self):
-        self.controller.disp_thread.line3(self.menu_line3)
-        self.controller.disp_thread.line4(self.menu_line4)
+        self.controller.disp_thread.center_line(self.menu_line3)
+        self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
@@ -1366,16 +1332,16 @@ class SetDateMenu(Menu):
 class NetworkMenu(Menu):
     def __init__(self, controller, prev_menu):
         super().__init__(controller, MenuName.network, prev_menu)
-        self.menu_line3 = ''
-        self.menu_line4 = ''
+        self.menu_line3 = 'Not Implemented'
+        self.menu_line4 = DEFAULT_BUTTON_LABEL
         self.current_sub_menu = ''
 
     def reset(self):
         self.current_sub_menu = ''
 
     def update_display(self):
-        self.controller.disp_thread.line3(self.menu_line3)
-        self.controller.disp_thread.line4(self.menu_line4)
+        elf.controller.disp_thread.center_line(self.menu_line3)
+        self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
 
     def button_handler(self, btn: int) -> Menu:
