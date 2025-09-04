@@ -88,6 +88,7 @@ class DisplayThread(threading.Thread):
         self._view = view
         self.data = data
         self.event = event
+        self.auto_off_minutes = 1
         self.line1 = ''
         self.line2 = ''
         self.line3 = ''
@@ -101,9 +102,11 @@ class DisplayThread(threading.Thread):
     class DisplayThreadMessages(Enum):
         Wake = 1
         Update = 2
+        AutoOff = 3
 
     wake = DisplayThreadMessages.Wake
     update = DisplayThreadMessages.Update
+    auto_off = DisplayThreadMessages.AutoOff
 
     def run(self):
         print("ENTER DisplayThread run()")
@@ -142,6 +145,10 @@ class DisplayThread(threading.Thread):
                         if msg == self.update:
                             self._view.update_display()
                             self.update_made = True
+                        elif msg == self.auto_off:
+                            self._view.set_auto_off_minutes(self)
+                        else:
+                            print(f'ERROR - unknown message received in DisplayThread: {msg}')
                     except queue.Empty:
                         # Okay for no display changes
                         pass
@@ -155,15 +162,23 @@ class DisplayThread(threading.Thread):
 
                 self._view.check_display_idle_off()
 
-            # Wait for something to wake up the display
+            # Wait for something to wake up the display or other message
             msg = self.msg_q.get(True)
             if msg == self.wake:
                 print('Waking Display...')
                 self._view.turn_display_on()
+            elif msg == self.auto_off:
+                self._view.set_auto_off_minutes(self)
+            else:
+                print(f'ERROR - unknown message received in DisplayThread: {msg}')
 
     # Send a message to unblock the display thread and start display updates again.
     def turn_on_display(self):
         self.msg_q.put(self.wake, False)
+
+    def update_auto_off(self, ao_minutes: int):
+        self.auto_off_minutes = ao_minutes
+        self.msg_q.put(self.auto_off, False)
 
     def update_display(self):
         self._view.set_display_lines(self.line1, self.line2, self.line3, self.line4)
@@ -1281,6 +1296,7 @@ class SetDisplayOffTimeMenu(Menu):
             case 4:
                 # Save
                 self.save_auto_off()
+                self.controller.disp_thread.update_auto_off(self.auto_off_minutes)
                 return self.previous_menu
 
         return self

@@ -69,6 +69,9 @@ class OledDisplay:
 
         self.clear_display()
 
+    def set_auto_off_minutes(self, ao_minutes:int):
+        self.display_auto_power_off_minutes = ao_minutes
+
     def clear_display(self):
         self.disp.fill(0)
         self.disp.show()
