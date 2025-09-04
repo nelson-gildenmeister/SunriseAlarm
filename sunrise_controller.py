@@ -1155,6 +1155,7 @@ class EnableMenu(Menu):
         pass
 
     def update_display(self):
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
         self.controller.disp_thread.line3 = f'{self.el[0]}   {self.el[1]}   {self.el[2]}'
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
@@ -1246,6 +1247,7 @@ class SetDisplayOffTimeMenu(Menu):
         pass
 
     def update_display(self):
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
         self.controller.disp_thread.line3 = self.controller.disp_thread.center_line(str(self.auto_off_minutes))
         self.controller.disp_thread.line4 = self.menu_line4
         self.controller.disp_thread.update_display()
@@ -1307,6 +1309,7 @@ class SetDateMenu(Menu):
         self.current_sub_menu = ''
 
     def update_display(self):
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
         self.controller.disp_thread.center_line(self.menu_line3)
         self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
@@ -1340,6 +1343,7 @@ class NetworkMenu(Menu):
         self.current_sub_menu = ''
 
     def update_display(self):
+        self.controller.disp_thread.line2 = get_hierarchical_menu_string(self)
         self.controller.disp_thread.center_line(self.menu_line3)
         self.controller.disp_thread.center_line(self.menu_line4)
         self.controller.disp_thread.update_display()
